@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Login - Boxy{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+            <div class="brand-icon me-2">
+                <i class="fas fa-box"></i>
+            </div>
+            <span class="fw-bold">Boxy</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('send_parcel') }}">Send Parcel</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('track_parcel') }}">Track Parcel</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="{{ url_for('admin') }}">Admin</a>
+                </li>
+                <li class="nav-item ms-3">
+                    <a class="btn btn-primary btn-partner" href="{{ url_for('partner') }}">Become a Partner</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Admin Login Section -->
+<section class="admin-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-5 col-md-7">
+                <div class="text-center mb-5">
+                    <div class="admin-icon mb-3">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <h1 class="section-title mb-3">Admin Login</h1>
+                    <p class="section-description">
+                        Access the admin dashboard to manage parcels, deliveries, and system settings.
+                    </p>
+                </div>
+
+                <!-- Login Form -->
+                <div class="admin-card card border-0 shadow-lg">
+                    <div class="card-body p-5">
+                        <form id="adminLoginForm">
+                            <div class="mb-4">
+                                <label for="adminEmail" class="form-label fw-bold">
+                                    <i class="fas fa-envelope me-2"></i>Email Address
+                                </label>
+                                <input type="email" class="form-control form-control-lg" id="adminEmail" 
+                                       name="adminEmail" placeholder="admin@boxy.com" required>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="adminPassword" class="form-label fw-bold">
+                                    <i class="fas fa-lock me-2"></i>Password
+                                </label>
+                                <input type="password" class="form-control form-control-lg" id="adminPassword" 
+                                       name="adminPassword" placeholder="Enter your password" required>
+                            </div>
+                            
+                            <div class="mb-4 form-check">
+                                <input type="checkbox" class="form-check-input" id="rememberMe">
+                                <label class="form-check-label" for="rememberMe">
+                                    Remember me
+                                </label>
+                            </div>
+                            
+                            <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-primary btn-lg btn-orange">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                                </button>
+                            </div>
+                            
+                            <div class="text-center">
+                                <a href="#" class="text-decoration-none">Forgot Password?</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Admin Dashboard (Hidden by default) -->
+                <div id="adminDashboard" class="admin-dashboard card border-0 shadow-lg mt-4 d-none">
+                    <div class="card-body p-5">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="mb-0">
+                                <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+                            </h4>
+                            <button class="btn btn-outline-danger btn-sm" id="logoutBtn">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </button>
+                        </div>
+
+                        <!-- Stats Cards -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="stat-card-small bg-primary text-white p-3 rounded">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-0">Total Parcels</h6>
+                                            <h3 class="mb-0 mt-2">1,247</h3>
+                                        </div>
+                                        <i class="fas fa-box fa-2x opacity-50"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="stat-card-small bg-success text-white p-3 rounded">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-0">Delivered Today</h2>
+                                            <h3 class="mb-0 mt-2">2,847</h3>
+                                        </div>
+                                        <i class="fas fa-check-circle fa-2x opacity-50"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="stat-card-small bg-warning text-white p-3 rounded">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-0">In Transit</h6>
+                                            <h3 class="mb-0 mt-2">456</h3>
+                                        </div>
+                                        <i class="fas fa-truck fa-2x opacity-50"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="stat-card-small bg-info text-white p-3 rounded">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-0">Pending</h6>
+                                            <h3 class="mb-0 mt-2">123</h3>
+                                        </div>
+                                        <i class="fas fa-clock fa-2x opacity-50"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="quick-actions mb-4">
+                            <h5 class="mb-3"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <a href="{{ url_for('track_parcel') }}" class="btn btn-outline-primary w-100">
+                                        <i class="fas fa-search me-2"></i>Track Parcel
+                                    </a>
+                                </div>
+                                <div class="col-md-6">
+                                    <button class="btn btn-outline-success w-100">
+                                        <i class="fas fa-plus me-2"></i>Add New Parcel
+                                    </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <button class="btn btn-outline-warning w-100">
+                                        <i class="fas fa-users me-2"></i>Manage Partners
+                                    </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <button class="btn btn-outline-info w-100">
+                                        <i class="fas fa-chart-bar me-2"></i>View Reports
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Parcels Table -->
+                        <div class="recent-parcels">
+                            <h5 class="mb-3"><i class="fas fa-list me-2"></i>Recent Parcels</h5>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Tracking #</th>
+                                            <th>Sender</th>
+                                            <th>Receiver</th>
+                                            <th>Status</th>
+                                            <th>Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>QP123456789</td>
+                                            <td>John Doe</td>
+                                            <td>Jane Smith</td>
+                                            <td><span class="badge bg-success">Delivered</span></td>
+                                            <td>Dec 24, 2025</td>
+                                        </tr>
+                                        <tr>
+                                            <td>QP987654321</td>
+                                            <td>Mike Johnson</td>
+                                            <td>Sarah Williams</td>
+                                            <td><span class="badge bg-warning">In Transit</span></td>
+                                            <td>Dec 25, 2025</td>
+                                        </tr>
+                                        <tr>
+                                            <td>QP456789123</td>
+                                            <td>David Brown</td>
+                                            <td>Emily Davis</td>
+                                            <td><span class="badge bg-info">Pending</span></td>
+                                            <td>Dec 25, 2025</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer bg-dark text-white py-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <h5 class="mb-3">Boxy</h5>
+                <p class="text-white-50">
+                    Fast, reliable, and affordable parcel delivery service. Your packages delivered with care.
+                </p>
+                <div class="social-links mt-3">
+                    <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h5 class="mb-3">Quick Links</h5>
+                <ul class="list-unstyled">
+                    <li><a href="{{ url_for('index') }}" class="text-white-50 text-decoration-none">Home</a></li>
+                    <li><a href="{{ url_for('send_parcel') }}" class="text-white-50 text-decoration-none">Send Parcel</a></li>
+                    <li><a href="{{ url_for('track_parcel') }}" class="text-white-50 text-decoration-none">Track Parcel</a></li>
+                    <li><a href="{{ url_for('admin') }}" class="text-white-50 text-decoration-none">Admin Login</a></li>
+                    <li><a href="{{ url_for('partner') }}" class="text-white-50 text-decoration-none">Partner Login</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h5 class="mb-3">Services</h5>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-white-50 text-decoration-none">Same Day Delivery</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">Express Shipping</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">Standard Delivery</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">Live Tracking</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h5 class="mb-3">Contact Us</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-phone me-2"></i>
+                        <a href="tel:+15551234567" class="text-white-50 text-decoration-none">+1 (555) 123-4567</a>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-envelope me-2"></i>
+                        <a href="mailto:support@boxy.com" class="text-white-50 text-decoration-none">support@boxy.com</a>
+                    </li>
+                    <li>
+                        <i class="fas fa-map-marker-alt me-2"></i>
+                        <span class="text-white-50">123 Delivery Street, Logistics City, LC 12345</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <hr class="my-4 bg-white-50">
+        <div class="text-center">
+            <p class="text-white-50 mb-0">&copy; 2025 Boxy. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Simple demo login (in production, this would validate against a database)
+    const email = document.getElementById('adminEmail').value;
+    const password = document.getElementById('adminPassword').value;
+    
+    // Demo credentials: admin@boxy.com / admin123
+    if (email === 'admin@boxy.com' && password === 'admin123') {
+        // Show dashboard
+        document.getElementById('adminLoginForm').closest('.admin-card').classList.add('d-none');
+        document.getElementById('adminDashboard').classList.remove('d-none');
+    } else {
+        alert('Invalid credentials. Use: admin@boxy.com / admin123');
+    }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', function() {
+    document.getElementById('adminDashboard').classList.add('d-none');
+    document.getElementById('adminLoginForm').closest('.admin-card').classList.remove('d-none');
+    document.getElementById('adminLoginForm').reset();
+});
+</script>
+{% endblock %}
+

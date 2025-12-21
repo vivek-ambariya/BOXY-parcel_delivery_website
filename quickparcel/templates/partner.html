@@ -1,0 +1,472 @@
+{% extends "base.html" %}
+
+{% block title %}Become a Partner - Boxy{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+            <div class="brand-icon me-2">
+                <i class="fas fa-box"></i>
+            </div>
+            <span class="fw-bold">Boxy</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('send_parcel') }}">Send Parcel</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('track_parcel') }}">Track Parcel</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('admin') }}">Admin</a>
+                </li>
+                <li class="nav-item ms-3">
+                    <a class="btn btn-primary btn-partner active" href="{{ url_for('partner') }}">Become a Partner</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Partner Section -->
+<section class="partner-page-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- Header -->
+                <div class="text-center mb-5" id="pageHeader">
+                    <div class="partner-icon mb-3">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <h1 class="section-title mb-3">Become a Delivery Partner</h1>
+                    <p class="section-description">
+                        Join our team of delivery partners and start earning. Work on your own schedule with flexible hours.
+                    </p>
+                </div>
+
+                <!-- Login/Register Tabs (Hidden when logged in) -->
+                <div id="authSection">
+                    <ul class="nav nav-tabs justify-content-center mb-4" id="partnerTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" 
+                                    type="button" role="tab">
+                                <i class="fas fa-user-plus me-2"></i>Register as Partner
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" 
+                                    type="button" role="tab">
+                                <i class="fas fa-sign-in-alt me-2"></i>Partner Login
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content" id="partnerTabContent">
+                        <!-- Register Tab -->
+                        <div class="tab-pane fade show active" id="register" role="tabpanel">
+                            <div class="partner-card card border-0 shadow-lg">
+                                <div class="card-body p-5">
+                                    <h4 class="mb-4"><i class="fas fa-user-plus me-2"></i>Partner Registration</h4>
+                                    
+                                    <form id="partnerRegisterForm">
+                                        <div class="row g-4">
+                                            <div class="col-md-6">
+                                                <label for="partnerFirstName" class="form-label">First Name <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control form-control-lg" id="partnerFirstName" required>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <label for="partnerLastName" class="form-label">Last Name <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control form-control-lg" id="partnerLastName" required>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <label for="partnerPhone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                                                <input type="tel" class="form-control form-control-lg" id="partnerPhone" 
+                                                       placeholder="+91 9876543210" required>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <label for="partnerEmail" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                                <input type="email" class="form-control form-control-lg" id="partnerEmail" required>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <label for="partnerVehicle" class="form-label">Vehicle Type <span class="text-danger">*</span></label>
+                                                <select class="form-select form-select-lg" id="partnerVehicle" required>
+                                                    <option value="">Select Vehicle</option>
+                                                    <option value="bike">Bike</option>
+                                                    <option value="scooter">Scooter</option>
+                                                    <option value="cycle">Cycle</option>
+                                                    <option value="car">Car</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <label for="partnerVehicleNumber" class="form-label">Vehicle Number <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control form-control-lg" id="partnerVehicleNumber" 
+                                                       placeholder="MH 12 AB 1234" required>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <label for="partnerAadhar" class="form-label">Aadhar Number / ID Proof <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control form-control-lg" id="partnerAadhar" 
+                                                       placeholder="1234 5678 9012" maxlength="12" required>
+                                                <small class="form-text text-muted">12-digit Aadhar number</small>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <label for="partnerPhoto" class="form-label">Upload Photo (Optional)</label>
+                                                <input type="file" class="form-control form-control-lg" id="partnerPhoto" accept="image/*">
+                                                <small class="form-text text-muted">Profile picture (for college demo - simulated)</small>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <label for="partnerPassword" class="form-label">Password <span class="text-danger">*</span></label>
+                                                <input type="password" class="form-control form-control-lg" id="partnerPassword" required>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <label for="partnerConfirmPassword" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                                <input type="password" class="form-control form-control-lg" id="partnerConfirmPassword" required>
+                                            </div>
+                                            
+                                            <div class="col-12">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                                                    <label class="form-check-label" for="agreeTerms">
+                                                        I agree to the <a href="#">Terms and Conditions</a> and <a href="#">Privacy Policy</a>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-12">
+                                                <div class="d-grid">
+                                                    <button type="submit" class="btn btn-primary btn-lg btn-blue">
+                                                        <i class="fas fa-user-plus me-2"></i>Register as Partner
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+
+                                    <!-- Success Message -->
+                                    <div id="registerSuccess" class="alert alert-success mt-4 d-none" role="alert">
+                                        <h5 class="alert-heading"><i class="fas fa-check-circle me-2"></i>Registration Successful!</h5>
+                                        <p class="mb-0">Your partner account has been created and auto-approved. You can now login to access your dashboard.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Login Tab -->
+                        <div class="tab-pane fade" id="login" role="tabpanel">
+                            <div class="partner-card card border-0 shadow-lg">
+                                <div class="card-body p-5">
+                                    <h4 class="mb-4"><i class="fas fa-sign-in-alt me-2"></i>Partner Login</h4>
+                                    
+                                    <form id="partnerLoginForm">
+                                        <div class="mb-4">
+                                            <label for="loginEmail" class="form-label fw-bold">
+                                                <i class="fas fa-envelope me-2"></i>Email Address or Phone
+                                            </label>
+                                            <input type="text" class="form-control form-control-lg" id="loginEmail" 
+                                                   placeholder="Enter email or phone" required>
+                                        </div>
+                                        
+                                        <div class="mb-4">
+                                            <label for="loginPassword" class="form-label fw-bold">
+                                                <i class="fas fa-lock me-2"></i>Password
+                                            </label>
+                                            <input type="password" class="form-control form-control-lg" id="loginPassword" 
+                                                   placeholder="Enter your password" required>
+                                        </div>
+                                        
+                                        <div class="mb-4 form-check">
+                                            <input type="checkbox" class="form-check-input" id="rememberPartner">
+                                            <label class="form-check-label" for="rememberPartner">
+                                                Remember me
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="d-grid mb-3">
+                                            <button type="submit" class="btn btn-primary btn-lg btn-blue">
+                                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                                            </button>
+                                        </div>
+                                        
+                                        <div class="text-center">
+                                            <a href="#" class="text-decoration-none">Forgot Password?</a>
+                                        </div>
+                                    </form>
+
+                                    <div id="loginError" class="alert alert-danger mt-3 d-none" role="alert">
+                                        <i class="fas fa-exclamation-circle me-2"></i><span id="loginErrorMsg"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Partner Dashboard (Hidden by default) -->
+                <div id="partnerDashboard" class="d-none">
+                    <!-- Dashboard Header -->
+                    <div class="dashboard-header card border-0 shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <div class="partner-avatar-circle me-3">
+                                            <i class="fas fa-user-cog"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="mb-0" id="partnerName">Demo Partner</h4>
+                                            <p class="text-muted mb-0" id="partnerId">ID: DP1001</p>
+                                        </div>
+                                    </div>
+                                    <!-- New Delivery Requests Bar (shown when live) -->
+                                    <div id="newDeliveryBar" class="mt-3 d-none">
+                                        <div class="alert alert-success mb-0 py-2">
+                                            <i class="fas fa-bell me-2"></i>
+                                            <span id="newDeliveryCount">0</span> new delivery requests available nearby
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <div class="d-flex align-items-center justify-content-end gap-3">
+                                        <button class="btn btn-lg btn-go-live" id="goLiveBtn" onclick="toggleGoLive()">
+                                            <i class="fas fa-power-off me-2"></i>Tap to Go Live
+                                        </button>
+                                        <button class="btn btn-success btn-lg" id="liveStatusBtn" onclick="toggleGoLive()" style="display: none;">
+                                            <i class="fas fa-bolt me-2"></i>You are LIVE
+                                        </button>
+                                        <button class="btn btn-danger btn-square" id="goLiveArrow" onclick="toggleGoLive()" style="display: none;">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger" id="partnerLogoutBtn">
+                                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <div class="stat-card-small bg-primary text-white p-3 rounded text-center">
+                                <h6 class="mb-1">Total Deliveries</h6>
+                                <h3 class="mb-0" id="totalDeliveries">0</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card-small bg-success text-white p-3 rounded text-center">
+                                <h6 class="mb-1">Completed</h6>
+                                <h3 class="mb-0" id="completedDeliveries">0</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card-small bg-warning text-white p-3 rounded text-center">
+                                <h6 class="mb-1">In Progress</h6>
+                                <h3 class="mb-0" id="inProgressDeliveries">0</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card-small bg-info text-white p-3 rounded text-center">
+                                <h6 class="mb-1">Earnings</h6>
+                                <h3 class="mb-0" id="totalEarnings">₹0</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Delivery Requests Tabs -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-light p-0">
+                            <ul class="nav nav-tabs nav-tabs-custom" id="deliveryTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="available-tab" data-bs-toggle="tab" data-bs-target="#available-deliveries" type="button">
+                                        Available
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="active-tab" data-bs-toggle="tab" data-bs-target="#active-deliveries" type="button">
+                                        Active (<span id="activeCountBadge">0</span>)
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed-deliveries" type="button">
+                                        Completed (<span id="completedCountBadge">0</span>)
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-body">
+                            <div class="tab-content" id="deliveryTabContent">
+                                <div class="tab-pane fade show active" id="available-deliveries">
+                                    <div id="availableDeliveriesList">
+                                        <!-- Offline Message -->
+                                        <div id="offlineMessage" class="offline-status-card">
+                                            <div class="offline-icon-wrapper">
+                                                <i class="fas fa-power-off"></i>
+                                            </div>
+                                            <h4 class="mt-3 mb-2">You're Offline</h4>
+                                            <p class="text-muted">Tap the "Go Live" button above to start receiving delivery requests</p>
+                                        </div>
+                                        <!-- Looking for Deliveries (when live but no deliveries) -->
+                                        <div id="lookingForDeliveries" class="looking-for-deliveries-card d-none">
+                                            <div class="looking-icon-wrapper">
+                                                <i class="fas fa-box"></i>
+                                            </div>
+                                            <h4 class="mt-3 mb-2">Looking for deliveries...</h4>
+                                            <p class="text-muted">We'll notify you when new jobs are available.</p>
+                                            <div class="live-ready-indicator mt-4">
+                                                <span class="live-dot"></span>
+                                                <span class="ms-2">You're live and ready</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="active-deliveries">
+                                    <div id="activeDeliveriesList">
+                                        <p class="text-muted text-center">No active deliveries.</p>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="completed-deliveries">
+                                    <div id="completedDeliveriesList">
+                                        <p class="text-muted text-center">No completed deliveries yet.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Benefits Section (Only show when not logged in) -->
+                <div class="row g-4 mt-4" id="benefitsSection">
+                    <div class="col-md-4">
+                        <div class="benefit-card text-center p-4">
+                            <div class="benefit-icon mb-3">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <h5>Earn More</h5>
+                            <p class="text-muted">Competitive rates and flexible payment options</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="benefit-card text-center p-4">
+                            <div class="benefit-icon mb-3">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <h5>Flexible Hours</h5>
+                            <p class="text-muted">Work on your own schedule, choose your delivery times</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="benefit-card text-center p-4">
+                            <div class="benefit-icon mb-3">
+                                <i class="fas fa-headset"></i>
+                            </div>
+                            <h5>24/7 Support</h5>
+                            <p class="text-muted">Get help whenever you need it</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Go Live Modal -->
+<div class="modal fade" id="goLiveModal" tabindex="-1" aria-labelledby="goLiveModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-body text-center p-5">
+                <div class="go-live-icon mb-4">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h2 class="mb-3">You're Now Live!</h2>
+                <p class="text-muted mb-4">Start accepting delivery requests</p>
+                <button type="button" class="btn btn-orange btn-lg" data-bs-dismiss="modal">
+                    Got it!
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer bg-dark text-white py-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <h5 class="mb-3">Boxy</h5>
+                <p class="text-white-50">
+                    Fast, reliable, and affordable parcel delivery service. Your packages delivered with care.
+                </p>
+                <div class="social-links mt-3">
+                    <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h5 class="mb-3">Quick Links</h5>
+                <ul class="list-unstyled">
+                    <li><a href="{{ url_for('index') }}" class="text-white-50 text-decoration-none">Home</a></li>
+                    <li><a href="{{ url_for('send_parcel') }}" class="text-white-50 text-decoration-none">Send Parcel</a></li>
+                    <li><a href="{{ url_for('track_parcel') }}" class="text-white-50 text-decoration-none">Track Parcel</a></li>
+                    <li><a href="{{ url_for('admin') }}" class="text-white-50 text-decoration-none">Admin Login</a></li>
+                    <li><a href="{{ url_for('partner') }}" class="text-white-50 text-decoration-none">Partner Login</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h5 class="mb-3">Services</h5>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-white-50 text-decoration-none">Same Day Delivery</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">Express Shipping</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">Standard Delivery</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">Live Tracking</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h5 class="mb-3">Contact Us</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-phone me-2"></i>
+                        <a href="tel:+15551234567" class="text-white-50 text-decoration-none">+1 (555) 123-4567</a>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-envelope me-2"></i>
+                        <a href="mailto:support@boxy.com" class="text-white-50 text-decoration-none">support@boxy.com</a>
+                    </li>
+                    <li>
+                        <i class="fas fa-map-marker-alt me-2"></i>
+                        <span class="text-white-50">123 Delivery Street, Logistics City, LC 12345</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <hr class="my-4 bg-white-50">
+        <div class="text-center">
+            <p class="text-white-50 mb-0">&copy; 2025 Boxy. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/partner.js') }}"></script>
+{% endblock %}

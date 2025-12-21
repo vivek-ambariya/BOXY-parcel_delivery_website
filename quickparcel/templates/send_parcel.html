@@ -1,0 +1,570 @@
+{% extends "base.html" %}
+
+{% block title %}Send Parcel - Boxy{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+            <div class="brand-icon me-2">
+                <i class="fas fa-box"></i>
+            </div>
+            <span class="fw-bold">Boxy</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="{{ url_for('send_parcel') }}">Send Parcel</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('track_parcel') }}">Track Parcel</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('admin') }}">Admin</a>
+                </li>
+                <li class="nav-item ms-3">
+                    <a class="btn btn-primary btn-partner" href="{{ url_for('partner') }}">Become a Partner</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Send Parcel Section -->
+<section class="send-parcel-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="parcel-form-card card border-0 shadow-lg">
+                    <div class="card-header bg-orange text-white p-4">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-box me-3 fa-2x"></i>
+                            <div>
+                                <h3 class="mb-0">Booking Form</h3>
+                                <p class="mb-0 small">Enter parcel details</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-5 bg-cream">
+                        <form id="sendParcelForm">
+                            <div class="row g-4">
+                                <!-- Sender Information -->
+                                <div class="col-12">
+                                    <h4 class="form-section-title mb-4">
+                                        <i class="fas fa-user me-2"></i>Sender Information
+                                    </h4>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="senderName" class="form-label">Sender Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-lg" id="senderName" name="senderName" placeholder="Enter your name" required>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="senderPhone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                                    <input type="tel" class="form-control form-control-lg" id="senderPhone" name="senderPhone" placeholder="10-digit mobile number" required>
+                                </div>
+                                
+                                <!-- Pickup Address -->
+                                <div class="col-12 mt-4">
+                                    <h4 class="form-section-title mb-4">
+                                        <i class="fas fa-map-marker-alt me-2"></i>Pickup Address
+                                    </h4>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <label for="senderAddress" class="form-label">Pickup Address <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-lg" id="senderAddress" name="senderAddress" placeholder="Enter pickup address with landmark" required>
+                                </div>
+
+                                <!-- Drop Stops (Multi-Stop Feature) -->
+                                <div class="col-12 mt-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-4">
+                                        <h4 class="form-section-title mb-0">
+                                            <i class="fas fa-map-marker-alt me-2"></i>Drop Stops <span id="stopCount">(1/5)</span>
+                                        </h4>
+                                        <button type="button" class="btn btn-orange btn-sm" id="addStopBtn" onclick="addStop()">
+                                            <i class="fas fa-plus me-1"></i>Add Stop
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Stops Container -->
+                                <div id="stopsContainer">
+                                    <!-- Stop 1 (Default) -->
+                                    <div class="stop-card card mb-3" data-stop="1">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="stop-number-circle me-3">1</div>
+                                                <h5 class="mb-0">Stop 1</h5>
+                                                <button type="button" class="btn btn-sm btn-outline-danger ms-auto d-none remove-stop-btn" onclick="removeStop(this)">
+                                                    <i class="fas fa-times"></i> Remove
+                                                </button>
+                                            </div>
+                                            <div class="row g-3">
+                                                <div class="col-md-12">
+                                                    <label class="form-label">Drop Address <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control form-control-lg stop-address" 
+                                                           placeholder="Enter drop address with landmark" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Receiver Name <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control form-control-lg stop-receiver-name" 
+                                                           placeholder="Receiver's name" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Receiver Phone <span class="text-danger">*</span></label>
+                                                    <input type="tel" class="form-control form-control-lg stop-receiver-phone" 
+                                                           placeholder="10-digit number" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Price Breakdown -->
+                                <div class="col-12 mb-3">
+                                    <div class="price-breakdown-card card border-0 shadow-sm">
+                                        <div class="card-body p-4">
+                                            <h5 class="mb-3"><i class="fas fa-calculator me-2"></i>Price Breakdown</h5>
+                                            <div class="price-details">
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span>Base Fare:</span>
+                                                    <span id="baseFare">₹30</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span>Distance (<span id="distanceKm">0</span> km × ₹8):</span>
+                                                    <span id="distanceCost">₹0</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span>Weight (<span id="weightKg">0</span> kg × ₹5):</span>
+                                                    <span id="weightCost">₹0</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between mb-2" id="extraStopsRow" style="display: none !important;">
+                                                    <span>Extra Stops (<span id="extraStopsCount">0</span> × ₹15):</span>
+                                                    <span id="extraStopsCost">₹0</span>
+                                                </div>
+                                                <hr>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <strong class="h5 mb-0">Total Estimated Price:</strong>
+                                                    <strong class="h4 mb-0 text-orange" id="estimatedCost">₹30</strong>
+                                                </div>
+                                            </div>
+                                            <small class="text-muted d-block mt-2">
+                                                <i class="fas fa-info-circle me-1"></i>Price will be calculated based on actual distance
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Parcel Information -->
+                                <div class="col-12 mt-4">
+                                    <h4 class="form-section-title mb-4">
+                                        <i class="fas fa-box me-2"></i>Parcel Details
+                                    </h4>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="parcelWeight" class="form-label">Weight (kg) <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control form-control-lg" id="parcelWeight" name="parcelWeight" placeholder="Enter weight" step="0.1" min="0.1" required>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="parcelType" class="form-label">Parcel Type <span class="text-danger">*</span></label>
+                                    <select class="form-select form-select-lg" id="parcelType" name="parcelType" required>
+                                        <option value="">Select Type</option>
+                                        <option value="document">Documents</option>
+                                        <option value="electronics">Electronics & Fragile Items</option>
+                                        <option value="bulk">Bulk Shipments</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <div class="col-12 mt-4">
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-lg btn-book-delivery">
+                                            <i class="fas fa-box me-2"></i>Book Delivery
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- Success Message (Hidden by default) -->
+                        <div id="successMessage" class="alert alert-success mt-4 d-none" role="alert">
+                            <h5 class="alert-heading"><i class="fas fa-check-circle me-2"></i>Booking Successful!</h5>
+                            <p class="mb-0">Your parcel has been booked successfully. Your tracking number is: <strong id="trackingNumber"></strong></p>
+                            <hr>
+                            <p class="mb-0">You will receive a confirmation email shortly.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer bg-dark text-white py-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <h5 class="mb-3">Boxy</h5>
+                <p class="text-white-50">
+                    Fast, reliable, and affordable parcel delivery service. Your packages delivered with care.
+                </p>
+                <div class="social-links mt-3">
+                    <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h5 class="mb-3">Quick Links</h5>
+                <ul class="list-unstyled">
+                    <li><a href="{{ url_for('index') }}" class="text-white-50 text-decoration-none">Home</a></li>
+                    <li><a href="{{ url_for('send_parcel') }}" class="text-white-50 text-decoration-none">Send Parcel</a></li>
+                    <li><a href="{{ url_for('track_parcel') }}" class="text-white-50 text-decoration-none">Track Parcel</a></li>
+                    <li><a href="{{ url_for('admin') }}" class="text-white-50 text-decoration-none">Admin Login</a></li>
+                    <li><a href="{{ url_for('partner') }}" class="text-white-50 text-decoration-none">Partner Login</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h5 class="mb-3">Services</h5>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-white-50 text-decoration-none">Same Day Delivery</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">Express Shipping</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">Standard Delivery</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">Live Tracking</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h5 class="mb-3">Contact Us</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-phone me-2"></i>
+                        <a href="tel:+15551234567" class="text-white-50 text-decoration-none">+1 (555) 123-4567</a>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-envelope me-2"></i>
+                        <a href="mailto:support@boxy.com" class="text-white-50 text-decoration-none">support@boxy.com</a>
+                    </li>
+                    <li>
+                        <i class="fas fa-map-marker-alt me-2"></i>
+                        <span class="text-white-50">123 Delivery Street, Logistics City, LC 12345</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <hr class="my-4 bg-white-50">
+        <div class="text-center">
+            <p class="text-white-50 mb-0">&copy; 2025 Boxy. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let stopCount = 1;
+const maxStops = 5;
+
+// Add new stop
+function addStop() {
+    if (stopCount >= maxStops) {
+        alert(`Maximum ${maxStops} stops allowed`);
+        return;
+    }
+    
+    stopCount++;
+    updateStopCount();
+    
+    const stopsContainer = document.getElementById('stopsContainer');
+    const newStop = document.createElement('div');
+    newStop.className = 'stop-card card mb-3';
+    newStop.setAttribute('data-stop', stopCount);
+    newStop.innerHTML = `
+        <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+                <div class="stop-number-circle me-3">${stopCount}</div>
+                <h5 class="mb-0">Stop ${stopCount}</h5>
+                <button type="button" class="btn btn-sm btn-outline-danger ms-auto remove-stop-btn" onclick="removeStop(this)">
+                    <i class="fas fa-times"></i> Remove
+                </button>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-12">
+                    <label class="form-label">Drop Address <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control form-control-lg stop-address" 
+                           placeholder="Enter drop address with landmark" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Receiver Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control form-control-lg stop-receiver-name" 
+                           placeholder="Receiver's name" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Receiver Phone <span class="text-danger">*</span></label>
+                    <input type="tel" class="form-control form-control-lg stop-receiver-phone" 
+                           placeholder="10-digit number" required>
+                </div>
+            </div>
+        </div>
+    `;
+    stopsContainer.appendChild(newStop);
+    updateStopCount();
+    updateEstimatedCost();
+    
+    // Disable add button if max reached
+    if (stopCount >= maxStops) {
+        document.getElementById('addStopBtn').disabled = true;
+    }
+}
+
+// Remove stop
+function removeStop(btn) {
+    if (stopCount <= 1) {
+        alert('At least one stop is required');
+        return;
+    }
+    
+    const stopCard = btn.closest('.stop-card');
+    stopCard.remove();
+    stopCount--;
+    updateStopCount();
+    updateEstimatedCost();
+    renumberStops();
+    
+    // Enable add button
+    document.getElementById('addStopBtn').disabled = false;
+}
+
+// Renumber stops after removal
+function renumberStops() {
+    const stops = document.querySelectorAll('.stop-card');
+    stops.forEach((stop, index) => {
+        const stopNum = index + 1;
+        stop.setAttribute('data-stop', stopNum);
+        stop.querySelector('.stop-number-circle').textContent = stopNum;
+        stop.querySelector('h5').textContent = `Stop ${stopNum}`;
+    });
+}
+
+// Update stop count display
+function updateStopCount() {
+    document.getElementById('stopCount').textContent = `(${stopCount}/${maxStops})`;
+}
+
+// Update estimated cost with live calculation
+async function updateEstimatedCost() {
+    const pickupAddress = document.getElementById('senderAddress').value;
+    const weight = parseFloat(document.getElementById('parcelWeight').value) || 0;
+    const stops = collectStopsData();
+    
+    if (!pickupAddress || stops.length === 0 || weight === 0) {
+        // Show default/minimum price
+        document.getElementById('estimatedCost').textContent = '₹30';
+        document.getElementById('distanceKm').textContent = '0';
+        document.getElementById('distanceCost').textContent = '₹0';
+        document.getElementById('weightKg').textContent = '0';
+        document.getElementById('weightCost').textContent = '₹0';
+        document.getElementById('extraStopsRow').style.display = 'none';
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/calculate-price', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                pickup_address: pickupAddress,
+                stops: stops,
+                weight: weight
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.price_breakdown) {
+            const price = data.price_breakdown;
+            
+            // Update price breakdown
+            document.getElementById('baseFare').textContent = `₹${price.base_fare}`;
+            document.getElementById('distanceKm').textContent = price.distance;
+            document.getElementById('distanceCost').textContent = `₹${price.distance_cost}`;
+            document.getElementById('weightKg').textContent = price.weight;
+            document.getElementById('weightCost').textContent = `₹${price.weight_cost}`;
+            
+            // Show/hide extra stops row
+            if (price.extra_stops > 0) {
+                document.getElementById('extraStopsCount').textContent = price.extra_stops;
+                document.getElementById('extraStopsCost').textContent = `₹${price.extra_stop_cost}`;
+                document.getElementById('extraStopsRow').style.display = 'flex';
+            } else {
+                document.getElementById('extraStopsRow').style.display = 'none';
+            }
+            
+            // Update total
+            document.getElementById('estimatedCost').textContent = `₹${price.total}`;
+        } else {
+            // Fallback calculation if API fails
+            calculateFallbackPrice(weight, stops.length);
+        }
+    } catch (error) {
+        console.error('Price calculation error:', error);
+        // Fallback calculation
+        calculateFallbackPrice(weight, stops.length);
+    }
+}
+
+// Fallback price calculation (when API is not available)
+function calculateFallbackPrice(weight, numStops) {
+    const baseFare = 30;
+    const estimatedDistance = 5 * numStops; // Estimate 5km per stop
+    const distanceCost = estimatedDistance * 8;
+    const weightCost = weight * 5;
+    const extraStops = Math.max(0, numStops - 1);
+    const extraStopCost = extraStops * 15;
+    const total = baseFare + distanceCost + weightCost + extraStopCost;
+    
+    document.getElementById('baseFare').textContent = '₹30';
+    document.getElementById('distanceKm').textContent = estimatedDistance.toFixed(1);
+    document.getElementById('distanceCost').textContent = `₹${distanceCost.toFixed(0)}`;
+    document.getElementById('weightKg').textContent = weight.toFixed(1);
+    document.getElementById('weightCost').textContent = `₹${weightCost.toFixed(0)}`;
+    
+    if (extraStops > 0) {
+        document.getElementById('extraStopsCount').textContent = extraStops;
+        document.getElementById('extraStopsCost').textContent = `₹${extraStopCost}`;
+        document.getElementById('extraStopsRow').style.display = 'flex';
+    } else {
+        document.getElementById('extraStopsRow').style.display = 'none';
+    }
+    
+    document.getElementById('estimatedCost').textContent = `₹${total.toFixed(0)}`;
+}
+
+// Collect stops data
+function collectStopsData() {
+    const stops = [];
+    const stopCards = document.querySelectorAll('.stop-card');
+    
+    stopCards.forEach((card, index) => {
+        const address = card.querySelector('.stop-address').value;
+        const receiverName = card.querySelector('.stop-receiver-name').value;
+        const receiverPhone = card.querySelector('.stop-receiver-phone').value;
+        
+        if (address && receiverName && receiverPhone) {
+            stops.push({
+                stop_number: index + 1,
+                drop_address: address,
+                receiver_name: receiverName,
+                receiver_phone: receiverPhone
+            });
+        }
+    });
+    
+    return stops;
+}
+
+// Form submission
+document.getElementById('sendParcelForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const stops = collectStopsData();
+    if (stops.length === 0) {
+        alert('Please add at least one drop stop');
+        return;
+    }
+    
+    const formData = {
+        senderName: document.getElementById('senderName').value,
+        senderAddress: document.getElementById('senderAddress').value,
+        parcelType: document.getElementById('parcelType').value,
+        parcelWeight: document.getElementById('parcelWeight').value,
+        stops: stops,
+        totalStops: stops.length
+    };
+    
+    try {
+        const response = await fetch('/api/deliveries/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Show success message
+            document.getElementById('trackingNumber').textContent = data.delivery_id;
+            document.getElementById('successMessage').classList.remove('d-none');
+            
+            // Scroll to success message
+            document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            // Reset form after 10 seconds
+            setTimeout(function() {
+                document.getElementById('sendParcelForm').reset();
+                document.getElementById('successMessage').classList.add('d-none');
+                // Reset stops to 1
+                while (stopCount > 1) {
+                    const lastStop = document.querySelector('.stop-card:last-child');
+                    if (lastStop) lastStop.remove();
+                    stopCount--;
+                }
+                updateStopCount();
+                updateEstimatedCost();
+            }, 10000);
+        } else {
+            alert('Failed to create delivery. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error creating delivery:', error);
+        alert('Error creating delivery. Please try again.');
+    }
+});
+
+// Add event listeners for live price updates
+document.getElementById('senderAddress').addEventListener('input', debounce(updateEstimatedCost, 500));
+document.getElementById('parcelWeight').addEventListener('input', debounce(updateEstimatedCost, 300));
+
+// Debounce function to limit API calls
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Update price when stop fields change
+document.addEventListener('input', function(e) {
+    if (e.target.classList.contains('stop-address') || 
+        e.target.classList.contains('stop-receiver-name') || 
+        e.target.classList.contains('stop-receiver-phone')) {
+        debounce(updateEstimatedCost, 500)();
+    }
+});
+
+// Initialize
+updateEstimatedCost();
+</script>
+{% endblock %}
+
