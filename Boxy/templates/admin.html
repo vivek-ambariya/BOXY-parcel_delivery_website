@@ -1,0 +1,521 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Login - Boxy{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+            <div class="brand-icon me-2">
+                <i class="fas fa-box"></i>
+            </div>
+            <span class="fw-bold">Boxy</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('send_parcel') }}">Send Parcel</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('track_parcel') }}">Track Parcel</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="{{ url_for('admin') }}">Admin</a>
+                </li>
+                <li class="nav-item ms-3">
+                    <a class="btn btn-primary btn-partner" href="{{ url_for('partner') }}">Become a Partner</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Admin Login Section -->
+<section class="admin-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-10 col-lg-12">
+                <div class="text-center mb-5">
+                    <div class="admin-icon mb-3">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <h1 class="section-title mb-3">Admin Login</h1>
+                    <p class="section-description">
+                        Access the admin dashboard to manage parcels, deliveries, and system settings.
+                    </p>
+                </div>
+
+                <!-- Login Form -->
+                <div class="admin-card card border-0 shadow-lg">
+                    <div class="card-body p-5">
+                        <form id="adminLoginForm">
+                            <div class="mb-4">
+                                <label for="adminEmail" class="form-label fw-bold">
+                                    <i class="fas fa-envelope me-2"></i>Email Address
+                                </label>
+                                <input type="email" class="form-control form-control-lg" id="adminEmail" 
+                                       name="adminEmail" placeholder="admin@boxy.com" required>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="adminPassword" class="form-label fw-bold">
+                                    <i class="fas fa-lock me-2"></i>Password
+                                </label>
+                                <input type="password" class="form-control form-control-lg" id="adminPassword" 
+                                       name="adminPassword" placeholder="Enter your password" required>
+                            </div>
+                            
+                            <div class="mb-4 form-check">
+                                <input type="checkbox" class="form-check-input" id="rememberMe">
+                                <label class="form-check-label" for="rememberMe">
+                                    Remember me
+                                </label>
+                            </div>
+                            
+                            <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-primary btn-lg btn-orange">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                                </button>
+                            </div>
+                            
+                            <div class="text-center">
+                                <a href="#" class="text-decoration-none">Forgot Password?</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Admin Dashboard (Hidden by default) -->
+                <div id="adminDashboard" class="admin-dashboard card border-0 shadow-lg mt-4 d-none">
+                    <div class="card-body p-5">
+                        <!-- Dashboard Header -->
+                        <div class="admin-dashboard-header mb-5 pb-4 border-bottom">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                <div>
+                                    <h2 class="mb-2 fw-bold text-primary">
+                                        <i class="fas fa-tachometer-alt me-3"></i>Admin Dashboard
+                                    </h2>
+                                    <p class="text-muted mb-0">
+                                        <i class="fas fa-calendar-alt me-2"></i>
+                                        <span id="currentDate"></span> - Welcome back! Here's your overview
+                                    </p>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-outline-secondary btn-lg px-4" onclick="refreshDeliveries()" title="Refresh Dashboard">
+                                        <i class="fas fa-sync-alt me-2"></i>Refresh
+                                    </button>
+                                <button class="btn btn-outline-danger btn-lg px-4" id="logoutBtn">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stats Cards -->
+                        <div class="row g-4 mb-5">
+                            <div class="col-lg-4 col-md-6">
+                                <div class="admin-stat-card admin-stat-primary">
+                                    <div class="stat-card-content">
+                                        <div class="stat-card-icon">
+                                            <i class="fas fa-box"></i>
+                                        </div>
+                                        <div class="stat-card-info">
+                                            <p class="stat-card-label">Total Parcels</p>
+                                            <h2 class="stat-card-value" id="statTotalParcels">0</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-6">
+                                <div class="admin-stat-card admin-stat-success">
+                                    <div class="stat-card-content">
+                                        <div class="stat-card-icon">
+                                            <i class="fas fa-check-circle"></i>
+                                        </div>
+                                        <div class="stat-card-info">
+                                            <p class="stat-card-label">Delivered Today</p>
+                                            <h2 class="stat-card-value" id="statDeliveredToday">0</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-6">
+                                <div class="admin-stat-card admin-stat-warning">
+                                    <div class="stat-card-content">
+                                        <div class="stat-card-icon">
+                                            <i class="fas fa-truck"></i>
+                                        </div>
+                                        <div class="stat-card-info">
+                                            <p class="stat-card-label">In Transit</p>
+                                            <h2 class="stat-card-value" id="statInTransit">0</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-6">
+                                <div class="admin-stat-card admin-stat-info">
+                                    <div class="stat-card-content">
+                                        <div class="stat-card-icon">
+                                            <i class="fas fa-clock"></i>
+                                        </div>
+                                        <div class="stat-card-info">
+                                            <p class="stat-card-label">Pending</p>
+                                            <h2 class="stat-card-value" id="statPending">0</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-6">
+                                <div class="admin-stat-card admin-stat-secondary">
+                                    <div class="stat-card-content">
+                                        <div class="stat-card-icon">
+                                            <i class="fas fa-users"></i>
+                                        </div>
+                                        <div class="stat-card-info">
+                                            <p class="stat-card-label">Total Partners</p>
+                                            <h2 class="stat-card-value" id="statTotalPartners">0</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-6">
+                                <div class="admin-stat-card admin-stat-success-alt">
+                                    <div class="stat-card-content">
+                                        <div class="stat-card-icon">
+                                            <i class="fas fa-user-check"></i>
+                                        </div>
+                                        <div class="stat-card-info">
+                                            <p class="stat-card-label">Active Partners</p>
+                                            <h2 class="stat-card-value" id="statActivePartners">0</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="quick-actions-section mb-5">
+                            <h4 class="mb-4 fw-bold">
+                                <i class="fas fa-bolt me-2 text-warning"></i>Quick Actions
+                            </h4>
+                            <div class="row g-4">
+                                <div class="col-lg-3 col-md-6">
+                                    <a href="{{ url_for('track_parcel') }}" class="quick-action-btn btn btn-outline-primary btn-lg w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4 shadow-sm">
+                                        <i class="fas fa-search fa-2x mb-3"></i>
+                                        <span class="fw-semibold">Track Parcel</span>
+                                    </a>
+                                </div>
+                                <div class="col-lg-3 col-md-6">
+                                    <button class="quick-action-btn btn btn-outline-success btn-lg w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4 shadow-sm" onclick="showAddParcelModal()">
+                                        <i class="fas fa-plus fa-2x mb-3"></i>
+                                        <span class="fw-semibold">Add New Parcel</span>
+                                    </button>
+                                </div>
+                                <div class="col-lg-3 col-md-6">
+                                    <button class="quick-action-btn btn btn-outline-warning btn-lg w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4 shadow-sm" onclick="showManagePartners()">
+                                        <i class="fas fa-users fa-2x mb-3"></i>
+                                        <span class="fw-semibold">Manage Partners</span>
+                                    </button>
+                                </div>
+                                <div class="col-lg-3 col-md-6">
+                                    <button class="quick-action-btn btn btn-outline-info btn-lg w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4 shadow-sm" onclick="showReports()">
+                                        <i class="fas fa-chart-bar fa-2x mb-3"></i>
+                                        <span class="fw-semibold">View Reports</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Parcels Table -->
+                        <div class="recent-parcels-section">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h4 class="mb-0 fw-bold">
+                                    <i class="fas fa-list me-2 text-primary"></i>Recent Parcels
+                                </h4>
+                                <button class="btn btn-sm btn-outline-primary" onclick="refreshDeliveries()">
+                                    <i class="fas fa-sync-alt me-2"></i>Refresh
+                                </button>
+                            </div>
+                            <div class="table-responsive-lg">
+                                <table class="table table-hover admin-table align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="px-4 py-3 fw-semibold">Tracking #</th>
+                                            <th class="px-4 py-3 fw-semibold">Sender</th>
+                                            <th class="px-4 py-3 fw-semibold">Receiver</th>
+                                            <th class="px-4 py-3 fw-semibold">Partner</th>
+                                            <th class="px-4 py-3 fw-semibold">Status</th>
+                                            <th class="px-4 py-3 fw-semibold">Date</th>
+                                            <th class="px-4 py-3 fw-semibold">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="deliveriesTableBody">
+                                        <tr>
+                                            <td colspan="7" class="text-center text-muted py-5">
+                                                <i class="fas fa-spinner fa-spin fa-2x mb-3 d-block"></i>
+                                                Loading deliveries...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer bg-dark text-white py-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <h5 class="mb-3">Boxy</h5>
+                <p class="text-white-50">
+                    Fast, reliable, and affordable parcel delivery service. Your packages delivered with care.
+                </p>
+                <div class="social-links mt-3">
+                    <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h5 class="mb-3">Quick Links</h5>
+                <ul class="list-unstyled">
+                    <li><a href="{{ url_for('index') }}" class="text-white-50 text-decoration-none">Home</a></li>
+                    <li><a href="{{ url_for('send_parcel') }}" class="text-white-50 text-decoration-none">Send Parcel</a></li>
+                    <li><a href="{{ url_for('track_parcel') }}" class="text-white-50 text-decoration-none">Track Parcel</a></li>
+                    <li><a href="{{ url_for('admin') }}" class="text-white-50 text-decoration-none">Admin Login</a></li>
+                    <li><a href="{{ url_for('partner') }}" class="text-white-50 text-decoration-none">Partner Login</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h5 class="mb-3">Services</h5>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-white-50 text-decoration-none">Same Day Delivery</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">Express Shipping</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">Standard Delivery</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">Live Tracking</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h5 class="mb-3">Contact Us</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-phone me-2"></i>
+                        <a href="tel:+15551234567" class="text-white-50 text-decoration-none">+1 (555) 123-4567</a>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-envelope me-2"></i>
+                        <a href="mailto:support@boxy.com" class="text-white-50 text-decoration-none">support@boxy.com</a>
+                    </li>
+                    <li>
+                        <i class="fas fa-map-marker-alt me-2"></i>
+                        <span class="text-white-50">123 Delivery Street, Logistics City, LC 12345</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <hr class="my-4 bg-white-50">
+        <div class="text-center">
+            <p class="text-white-50 mb-0">&copy; 2025 Boxy. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Admin Dashboard JavaScript
+let statsRefreshInterval;
+
+// Set current date
+document.addEventListener('DOMContentLoaded', function() {
+    const dateElement = document.getElementById('currentDate');
+    if (dateElement) {
+        const today = new Date();
+        dateElement.textContent = today.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+    }
+});
+
+document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('adminEmail').value;
+    const password = document.getElementById('adminPassword').value;
+    
+    try {
+        const response = await fetch('/api/admin/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Show dashboard
+            document.getElementById('adminLoginForm').closest('.admin-card').classList.add('d-none');
+            document.getElementById('adminDashboard').classList.remove('d-none');
+            
+            // Load dashboard data
+            loadDashboardData();
+            
+            // Refresh stats every 30 seconds
+            statsRefreshInterval = setInterval(loadDashboardData, 30000);
+        } else {
+            alert(data.message || 'Invalid credentials. Use: admin@boxy.com / admin123');
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        alert('Login failed. Please try again.');
+    }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async function() {
+    try {
+        await fetch('/api/admin/logout', {
+            method: 'POST',
+            credentials: 'include'
+        });
+        
+        // Clear refresh interval
+        if (statsRefreshInterval) {
+            clearInterval(statsRefreshInterval);
+        }
+        
+        // Hide dashboard and show login form
+        document.getElementById('adminDashboard').classList.add('d-none');
+        document.getElementById('adminLoginForm').closest('.admin-card').classList.remove('d-none');
+        document.getElementById('adminLoginForm').reset();
+    } catch (error) {
+        console.error('Logout error:', error);
+    }
+});
+
+async function loadDashboardData() {
+    try {
+        // Load stats
+        const statsResponse = await fetch('/api/admin/stats', {
+            credentials: 'include'
+        });
+        const statsData = await statsResponse.json();
+        
+        if (statsData.success) {
+            updateStats(statsData.stats);
+        }
+        
+        // Load recent deliveries
+        const deliveriesResponse = await fetch('/api/admin/deliveries?limit=20', {
+            credentials: 'include'
+        });
+        const deliveriesData = await deliveriesResponse.json();
+        
+        if (deliveriesData.success) {
+            displayDeliveries(deliveriesData.deliveries);
+        }
+    } catch (error) {
+        console.error('Error loading dashboard data:', error);
+    }
+}
+
+function updateStats(stats) {
+    document.getElementById('statTotalParcels').textContent = stats.total_parcels || 0;
+    document.getElementById('statDeliveredToday').textContent = stats.delivered_today || 0;
+    document.getElementById('statInTransit').textContent = stats.in_transit || 0;
+    document.getElementById('statPending').textContent = stats.pending || 0;
+    document.getElementById('statTotalPartners').textContent = stats.total_partners || 0;
+    document.getElementById('statActivePartners').textContent = stats.active_partners || 0;
+}
+
+function displayDeliveries(deliveries) {
+    const tbody = document.getElementById('deliveriesTableBody');
+    
+    if (!deliveries || deliveries.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-5"><i class="fas fa-inbox fa-2x mb-3 d-block"></i>No deliveries yet.</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = deliveries.map(delivery => {
+        const statusBadge = getStatusBadge(delivery.status);
+        const formattedDate = delivery.created_at ? new Date(delivery.created_at).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        }) : 'N/A';
+        return `
+            <tr>
+                <td class="px-4 py-3"><strong class="text-primary">${delivery.id}</strong></td>
+                <td class="px-4 py-3">${delivery.sender_name || 'N/A'}</td>
+                <td class="px-4 py-3">${delivery.receiver_name || 'N/A'}</td>
+                <td class="px-4 py-3">${delivery.partner_name || '<span class="text-muted">Unassigned</span>'}</td>
+                <td class="px-4 py-3">${statusBadge}</td>
+                <td class="px-4 py-3">${formattedDate}</td>
+                <td class="px-4 py-3">
+                    <button class="btn btn-sm btn-outline-primary me-2" onclick="viewDeliveryDetails('${delivery.id}')" title="View Details">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-info" onclick="trackDelivery('${delivery.id}')" title="Track">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function refreshDeliveries() {
+    loadDashboardData();
+}
+
+function viewDeliveryDetails(deliveryId) {
+    window.location.href = `{{ url_for('track_parcel') }}?tracking=${deliveryId}`;
+}
+
+function trackDelivery(deliveryId) {
+    window.location.href = `{{ url_for('track_parcel') }}?tracking=${deliveryId}`;
+}
+
+function showAddParcelModal() {
+    window.location.href = '{{ url_for("send_parcel") }}';
+}
+
+function showManagePartners() {
+    alert('Partner management feature coming soon!');
+}
+
+function showReports() {
+    alert('Reports feature coming soon!');
+}
+
+function getStatusBadge(status) {
+    const badges = {
+        'available': '<span class="badge bg-info">Available</span>',
+        'accepted': '<span class="badge bg-primary">Accepted</span>',
+        'picked': '<span class="badge bg-warning">Picked</span>',
+        'on_the_way': '<span class="badge bg-warning">In Transit</span>',
+        'delivered': '<span class="badge bg-success">Delivered</span>'
+    };
+    return badges[status] || '<span class="badge bg-secondary">' + status + '</span>';
+}
+</script>
+{% endblock %}
+

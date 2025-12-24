@@ -1200,6 +1200,217 @@ html {
 .admin-dashboard {
     border-radius: 20px;
     background: white;
+    min-height: 80vh;
+}
+
+.admin-dashboard-header {
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+/* Admin Stat Cards */
+.admin-stat-card {
+    border-radius: 16px;
+    padding: 2rem;
+    background: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+    transition: all 0.3s ease;
+    border: 1px solid #f0f0f0;
+    height: 100%;
+    min-height: 160px;
+    display: flex;
+    align-items: center;
+}
+
+.admin-stat-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 1.5rem;
+}
+
+.stat-card-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    flex-shrink: 0;
+}
+
+.stat-card-info {
+    flex: 1;
+}
+
+.stat-card-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.8;
+}
+
+.stat-card-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.2;
+}
+
+/* Stat Card Color Variants */
+.admin-stat-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.admin-stat-primary .stat-card-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.admin-stat-primary .stat-card-label {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.admin-stat-success {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.admin-stat-success .stat-card-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.admin-stat-success .stat-card-label {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.admin-stat-warning {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.admin-stat-warning .stat-card-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.admin-stat-warning .stat-card-label {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.admin-stat-info {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+.admin-stat-info .stat-card-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.admin-stat-info .stat-card-label {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.admin-stat-secondary {
+    background: linear-gradient(135deg, #434343 0%, #000000 100%);
+    color: white;
+}
+
+.admin-stat-secondary .stat-card-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.admin-stat-secondary .stat-card-label {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.admin-stat-success-alt {
+    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+    color: #2d3748;
+}
+
+.admin-stat-success-alt .stat-card-icon {
+    background: rgba(45, 55, 72, 0.1);
+    color: #2d3748;
+}
+
+.admin-stat-success-alt .stat-card-label {
+    color: rgba(45, 55, 72, 0.8);
+}
+
+/* Quick Actions */
+.quick-actions-section {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 16px;
+}
+
+.quick-action-btn {
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border-width: 2px;
+    font-weight: 600;
+    min-height: 140px;
+}
+
+.quick-action-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    border-width: 2px;
+}
+
+/* Admin Table */
+.recent-parcels-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.admin-table {
+    margin: 0;
+}
+
+.admin-table thead.table-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.admin-table thead.table-header th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    border: none;
+}
+
+.admin-table tbody tr {
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.admin-table tbody tr:hover {
+    background: #f8f9fa;
+    transform: scale(1.01);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.admin-table tbody td {
+    padding: 1.25rem 1rem;
+    vertical-align: middle;
+    font-size: 0.95rem;
 }
 
 .stat-card-small {

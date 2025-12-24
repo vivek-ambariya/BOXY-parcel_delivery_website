@@ -11,13 +11,29 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Check if partner is already logged in
-function checkLoginStatus() {
-    // In a real app, this would check session/cookies
-    // For demo, we'll check localStorage
+async function checkLoginStatus() {
+    // Check localStorage first
     const savedPartner = localStorage.getItem('currentPartner');
     if (savedPartner) {
         currentPartner = JSON.parse(savedPartner);
-        isLive = currentPartner.status === 'online';
+        // Fetch current status from server to ensure it's up to date
+        try {
+            const response = await fetch('/api/partner/status', {
+                method: 'GET',
+                credentials: 'include'
+            });
+            const data = await response.json();
+            if (data.success) {
+                // Update status from server
+                isLive = data.status === 'online';
+                currentPartner.status = data.status;
+                localStorage.setItem('currentPartner', JSON.stringify(currentPartner));
+            }
+        } catch (error) {
+            console.error('Error fetching status:', error);
+            // Fallback to localStorage status
+            isLive = currentPartner.status === 'online';
+        }
         showDashboard();
     }
 }
@@ -157,8 +173,10 @@ async function toggleGoLive() {
     }
     
     const newStatus = isLive ? 'offline' : 'online';
+    console.log('Toggle Go Live: Current status:', isLive, 'New status:', newStatus);
     
     try {
+        // Update status on server
         const response = await fetch('/api/partner/status', {
             method: 'POST',
             headers: {
@@ -168,12 +186,42 @@ async function toggleGoLive() {
             body: JSON.stringify({ status: newStatus })
         });
         
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            throw new Error(`Server error: ${response.status} - ${errorText}`);
+        }
+        
         const data = await response.json();
+        console.log('Response data:', data);
         
         if (data.success) {
-            isLive = !isLive;
+            // Update local state
+            isLive = newStatus === 'online';
             currentPartner.status = newStatus;
             localStorage.setItem('currentPartner', JSON.stringify(currentPartner));
+            
+            // Verify status was updated by fetching it again
+            const verifyResponse = await fetch('/api/partner/status', {
+                method: 'GET',
+                credentials: 'include'
+            });
+            
+            if (!verifyResponse.ok) {
+                console.warn('Failed to verify status, but update may have succeeded');
+            } else {
+                const verifyData = await verifyResponse.json();
+                console.log('Verified status:', verifyData);
+                
+                if (verifyData.success) {
+                    // Use the verified status from server
+                    isLive = verifyData.status === 'online';
+                    currentPartner.status = verifyData.status;
+                    localStorage.setItem('currentPartner', JSON.stringify(currentPartner));
+                }
+            }
             
             // Update UI
             updateGoLiveUI();
@@ -200,13 +248,25 @@ async function toggleGoLive() {
                     clearInterval(deliveryRefreshInterval);
                     deliveryRefreshInterval = null;
                 }
+                // Clear available deliveries when going offline
+                const availableList = document.getElementById('availableDeliveriesList');
+                if (availableList) {
+                    const offlineMsg = document.getElementById('offlineMessage');
+                    const lookingMsg = document.getElementById('lookingForDeliveries');
+                    if (offlineMsg) offlineMsg.style.display = 'block';
+                    if (lookingMsg) lookingMsg.style.display = 'none';
+                    // Remove any delivery cards
+                    const deliveryCards = availableList.querySelectorAll('.delivery-card');
+                    deliveryCards.forEach(card => card.remove());
+                }
             }
         } else {
+            console.error('Update failed:', data.message);
             alert('Failed to update status: ' + (data.message || 'Unknown error'));
         }
     } catch (error) {
         console.error('Go Live toggle error:', error);
-        alert('Failed to update status. Please try again.');
+        alert('Failed to update status: ' + error.message + '. Please check console for details.');
     }
 }
 
@@ -219,7 +279,12 @@ function updateGoLiveUI() {
     const lookingForDeliveries = document.getElementById('lookingForDeliveries');
     const newDeliveryBar = document.getElementById('newDeliveryBar');
     
-    if (!goLiveBtn) return;
+    if (!goLiveBtn) {
+        console.warn('Go Live button not found');
+        return;
+    }
+    
+    console.log('Updating Go Live UI, isLive:', isLive);
     
     if (isLive) {
         // Hide "Tap to Go Live" button, show "You are LIVE" button
@@ -227,19 +292,36 @@ function updateGoLiveUI() {
         if (liveStatusBtn) {
             liveStatusBtn.style.display = 'inline-block';
         }
-        if (goLiveArrow) goLiveArrow.style.display = 'inline-block';
-        if (offlineMessage) offlineMessage.style.display = 'none';
-        if (newDeliveryBar) newDeliveryBar.classList.remove('d-none');
+        if (goLiveArrow) {
+            goLiveArrow.style.display = 'inline-block';
+        }
+        if (offlineMessage) {
+            offlineMessage.style.display = 'none';
+        }
+        if (newDeliveryBar) {
+            newDeliveryBar.classList.remove('d-none');
+        }
+        if (lookingForDeliveries) {
+            lookingForDeliveries.classList.remove('d-none');
+        }
     } else {
         // Show "Tap to Go Live" button, hide "You are LIVE" button
         goLiveBtn.style.display = 'inline-block';
         if (liveStatusBtn) {
             liveStatusBtn.style.display = 'none';
         }
-        if (goLiveArrow) goLiveArrow.style.display = 'none';
-        if (offlineMessage) offlineMessage.style.display = 'block';
-        if (lookingForDeliveries) lookingForDeliveries.classList.add('d-none');
-        if (newDeliveryBar) newDeliveryBar.classList.add('d-none');
+        if (goLiveArrow) {
+            goLiveArrow.style.display = 'none';
+        }
+        if (offlineMessage) {
+            offlineMessage.style.display = 'block';
+        }
+        if (lookingForDeliveries) {
+            lookingForDeliveries.classList.add('d-none');
+        }
+        if (newDeliveryBar) {
+            newDeliveryBar.classList.add('d-none');
+        }
     }
 }
 
@@ -260,6 +342,18 @@ function showDashboard() {
     }
     if (partnerIdEl && currentPartner.id) {
         partnerIdEl.textContent = `ID: ${currentPartner.id}`;
+    }
+    
+    // Update Go Live UI to reflect current status
+    updateGoLiveUI();
+    
+    // Load deliveries if live
+    if (isLive) {
+        loadDeliveries();
+        // Start auto-refresh every 5 seconds when online
+        if (!deliveryRefreshInterval) {
+            deliveryRefreshInterval = setInterval(loadDeliveries, 5000);
+        }
     }
     
     // Set initial live status

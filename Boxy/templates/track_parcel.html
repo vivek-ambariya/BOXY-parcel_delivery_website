@@ -233,28 +233,9 @@
 
 {% block extra_js %}
 <script>
-// Sample tracking data (in a real app, this would come from a database)
-const sampleTrackingData = {
-    'QP123456789': {
-        status: 'In Transit',
-        statusClass: 'bg-warning',
-        estimatedDelivery: 'December 25, 2025',
-        from: 'New York, NY 10001',
-        to: 'Los Angeles, CA 90001',
-        timeline: [
-            { date: 'Dec 20, 2025 10:00 AM', status: 'Parcel Booked', location: 'New York, NY', icon: 'fa-check-circle', class: 'text-success' },
-            { date: 'Dec 21, 2025 2:30 PM', status: 'Picked Up', location: 'New York, NY', icon: 'fa-box', class: 'text-primary' },
-            { date: 'Dec 22, 2025 9:15 AM', status: 'In Transit', location: 'Chicago, IL', icon: 'fa-truck', class: 'text-warning' },
-            { date: 'Dec 23, 2025 11:45 AM', status: 'Out for Delivery', location: 'Los Angeles, CA', icon: 'fa-shipping-fast', class: 'text-info' },
-            { date: 'Dec 24, 2025 3:00 PM', status: 'Delivered', location: 'Los Angeles, CA', icon: 'fa-check-circle', class: 'text-success' }
-        ]
-    }
-};
-
-document.getElementById('trackParcelForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const trackingNumber = document.getElementById('trackingNumber').value.trim().toUpperCase();
+// Function to handle tracking
+async function trackParcel(trackingNumber) {
+    const trackingNum = trackingNumber.trim().toUpperCase();
     
     // Hide previous messages
     document.getElementById('trackingResults').classList.add('d-none');
@@ -262,14 +243,14 @@ document.getElementById('trackParcelForm').addEventListener('submit', async func
     document.getElementById('multiStopProgress').classList.add('d-none');
     
     try {
-        const response = await fetch(`/api/deliveries/track/${trackingNumber}`);
+        const response = await fetch(`/api/deliveries/track/${trackingNum}`);
         const data = await response.json();
         
         if (data.success && data.delivery) {
             const delivery = data.delivery;
             
             // Show tracking results
-            document.getElementById('displayTrackingNumber').textContent = trackingNumber;
+            document.getElementById('displayTrackingNumber').textContent = trackingNum;
             document.getElementById('fromAddress').textContent = delivery.sender_address;
             
             // Handle multi-stop or single delivery
@@ -379,13 +360,34 @@ document.getElementById('trackParcelForm').addEventListener('submit', async func
             document.getElementById('trackingResults').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         } else {
             // Show not found message
-            document.getElementById('notFoundMessage').classList.remove('d-none');
-            document.getElementById('notFoundMessage').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            const notFoundMsg = document.getElementById('notFoundMessage');
+            notFoundMsg.querySelector('p').textContent = data.message || 'The tracking number you entered could not be found. Please check and try again.';
+            notFoundMsg.classList.remove('d-none');
+            notFoundMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     } catch (error) {
         console.error('Tracking error:', error);
-        document.getElementById('notFoundMessage').classList.remove('d-none');
+        const notFoundMsg = document.getElementById('notFoundMessage');
+        notFoundMsg.querySelector('p').textContent = 'Error connecting to server. Please check your connection and try again.';
+        notFoundMsg.classList.remove('d-none');
     }
+}
+
+// Check if tracking number is in URL parameter
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const trackingParam = urlParams.get('tracking');
+    if (trackingParam) {
+        document.getElementById('trackingNumber').value = trackingParam;
+        // Auto-track
+        trackParcel(trackingParam);
+    }
+});
+
+document.getElementById('trackParcelForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const trackingNumber = document.getElementById('trackingNumber').value;
+    trackParcel(trackingNumber);
 });
 </script>
 {% endblock %}

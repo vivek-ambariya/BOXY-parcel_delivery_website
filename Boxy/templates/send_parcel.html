@@ -529,11 +529,11 @@ document.getElementById('sendParcelForm').addEventListener('submit', async funct
                 updateEstimatedCost();
             }, 10000);
         } else {
-            alert('Failed to create delivery. Please try again.');
+            alert('Failed to create delivery: ' + (data.message || 'Please try again.'));
         }
     } catch (error) {
         console.error('Error creating delivery:', error);
-        alert('Error creating delivery. Please try again.');
+        alert('Error creating delivery: ' + error.message + '. Please check your connection and try again.');
     }
 });
 

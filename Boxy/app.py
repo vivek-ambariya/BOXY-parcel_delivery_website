@@ -115,6 +115,7 @@ def partner_status():
     try:
         partner_id = session.get('partner_id')
         if not partner_id:
+            print(f"DEBUG: No partner_id in session. Session: {dict(session)}")
             return jsonify({'success': False, 'message': 'Not logged in'}), 401
         
         with get_db_connection() as conn:
@@ -122,20 +123,40 @@ def partner_status():
             
             if request.method == 'POST':
                 data = request.json
+                if not data:
+                    return jsonify({'success': False, 'message': 'No data provided'}), 400
+                
                 new_status = data.get('status', 'offline')
+                print(f"DEBUG: Updating partner {partner_id} status to {new_status}")
+                
+                # Update status in database
                 cursor.execute("""
                     UPDATE partners SET status = %s WHERE id = %s
                 """, (new_status, partner_id))
+                
+                # Check if update was successful
+                rows_affected = cursor.rowcount
+                print(f"DEBUG: Rows affected: {rows_affected}")
+                
+                if rows_affected == 0:
+                    return jsonify({'success': False, 'message': 'Partner not found or no changes made'}), 404
+                
                 conn.commit()
+                print(f"DEBUG: Status updated successfully to {new_status}")
             
+            # Get current status
             cursor.execute("SELECT status FROM partners WHERE id = %s", (partner_id,))
             result = cursor.fetchone()
             
             if result:
+                print(f"DEBUG: Current status from DB: {result['status']}")
                 return jsonify({'success': True, 'status': result['status']})
             else:
                 return jsonify({'success': False, 'message': 'Partner not found'}), 404
     except Exception as e:
+        print(f"ERROR in partner_status: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/partner/deliveries', methods=['GET'])
@@ -496,19 +517,21 @@ def create_delivery():
             conn.commit()
             
             # Get created delivery
-            cursor.execute("""
+            cursor_dict = conn.cursor(dictionary=True)
+            cursor_dict.execute("""
                 SELECT id, sender_name, sender_address, receiver_name, receiver_address,
                        receiver_phone, parcel_type, weight, status, partner_id, total_stops,
                        created_at, accepted_at, updated_at, delivered_at
                 FROM deliveries WHERE id = %s
             """, (delivery_id,))
-            delivery = cursor.fetchone()
+            delivery_dict = cursor_dict.fetchone()
+            cursor_dict.close()
             
-            # Convert to dictionary and datetime to string
-            delivery_dict = dict(zip(cursor.column_names, delivery))
-            for key, value in delivery_dict.items():
-                if isinstance(value, datetime):
-                    delivery_dict[key] = value.isoformat()
+            # Convert datetime objects to strings
+            if delivery_dict:
+                for key, value in delivery_dict.items():
+                    if isinstance(value, datetime):
+                        delivery_dict[key] = value.isoformat()
             
             return jsonify({
                 'success': True, 
@@ -656,6 +679,161 @@ def calculate_price_endpoint():
             'success': False,
             'message': str(e)
         }), 500
+
+# Admin API Routes
+@app.route('/api/admin/login', methods=['POST'])
+def admin_login():
+    try:
+        data = request.json
+        email = data.get('email')
+        password = data.get('password')
+        
+        # Demo credentials: admin@boxy.com / admin123
+        if email == 'admin@boxy.com' and password == 'admin123':
+            session['admin_logged_in'] = True
+            return jsonify({'success': True, 'message': 'Login successful'})
+        else:
+            return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/admin/logout', methods=['POST'])
+def admin_logout():
+    session.pop('admin_logged_in', None)
+    return jsonify({'success': True})
+
+@app.route('/api/admin/stats', methods=['GET'])
+def admin_stats():
+    try:
+        if not session.get('admin_logged_in'):
+            return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+        
+        with get_db_connection() as conn:
+            cursor = conn.cursor(dictionary=True)
+            
+            # Total parcels
+            cursor.execute("SELECT COUNT(*) as total FROM deliveries")
+            total_parcels = cursor.fetchone()['total']
+            
+            # Delivered today
+            cursor.execute("""
+                SELECT COUNT(*) as delivered_today 
+                FROM deliveries 
+                WHERE DATE(delivered_at) = CURDATE() AND status = 'delivered'
+            """)
+            delivered_today = cursor.fetchone()['delivered_today']
+            
+            # In transit (accepted, picked, on_the_way)
+            cursor.execute("""
+                SELECT COUNT(*) as in_transit 
+                FROM deliveries 
+                WHERE status IN ('accepted', 'picked', 'on_the_way')
+            """)
+            in_transit = cursor.fetchone()['in_transit']
+            
+            # Pending (available)
+            cursor.execute("""
+                SELECT COUNT(*) as pending 
+                FROM deliveries 
+                WHERE status = 'available'
+            """)
+            pending = cursor.fetchone()['pending']
+            
+            # Total partners
+            cursor.execute("SELECT COUNT(*) as total_partners FROM partners")
+            total_partners = cursor.fetchone()['total_partners']
+            
+            # Active partners (online)
+            cursor.execute("""
+                SELECT COUNT(*) as active_partners 
+                FROM partners 
+                WHERE status = 'online'
+            """)
+            active_partners = cursor.fetchone()['active_partners']
+            
+            return jsonify({
+                'success': True,
+                'stats': {
+                    'total_parcels': total_parcels,
+                    'delivered_today': delivered_today,
+                    'in_transit': in_transit,
+                    'pending': pending,
+                    'total_partners': total_partners,
+                    'active_partners': active_partners
+                }
+            })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/admin/deliveries', methods=['GET'])
+def admin_deliveries():
+    try:
+        if not session.get('admin_logged_in'):
+            return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+        
+        limit = request.args.get('limit', 20, type=int)
+        
+        with get_db_connection() as conn:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT d.id, d.sender_name, d.receiver_name, d.status, 
+                       d.created_at, d.delivered_at, d.total_stops,
+                       p.first_name, p.last_name
+                FROM deliveries d
+                LEFT JOIN partners p ON d.partner_id = p.id
+                ORDER BY d.created_at DESC
+                LIMIT %s
+            """, (limit,))
+            
+            deliveries = cursor.fetchall()
+            
+            # Format dates and add partner name
+            for delivery in deliveries:
+                if delivery['first_name'] and delivery['last_name']:
+                    delivery['partner_name'] = f"{delivery['first_name']} {delivery['last_name']}"
+                else:
+                    delivery['partner_name'] = 'Unassigned'
+                
+                if delivery['created_at']:
+                    delivery['created_at'] = delivery['created_at'].strftime('%b %d, %Y')
+                if delivery['delivered_at']:
+                    delivery['delivered_at'] = delivery['delivered_at'].strftime('%b %d, %Y')
+            
+            return jsonify({
+                'success': True,
+                'deliveries': deliveries
+            })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/admin/partners', methods=['GET'])
+def admin_partners():
+    try:
+        if not session.get('admin_logged_in'):
+            return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+        
+        with get_db_connection() as conn:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT id, first_name, last_name, email, phone, vehicle_type, 
+                       status, approved, created_at
+                FROM partners
+                ORDER BY created_at DESC
+            """)
+            
+            partners = cursor.fetchall()
+            
+            for partner in partners:
+                partner['name'] = f"{partner['first_name']} {partner['last_name']}"
+                if partner['created_at']:
+                    partner['created_at'] = partner['created_at'].strftime('%b %d, %Y')
+            
+            return jsonify({
+                'success': True,
+                'partners': partners
+            })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8000)
