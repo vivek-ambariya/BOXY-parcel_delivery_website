@@ -17,6 +17,10 @@ init_database()
 def index():
     return render_template('index.html')
 
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
 @app.route('/send-parcel')
 def send_parcel():
     return render_template('send_parcel.html')

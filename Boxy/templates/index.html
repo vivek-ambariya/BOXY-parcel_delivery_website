@@ -19,6 +19,9 @@
                     <a class="nav-link active" href="{{ url_for('index') }}">Home</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('about') }}">About Us</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('send_parcel') }}">Send Parcel</a>
                 </li>
                 <li class="nav-item">
@@ -40,24 +43,16 @@
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-6 mb-5 mb-lg-0">
-                <div class="hero-badge mb-3">
-                    <span class="badge-text">Delivered Today</span>
-                    <div class="badge-number">2,847</div>
-                </div>
                 <h1 class="hero-heading mb-3">
-                    <span class="text-dark">#1 Trusted</span><br>
-                    <span class="text-orange">Delivery Service</span>
+                    <span class="text-dark">Fast Delivery,</span><br>
+                    <span class="text-orange">Low Prices</span>
                 </h1>
-                <h2 class="hero-subheading mb-4">Send Packages Anywhere, Anytime</h2>
                 <p class="hero-description mb-4">
-                    Reliable door-to-door parcel delivery with real-time tracking. Fast, safe, and affordable shipping for all your needs.
+                    In Boxy we ensure our customers get deliveries quickly at the most affordable prices.
                 </p>
                 <div class="hero-buttons mb-5">
-                    <a href="{{ url_for('send_parcel') }}" class="btn btn-primary btn-lg me-3 btn-orange">
-                        <i class="fas fa-box me-2"></i>Send Parcel Now
-                    </a>
-                    <a href="{{ url_for('track_parcel') }}" class="btn btn-outline-primary btn-lg btn-outline-orange">
-                        <i class="fas fa-search me-2"></i>Track My Parcel
+                    <a href="{{ url_for('send_parcel') }}" class="btn btn-book-ride btn-lg">
+                        Send Parcel Now <i class="fas fa-arrow-right ms-2"></i>
                     </a>
                 </div>
                 <div class="hero-stats row g-4">
@@ -83,54 +78,6 @@
                             <div class="delivery-text">Delivered Today</div>
                             <div class="delivery-number">2,847</div>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Why Choose Boxy Section -->
-<section class="features-section py-5 bg-light">
-    <div class="container">
-        <div class="text-center mb-5">
-            <span class="section-badge">WHY CHOOSE BOXY</span>
-            <h2 class="section-title mt-2">Built for Speed & Reliability</h2>
-            <p class="section-description">
-                We combine cutting-edge technology with exceptional service to deliver your parcels safely and on time.
-            </p>
-        </div>
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="feature-card card h-100 shadow-sm">
-                    <div class="card-body text-center p-4">
-                        <div class="feature-icon mb-3">
-                            <i class="fas fa-bolt"></i>
-                        </div>
-                        <h4 class="card-title">Lightning Fast</h4>
-                        <p class="card-text">Same-day delivery available. Your parcels delivered within hours, not days.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="feature-card card h-100 shadow-sm">
-                    <div class="card-body text-center p-4">
-                        <div class="feature-icon mb-3">
-                            <i class="fas fa-map-marker-alt"></i>
-                        </div>
-                        <h4 class="card-title">Real-Time Tracking</h4>
-                        <p class="card-text">Track every move of your package with our GPS-enabled live tracking.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="feature-card card h-100 shadow-sm">
-                    <div class="card-body text-center p-4">
-                        <div class="feature-icon mb-3 feature-icon-green">
-                            <i class="fas fa-dollar-sign"></i>
-                        </div>
-                        <h4 class="card-title">Best Prices</h4>
-                        <p class="card-text">Transparent pricing with no hidden fees. You pay what you see.</p>
                     </div>
                 </div>
             </div>
@@ -172,7 +119,7 @@
             </div>
         </div>
         <div class="text-center">
-            <a href="{{ url_for('send_parcel') }}" class="btn btn-primary btn-lg">
+            <a href="{{ url_for('send_parcel') }}" class="btn btn-book-ride btn-lg">
                 Start Shipping Now <i class="fas fa-arrow-right ms-2"></i>
             </a>
         </div>
@@ -268,9 +215,8 @@
                 <p class="section-description mb-4">
                     Get started in minutes. Fast, reliable, and affordable delivery service at your fingertips.
                 </p>
-                <a href="{{ url_for('send_parcel') }}" class="btn btn-primary btn-lg btn-orange">
-                    <i class="fas fa-box me-2"></i>Book Your First Delivery
-                    <i class="fas fa-arrow-right ms-2"></i>
+                <a href="{{ url_for('send_parcel') }}" class="btn btn-book-ride btn-lg">
+                    Book Your First Delivery <i class="fas fa-arrow-right ms-2"></i>
                 </a>
             </div>
         </div>
