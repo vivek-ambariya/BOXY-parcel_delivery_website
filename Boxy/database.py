@@ -110,16 +110,16 @@ def init_database():
                 if not cursor.fetchone():
                     cursor.execute("ALTER TABLE deliveries ADD COLUMN total_stops INT DEFAULT 1 AFTER partner_id")
                     conn.commit()
-                    print("✓ Added 'total_stops' column to deliveries table")
+                    print(" Added 'total_stops' column to deliveries table")
                 else:
-                    print("✓ Column 'total_stops' already exists in deliveries table")
+                    print(" Column 'total_stops' already exists in deliveries table")
             except Error as e:
                 # If table doesn't exist yet, that's okay - it will be created above
                 if "doesn't exist" not in str(e).lower():
                     print(f"Note: Could not check/add total_stops column: {e}")
             
             conn.commit()
-            print("✓ Database tables initialized successfully!")
+            print(" Database tables initialized successfully!")
             
     except Error as e:
         print(f"Error initializing database: {e}")

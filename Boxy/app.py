@@ -5,6 +5,8 @@ import requests
 from datetime import datetime
 from database import get_db_connection, init_database
 
+
+
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
