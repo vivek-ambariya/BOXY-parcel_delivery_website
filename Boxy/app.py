@@ -2,8 +2,11 @@ from flask import Flask, render_template, request, jsonify, session
 import secrets
 import os
 import requests
+import hashlib
+import hmac
 from datetime import datetime
 from database import get_db_connection, init_database
+from config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
@@ -177,7 +180,8 @@ def get_partner_deliveries():
             cursor.execute("""
                 SELECT id, sender_name, sender_address, receiver_name, receiver_address,
                        receiver_phone, parcel_type, weight, status, partner_id, total_stops,
-                       created_at, accepted_at, updated_at, delivered_at
+                       created_at, accepted_at, updated_at, delivered_at,
+                       total_amount, payment_status, payment_method
                 FROM deliveries 
                 WHERE partner_id = %s
                 ORDER BY created_at DESC
@@ -340,11 +344,34 @@ def update_delivery_status():
             
             # Update delivery status
             if new_status == 'delivered':
-                cursor.execute("""
-                    UPDATE deliveries 
-                    SET status = %s, updated_at = NOW(), delivered_at = NOW()
-                    WHERE id = %s
-                """, (new_status, delivery_id))
+                # Check if this is a multi-stop delivery
+                cursor.execute("SELECT COUNT(*) as total FROM delivery_stops WHERE booking_id = %s", (delivery_id,))
+                stops_count = cursor.fetchone()['total']
+                
+                if stops_count > 1:
+                    # For multi-stop, check if all stops are delivered
+                    cursor.execute("""
+                        SELECT COUNT(*) as total, SUM(CASE WHEN status = 'delivered' THEN 1 ELSE 0 END) as delivered
+                        FROM delivery_stops WHERE booking_id = %s
+                    """, (delivery_id,))
+                    stop_stats = cursor.fetchone()
+                    
+                    # Only mark as delivered if all stops are delivered
+                    if stop_stats['delivered'] == stop_stats['total']:
+                        cursor.execute("""
+                            UPDATE deliveries 
+                            SET status = %s, updated_at = NOW(), delivered_at = NOW(), payment_status = 'pending'
+                            WHERE id = %s
+                        """, (new_status, delivery_id))
+                    else:
+                        return jsonify({'success': False, 'message': 'All stops must be delivered first'}), 400
+                else:
+                    # Single stop delivery - mark as delivered and set payment pending
+                    cursor.execute("""
+                        UPDATE deliveries 
+                        SET status = %s, updated_at = NOW(), delivered_at = NOW(), payment_status = 'pending'
+                        WHERE id = %s
+                    """, (new_status, delivery_id))
             else:
                 cursor.execute("""
                     UPDATE deliveries 
@@ -358,7 +385,8 @@ def update_delivery_status():
             cursor.execute("""
                 SELECT id, sender_name, sender_address, receiver_name, receiver_address,
                        receiver_phone, parcel_type, weight, status, partner_id,
-                       created_at, accepted_at, updated_at, delivered_at
+                       created_at, accepted_at, updated_at, delivered_at,
+                       payment_status, payment_method, total_amount
                 FROM deliveries WHERE id = %s
             """, (delivery_id,))
             updated_delivery = cursor.fetchone()
@@ -410,17 +438,24 @@ def deliver_stop():
             """, (delivery_id,))
             stop_stats = cursor.fetchone()
             
-            # If all stops delivered, update main delivery status
+            # If all stops delivered, update main delivery status and set payment pending
             if stop_stats['delivered'] == stop_stats['total']:
                 cursor.execute("""
                     UPDATE deliveries 
-                    SET status = 'delivered', delivered_at = NOW()
+                    SET status = 'delivered', delivered_at = NOW(), payment_status = 'pending'
                     WHERE id = %s
                 """, (delivery_id,))
             
             conn.commit()
             
-            return jsonify({'success': True, 'message': 'Stop marked as delivered'})
+            # Return delivery_id so frontend can redirect to payment if all stops delivered
+            all_delivered = stop_stats['delivered'] == stop_stats['total']
+            return jsonify({
+                'success': True, 
+                'message': 'Stop marked as delivered',
+                'all_delivered': all_delivered,
+                'delivery_id': delivery_id
+            })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
@@ -435,7 +470,8 @@ def track_delivery(tracking_id):
             cursor.execute("""
                 SELECT id, sender_name, sender_address, receiver_name, receiver_address,
                        receiver_phone, parcel_type, weight, status, partner_id, total_stops,
-                       created_at, accepted_at, updated_at, delivered_at
+                       created_at, accepted_at, updated_at, delivered_at,
+                       total_amount, payment_status, payment_method
                 FROM deliveries WHERE id = %s
             """, (tracking_id,))
             delivery = cursor.fetchone()
@@ -488,22 +524,57 @@ def create_delivery():
             count = cursor.fetchone()[0]
             delivery_id = f"QP{count + 1:09d}"
             
+            # Calculate total amount
+            pickup_address = data.get('senderAddress')
+            weight = float(data.get('parcelWeight', 0))
+            total_distance = calculate_total_distance(pickup_address, stops)
+            price_breakdown = calculate_price(total_distance, weight, total_stops)
+            total_amount = price_breakdown['total']
+            
+            # Check if total_amount column exists
+            cursor.execute("SHOW COLUMNS FROM deliveries LIKE 'total_amount'")
+            has_total_amount = cursor.fetchone() is not None
+            
             # Insert new delivery
-            cursor.execute("""
-                INSERT INTO deliveries (id, sender_name, sender_address, receiver_name, 
-                                     receiver_address, receiver_phone, parcel_type, weight, status, total_stops)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'available', %s)
-            """, (
-                delivery_id,
-                data.get('senderName'),
-                data.get('senderAddress'),
-                first_stop.get('receiver_name'),
-                first_stop.get('drop_address'),
-                first_stop.get('receiver_phone'),
-                data.get('parcelType'),
-                data.get('parcelWeight'),
-                total_stops
-            ))
+            if has_total_amount:
+                cursor.execute("""
+                    INSERT INTO deliveries (id, sender_name, sender_address, receiver_name, 
+                                         receiver_address, receiver_phone, parcel_type, weight, status, total_stops, total_amount)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'available', %s, %s)
+                """, (
+                    delivery_id,
+                    data.get('senderName'),
+                    data.get('senderAddress'),
+                    first_stop.get('receiver_name'),
+                    first_stop.get('drop_address'),
+                    first_stop.get('receiver_phone'),
+                    data.get('parcelType'),
+                    weight,
+                    total_stops,
+                    total_amount
+                ))
+            else:
+                # Fallback: insert without total_amount (migration will add it later)
+                cursor.execute("""
+                    INSERT INTO deliveries (id, sender_name, sender_address, receiver_name, 
+                                         receiver_address, receiver_phone, parcel_type, weight, status, total_stops)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'available', %s)
+                """, (
+                    delivery_id,
+                    data.get('senderName'),
+                    data.get('senderAddress'),
+                    first_stop.get('receiver_name'),
+                    first_stop.get('drop_address'),
+                    first_stop.get('receiver_phone'),
+                    data.get('parcelType'),
+                    weight,
+                    total_stops
+                ))
+                # Try to add total_amount after insert
+                try:
+                    cursor.execute("UPDATE deliveries SET total_amount = %s WHERE id = %s", (total_amount, delivery_id))
+                except:
+                    pass  # Column doesn't exist yet, will be added by migration
             
             # Insert all stops
             for stop in stops:
@@ -806,6 +877,330 @@ def admin_deliveries():
             return jsonify({
                 'success': True,
                 'deliveries': deliveries
+            })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+# Payment Routes
+@app.route('/payment/<tracking_id>')
+def payment_page(tracking_id):
+    """Show payment page for a delivery"""
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT id, sender_name, sender_address, receiver_name, receiver_address,
+                       total_amount, payment_status, payment_method, status, weight, 
+                       parcel_type, total_stops
+                FROM deliveries WHERE id = %s
+            """, (tracking_id,))
+            delivery = cursor.fetchone()
+            
+            if not delivery:
+                return render_template('error.html', message='Delivery not found'), 404
+            
+            # Only allow payment if delivery is delivered and payment is pending
+            if delivery['status'] != 'delivered':
+                return render_template('error.html', message='Delivery not yet completed'), 400
+            
+            if delivery['payment_status'] == 'paid':
+                return render_template('payment_success.html', delivery=delivery)
+            
+            # If total_amount is NULL or 0, calculate it
+            if not delivery['total_amount'] or delivery['total_amount'] == 0:
+                # Get stops to calculate distance
+                cursor.execute("""
+                    SELECT drop_address, stop_number
+                    FROM delivery_stops
+                    WHERE booking_id = %s
+                    ORDER BY stop_number
+                """, (tracking_id,))
+                stops_data = cursor.fetchall()
+                
+                stops = [{'drop_address': stop['drop_address']} for stop in stops_data]
+                weight = float(delivery.get('weight', 0) or 0)
+                total_stops = delivery.get('total_stops', 1) or len(stops) or 1
+                
+                # Calculate total amount
+                pickup_address = delivery.get('sender_address', '')
+                total_distance = calculate_total_distance(pickup_address, stops)
+                price_breakdown = calculate_price(total_distance, weight, total_stops)
+                calculated_amount = price_breakdown['total']
+                
+                # Update the delivery with calculated amount
+                cursor.execute("""
+                    UPDATE deliveries 
+                    SET total_amount = %s 
+                    WHERE id = %s
+                """, (calculated_amount, tracking_id))
+                conn.commit()
+                
+                delivery['total_amount'] = calculated_amount
+            
+            return render_template('payment.html', delivery=delivery)
+    except Exception as e:
+        return render_template('error.html', message=str(e)), 500
+
+@app.route('/api/payment/create-order', methods=['POST'])
+def create_razorpay_order():
+    """Create a Razorpay order for payment"""
+    try:
+        data = request.json
+        tracking_id = data.get('tracking_id')
+        amount = float(data.get('amount', 0))
+        
+        # Validate amount - if 0 or invalid, try to get from database
+        if amount <= 0:
+            with get_db_connection() as conn:
+                cursor = conn.cursor(dictionary=True)
+                cursor.execute("SELECT total_amount FROM deliveries WHERE id = %s", (tracking_id,))
+                delivery = cursor.fetchone()
+                
+                if delivery and delivery.get('total_amount') and float(delivery['total_amount']) > 0:
+                    amount = float(delivery['total_amount'])
+                else:
+                    return jsonify({
+                        'success': False, 
+                        'message': 'Invalid amount. Amount must be greater than ₹0.'
+                    }), 400
+        
+        # Razorpay minimum amount is 1 rupee (100 paise)
+        if amount < 1:
+            return jsonify({
+                'success': False, 
+                'message': 'Minimum payment amount is ₹1.'
+            }), 400
+        
+        # Create Razorpay order
+        order_data = {
+            'amount': int(amount * 100),  # Convert to paise
+            'currency': 'INR',
+            'receipt': tracking_id,
+            'notes': {
+                'tracking_id': tracking_id,
+                'description': f'Payment for Delivery {tracking_id}'
+            }
+        }
+        
+        # Make API request to Razorpay
+        response = requests.post(
+            'https://api.razorpay.com/v1/orders',
+            json=order_data,
+            auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET),
+            headers={'Content-Type': 'application/json'}
+        )
+        
+        if response.status_code == 200:
+            order = response.json()
+            return jsonify({
+                'success': True,
+                'order_id': order['id'],
+                'amount': order['amount'],
+                'currency': order['currency'],
+                'key_id': RAZORPAY_KEY_ID
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': f'Failed to create order: {response.text}'
+            }), 400
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/payment/razorpay-success', methods=['POST'])
+def razorpay_success():
+    """Handle Razorpay payment success with signature verification"""
+    try:
+        data = request.json
+        tracking_id = data.get('tracking_id')
+        razorpay_payment_id = data.get('razorpay_payment_id')
+        razorpay_order_id = data.get('razorpay_order_id')
+        razorpay_signature = data.get('razorpay_signature')
+        
+        # Verify signature
+        message = f"{razorpay_order_id}|{razorpay_payment_id}"
+        generated_signature = hmac.new(
+            RAZORPAY_KEY_SECRET.encode('utf-8'),
+            message.encode('utf-8'),
+            hashlib.sha256
+        ).hexdigest()
+        
+        if generated_signature != razorpay_signature:
+            return jsonify({
+                'success': False,
+                'message': 'Payment signature verification failed'
+            }), 400
+        
+        # Verify payment with Razorpay API
+        try:
+            payment_response = requests.get(
+                f'https://api.razorpay.com/v1/payments/{razorpay_payment_id}',
+                auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET)
+            )
+            
+            if payment_response.status_code != 200:
+                return jsonify({
+                    'success': False,
+                    'message': 'Payment verification failed'
+                }), 400
+            
+            payment_data = payment_response.json()
+            
+            # Check if payment is successful
+            if payment_data.get('status') != 'captured' and payment_data.get('status') != 'authorized':
+                return jsonify({
+                    'success': False,
+                    'message': f"Payment status: {payment_data.get('status')}"
+                }), 400
+                
+        except Exception as e:
+            return jsonify({
+                'success': False,
+                'message': f'Payment verification error: {str(e)}'
+            }), 500
+        
+        # Update delivery payment status
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE deliveries 
+                SET payment_status = 'paid', 
+                    payment_method = 'online',
+                    status = 'completed'
+                WHERE id = %s AND payment_status = 'pending'
+            """, (tracking_id,))
+            
+            if cursor.rowcount == 0:
+                return jsonify({
+                    'success': False,
+                    'message': 'Payment already processed or delivery not found'
+                }), 400
+            
+            conn.commit()
+            
+            return jsonify({
+                'success': True,
+                'message': 'Payment successful',
+                'payment_id': razorpay_payment_id
+            })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/payment-success/<tracking_id>')
+def payment_success_page(tracking_id):
+    """Show payment success page"""
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT id, sender_name, receiver_name, total_amount, payment_status, payment_method, status
+                FROM deliveries WHERE id = %s
+            """, (tracking_id,))
+            delivery = cursor.fetchone()
+            
+            if not delivery:
+                return render_template('error.html', message='Delivery not found'), 404
+            
+            # Only show success if payment is actually paid
+            if delivery['payment_status'] != 'paid':
+                return render_template('error.html', message='Payment not completed'), 400
+            
+            return render_template('payment_success.html', delivery=delivery)
+    except Exception as e:
+        return render_template('error.html', message=str(e)), 500
+
+@app.route('/api/payment/cash-confirm/<booking_id>', methods=['POST'])
+def cash_payment_confirm(booking_id):
+    """Partner confirms cash payment received"""
+    try:
+        partner_id = session.get('partner_id')
+        if not partner_id:
+            return jsonify({'success': False, 'message': 'Not logged in'}), 401
+        
+        with get_db_connection() as conn:
+            cursor = conn.cursor(dictionary=True)
+            
+            # Verify delivery belongs to partner and is COD
+            cursor.execute("""
+                SELECT id, partner_id, payment_method, payment_status 
+                FROM deliveries 
+                WHERE id = %s
+            """, (booking_id,))
+            delivery = cursor.fetchone()
+            
+            if not delivery:
+                return jsonify({'success': False, 'message': 'Delivery not found'}), 404
+            
+            if delivery['partner_id'] != partner_id:
+                return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+            
+            if delivery['payment_method'] != 'cash':
+                return jsonify({'success': False, 'message': 'Not a cash payment'}), 400
+            
+            # Update payment status (use regular cursor for UPDATE)
+            cursor.execute("""
+                UPDATE deliveries 
+                SET payment_status = 'paid',
+                    status = 'completed'
+                WHERE id = %s
+            """, (booking_id,))
+            
+            if cursor.rowcount == 0:
+                return jsonify({'success': False, 'message': 'Failed to update payment status'}), 400
+            
+            conn.commit()
+            
+            return jsonify({'success': True, 'message': 'Cash payment confirmed'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/payment/status/<tracking_id>', methods=['GET'])
+def payment_status(tracking_id):
+    """Get payment status for a delivery"""
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT payment_status, payment_method, total_amount, status
+                FROM deliveries WHERE id = %s
+            """, (tracking_id,))
+            delivery = cursor.fetchone()
+            
+            if not delivery:
+                return jsonify({'success': False, 'message': 'Delivery not found'}), 404
+            
+            return jsonify({
+                'success': True,
+                'payment_status': delivery['payment_status'],
+                'payment_method': delivery['payment_method'],
+                'total_amount': float(delivery['total_amount']) if delivery['total_amount'] else 0,
+                'status': delivery['status']
+            })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/payment/select-cod/<tracking_id>', methods=['POST'])
+def select_cod(tracking_id):
+    """Customer selects Cash on Delivery"""
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE deliveries 
+                SET payment_method = 'cash', 
+                    payment_status = 'pending_cash'
+                WHERE id = %s AND payment_status = 'pending'
+            """, (tracking_id,))
+            
+            if cursor.rowcount == 0:
+                return jsonify({'success': False, 'message': 'Payment already processed or delivery not found'}), 400
+            
+            conn.commit()
+            
+            return jsonify({
+                'success': True,
+                'message': 'Cash on Delivery selected. Payment will be collected on delivery.'
             })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500

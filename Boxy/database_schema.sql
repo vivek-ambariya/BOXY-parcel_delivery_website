@@ -33,16 +33,20 @@ CREATE TABLE IF NOT EXISTS deliveries (
     receiver_phone VARCHAR(20) NOT NULL,
     parcel_type VARCHAR(50) NOT NULL,
     weight DECIMAL(5,2) NOT NULL,
-    status ENUM('available', 'accepted', 'picked', 'on_the_way', 'delivered') DEFAULT 'available',
+    status ENUM('available', 'accepted', 'picked', 'on_the_way', 'delivered', 'completed') DEFAULT 'available',
     partner_id VARCHAR(20) NULL,
     total_stops INT DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     accepted_at TIMESTAMP NULL,
     updated_at TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
     delivered_at TIMESTAMP NULL,
+    total_amount DECIMAL(10,2) DEFAULT 0.00,
+    payment_status ENUM('pending', 'paid', 'pending_cash') DEFAULT 'pending',
+    payment_method ENUM('online', 'cash') NULL,
     FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE SET NULL,
     INDEX idx_status (status),
-    INDEX idx_partner (partner_id)
+    INDEX idx_partner (partner_id),
+    INDEX idx_payment_status (payment_status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Delivery Stops Table (Multi-Stop Feature)

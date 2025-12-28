@@ -492,8 +492,10 @@ function displayMyDeliveries(deliveries) {
         return;
     }
     
-    const active = deliveries.filter(d => d.status !== 'delivered');
-    const completed = deliveries.filter(d => d.status === 'delivered');
+    // Active deliveries: not delivered and not completed
+    const active = deliveries.filter(d => d.status !== 'delivered' && d.status !== 'completed');
+    // Completed deliveries: delivered or completed (payment done)
+    const completed = deliveries.filter(d => d.status === 'delivered' || d.status === 'completed');
     
     // Active deliveries
     if (active.length === 0) {
@@ -516,8 +518,36 @@ function createDeliveryCard(delivery, isCompleted = false) {
         'accepted': '<span class="badge bg-info">Accepted</span>',
         'picked': '<span class="badge bg-primary">Picked Up</span>',
         'on_the_way': '<span class="badge bg-warning">On the Way</span>',
-        'delivered': '<span class="badge bg-success">Delivered</span>'
+        'delivered': '<span class="badge bg-success">Delivered</span>',
+        'completed': '<span class="badge bg-success">Completed</span>'
     };
+    
+    // Payment info
+    let paymentInfo = '';
+    if (delivery.payment_status && delivery.status === 'delivered') {
+        const paymentStatus = delivery.payment_status === 'paid' ? 'success' : 
+                             delivery.payment_status === 'pending_cash' ? 'warning' : 'secondary';
+        const paymentStatusText = delivery.payment_status === 'paid' ? 'Paid' : 
+                                 delivery.payment_status === 'pending_cash' ? 'Cash Pending' : 'Pending';
+        const paymentMethod = delivery.payment_method ? ` (${delivery.payment_method.toUpperCase()})` : '';
+        paymentInfo = `
+            <div class="mt-2">
+                <strong>Payment:</strong> 
+                <span class="badge bg-${paymentStatus}">${paymentStatusText}${paymentMethod}</span>
+                ${delivery.total_amount ? `<br><small class="text-muted">Amount: ₹${parseFloat(delivery.total_amount).toFixed(2)}</small>` : ''}
+            </div>
+        `;
+    }
+    
+    // COD Confirmation Button
+    let codButton = '';
+    if (isCompleted && delivery.payment_method === 'cash' && delivery.payment_status === 'pending_cash') {
+        codButton = `
+            <button class="btn btn-success btn-sm mt-2" onclick="confirmCashPayment('${delivery.id}')">
+                <i class="fas fa-money-bill-wave me-1"></i>Confirm Cash Received
+            </button>
+        `;
+    }
     
     const statusButtons = !isCompleted ? `
         <div class="btn-group btn-group-sm" role="group">
@@ -529,6 +559,11 @@ function createDeliveryCard(delivery, isCompleted = false) {
             ${delivery.status === 'picked' ? `
                 <button class="btn btn-warning" onclick="updateDeliveryStatus('${delivery.id}', 'on_the_way')">
                     <i class="fas fa-truck me-1"></i>On the Way
+                </button>
+            ` : ''}
+            ${delivery.status === 'on_the_way' && (!delivery.total_stops || delivery.total_stops === 1) ? `
+                <button class="btn btn-success" onclick="updateDeliveryStatus('${delivery.id}', 'delivered')">
+                    <i class="fas fa-check-circle me-1"></i>Mark as Delivered
                 </button>
             ` : ''}
         </div>
@@ -584,10 +619,12 @@ function createDeliveryCard(delivery, isCompleted = false) {
                             <i class="fas fa-tag me-1"></i>${delivery.parcel_type}
                         </p>
                         ${stopsHtml}
+                        ${paymentInfo}
                     </div>
                     <div class="col-md-4 text-end">
                         ${statusBadges[delivery.status] || '<span class="badge bg-secondary">' + delivery.status + '</span>'}
                         ${statusButtons}
+                        ${codButton}
                     </div>
                 </div>
             </div>
@@ -615,7 +652,12 @@ async function deliverStop(deliveryId, stopNumber) {
         const data = await response.json();
         
         if (data.success) {
-            alert(`Stop ${stopNumber} marked as delivered!`);
+            if (data.all_delivered) {
+                alert(`All stops delivered! Customer will be redirected to payment page.\n\nTracking ID: ${data.delivery_id}`);
+            } else {
+                alert(`Stop ${stopNumber} marked as delivered!`);
+            }
+            // Reload deliveries to update stats
             loadDeliveries();
         } else {
             alert('Failed to mark stop as delivered: ' + (data.message || 'Unknown error'));
@@ -674,10 +716,11 @@ async function updateDeliveryStatus(deliveryId, newStatus) {
         const data = await response.json();
         
         if (data.success) {
+            // Reload deliveries to update stats
             loadDeliveries();
             
             if (newStatus === 'delivered') {
-                alert('Delivery marked as delivered! Great job!');
+                alert('Delivery marked as delivered! Customer will be redirected to payment page.\n\nTracking ID: ' + deliveryId);
             }
         } else {
             alert('Failed to update status: ' + (data.message || 'Unknown error'));
@@ -692,21 +735,47 @@ async function updateDeliveryStatus(deliveryId, newStatus) {
 function updateStats(deliveries) {
     if (!deliveries) return;
     
-    const completed = deliveries.filter(d => d.status === 'delivered').length;
-    const inProgress = deliveries.filter(d => d.status !== 'delivered' && d.status !== 'available').length;
+    // Count deliveries by status
+    const totalDeliveries = deliveries.length;
+    const completed = deliveries.filter(d => d.status === 'delivered' || d.status === 'completed').length;
+    const inProgress = deliveries.filter(d => d.status !== 'delivered' && d.status !== 'completed' && d.status !== 'available').length;
     const available = deliveries.filter(d => d.status === 'available').length;
     
-    // Update today's earnings (simple calculation: ₹50 per completed delivery)
-    const todayEarnings = completed * 50;
-    const todayEarningsEl = document.getElementById('todayEarnings');
-    if (todayEarningsEl) {
-        todayEarningsEl.textContent = `₹${todayEarnings}`;
+    // Calculate total earnings from actual delivery amounts (only paid deliveries)
+    const paidDeliveries = deliveries.filter(d => 
+        (d.status === 'delivered' || d.status === 'completed') && 
+        d.payment_status === 'paid'
+    );
+    const totalEarnings = paidDeliveries.reduce((sum, delivery) => {
+        const amount = parseFloat(delivery.total_amount) || 0;
+        // Partner gets 70% of delivery amount (30% platform fee)
+        const partnerEarning = amount * 0.7;
+        return sum + partnerEarning;
+    }, 0);
+    
+    // Update total deliveries
+    const totalDeliveriesEl = document.getElementById('totalDeliveries');
+    if (totalDeliveriesEl) {
+        totalDeliveriesEl.textContent = totalDeliveries;
     }
     
+    // Update completed deliveries
     const completedEl = document.getElementById('completedDeliveries');
-    const inProgressEl = document.getElementById('inProgressDeliveries');
     if (completedEl) completedEl.textContent = completed;
+    
+    // Update in progress deliveries
+    const inProgressEl = document.getElementById('inProgressDeliveries');
     if (inProgressEl) inProgressEl.textContent = inProgress;
+    
+    // Update earnings (use totalEarnings if exists, otherwise todayEarnings)
+    const totalEarningsEl = document.getElementById('totalEarnings');
+    const todayEarningsEl = document.getElementById('todayEarnings');
+    if (totalEarningsEl) {
+        totalEarningsEl.textContent = `₹${totalEarnings.toFixed(2)}`;
+    }
+    if (todayEarningsEl) {
+        todayEarningsEl.textContent = `₹${totalEarnings.toFixed(2)}`;
+    }
     
     const availableCountEl = document.getElementById('availableCount');
     if (availableCountEl) {
@@ -724,6 +793,39 @@ function updateStats(deliveries) {
 window.acceptDelivery = acceptDelivery;
 window.updateDeliveryStatus = updateDeliveryStatus;
 window.loadDeliveries = loadDeliveries;
+// Confirm cash payment received
+async function confirmCashPayment(bookingId) {
+    if (!currentPartner) return;
+    
+    if (!confirm('Confirm that you have received cash payment from the customer?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/payment/cash-confirm/${bookingId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('Cash payment confirmed successfully! Earnings updated.');
+            // Reload deliveries to update stats and show updated status
+            loadDeliveries();
+        } else {
+            alert('Failed to confirm payment: ' + (data.message || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Confirm cash payment error:', error);
+        alert('Failed to confirm payment. Please try again.');
+    }
+}
+
 window.deliverStop = deliverStop;
 window.toggleGoLive = toggleGoLive;
+window.confirmCashPayment = confirmCashPayment;
 
