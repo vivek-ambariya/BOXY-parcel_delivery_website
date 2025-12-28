@@ -111,6 +111,14 @@
                             </div>
                         </div>
 
+                        <!-- Payment Section (shown when delivered) -->
+                        <div id="paymentSection" class="d-none mb-4">
+                            <h5 class="mb-3"><i class="fas fa-credit-card me-2"></i>Payment Information</h5>
+                            <div id="paymentInfo">
+                                <!-- Payment info will be inserted here -->
+                            </div>
+                        </div>
+
                         <!-- Tracking Timeline -->
                         <div class="tracking-timeline">
                             <h5 class="mb-4"><i class="fas fa-route me-2"></i>Delivery Timeline</h5>
@@ -249,6 +257,14 @@ async function trackParcel(trackingNumber) {
         if (data.success && data.delivery) {
             const delivery = data.delivery;
             
+            // Auto-redirect to payment if delivery is completed and payment is pending
+            if (delivery.status === 'delivered' && delivery.payment_status === 'pending') {
+                // Small delay to show the tracking info first, then redirect
+                setTimeout(() => {
+                    window.location.href = `/payment/${trackingNum}`;
+                }, 2000);
+            }
+            
             // Show tracking results
             document.getElementById('displayTrackingNumber').textContent = trackingNum;
             document.getElementById('fromAddress').textContent = delivery.sender_address;
@@ -337,8 +353,60 @@ async function trackParcel(trackingNumber) {
             if (delivery.status === 'on_the_way' || delivery.status === 'delivered') {
                 timelineEvents.push({ status: 'On the Way', date: new Date(delivery.updated_at), icon: 'fa-truck', class: 'text-warning' });
             }
-            if (delivery.status === 'delivered') {
+            if (delivery.status === 'delivered' || delivery.status === 'completed') {
                 timelineEvents.push({ status: 'Delivered', date: new Date(delivery.delivered_at), icon: 'fa-check-circle', class: 'text-success' });
+            }
+            
+            // Show payment section if delivered
+            const paymentSection = document.getElementById('paymentSection');
+            if ((delivery.status === 'delivered' || delivery.status === 'completed') && delivery.payment_status) {
+                paymentSection.classList.remove('d-none');
+                const paymentStatus = delivery.payment_status;
+                const paymentMethod = delivery.payment_method || 'Not selected';
+                const totalAmount = delivery.total_amount || 0;
+                
+                let paymentHtml = '';
+                if (paymentStatus === 'paid') {
+                    paymentHtml = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Payment Completed</strong><br>
+                            Payment Method: ${paymentMethod.toUpperCase()}<br>
+                            Amount: ₹${parseFloat(totalAmount).toFixed(2)}
+                        </div>
+                    `;
+                } else if (paymentStatus === 'pending') {
+                    // Auto-redirect to payment page after 2 seconds
+                    paymentHtml = `
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Payment Pending</strong><br>
+                            Amount: ₹${parseFloat(totalAmount).toFixed(2)}<br>
+                            <p class="mb-2">Your delivery is complete! Redirecting to payment page...</p>
+                            <div class="mt-3">
+                                <a href="/payment/${trackingNum}" class="btn btn-primary" id="paymentRedirectBtn">
+                                    <i class="fas fa-credit-card me-2"></i>Complete Payment Now
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    // Auto-redirect after 3 seconds
+                    setTimeout(() => {
+                        window.location.href = `/payment/${trackingNum}`;
+                    }, 3000);
+                } else if (paymentStatus === 'pending_cash') {
+                    paymentHtml = `
+                        <div class="alert alert-info">
+                            <i class="fas fa-money-bill-wave me-2"></i>
+                            <strong>Cash on Delivery Selected</strong><br>
+                            Amount: ₹${parseFloat(totalAmount).toFixed(2)}<br>
+                            Payment will be collected by the delivery partner.
+                        </div>
+                    `;
+                }
+                document.getElementById('paymentInfo').innerHTML = paymentHtml;
+            } else {
+                paymentSection.classList.add('d-none');
             }
             
             timelineEvents.forEach((item, index) => {
