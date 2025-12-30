@@ -1,9 +1,11 @@
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, make_response
 import secrets
 import os
 import requests
 import hashlib
 import hmac
+import csv
+import io
 from datetime import datetime
 from database import get_db_connection, init_database
 from config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET
@@ -1235,6 +1237,91 @@ def admin_partners():
             })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/admin/export/csv', methods=['GET'])
+def export_admin_data_csv():
+    """Export deliveries data as CSV"""
+    try:
+        if not session.get('admin_logged_in'):
+            return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+        
+        # Get all deliveries data
+        with get_db_connection() as conn:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT d.id, d.sender_name, d.sender_address, d.receiver_name, 
+                       d.receiver_address, d.receiver_phone, d.parcel_type, 
+                       d.weight, d.status, d.created_at, d.delivered_at, 
+                       d.total_stops, d.total_amount, d.payment_status,
+                       p.first_name, p.last_name
+                FROM deliveries d
+                LEFT JOIN partners p ON d.partner_id = p.id
+                ORDER BY d.created_at DESC
+            """)
+            
+            deliveries = cursor.fetchall()
+            
+            # Format data
+            for delivery in deliveries:
+                if delivery['first_name'] and delivery['last_name']:
+                    delivery['partner_name'] = f"{delivery['first_name']} {delivery['last_name']}"
+                else:
+                    delivery['partner_name'] = 'Unassigned'
+                
+                if delivery['created_at']:
+                    delivery['created_at'] = delivery['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+                if delivery['delivered_at']:
+                    delivery['delivered_at'] = delivery['delivered_at'].strftime('%Y-%m-%d %H:%M:%S')
+                else:
+                    delivery['delivered_at'] = 'N/A'
+                
+                if not delivery['total_amount']:
+                    delivery['total_amount'] = 0
+        
+        return generate_csv(deliveries)
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+def generate_csv(deliveries):
+    """Generate CSV file from deliveries data"""
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Write header
+    writer.writerow([
+        'Tracking ID', 'Sender Name', 'Sender Address', 'Receiver Name',
+        'Receiver Address', 'Receiver Phone', 'Parcel Type', 'Weight (kg)',
+        'Status', 'Partner', 'Total Stops', 'Total Amount', 'Payment Status',
+        'Created At', 'Delivered At'
+    ])
+    
+    # Write data
+    for delivery in deliveries:
+        writer.writerow([
+            delivery['id'],
+            delivery['sender_name'] or 'N/A',
+            delivery['sender_address'] or 'N/A',
+            delivery['receiver_name'] or 'N/A',
+            delivery['receiver_address'] or 'N/A',
+            delivery['receiver_phone'] or 'N/A',
+            delivery['parcel_type'] or 'N/A',
+            delivery['weight'] or 0,
+            delivery['status'] or 'N/A',
+            delivery['partner_name'],
+            delivery['total_stops'] or 1,
+            delivery['total_amount'] or 0,
+            delivery['payment_status'] or 'N/A',
+            delivery['created_at'] or 'N/A',
+            delivery['delivered_at']
+        ])
+    
+    # Create response with date and time in filename
+    response = make_response(output.getvalue())
+    response.headers['Content-Type'] = 'text/csv'
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    response.headers['Content-Disposition'] = f'attachment; filename=deliveries_export_{timestamp}.csv'
+    return response
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8000)

@@ -96,22 +96,22 @@
                 <div id="adminDashboard" class="admin-dashboard card border-0 shadow-lg mt-4 d-none">
                     <div class="card-body p-5">
                         <!-- Dashboard Header -->
-                        <div class="admin-dashboard-header mb-5 pb-4 border-bottom">
+                        <div class="admin-dashboard-header mb-5">
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                                 <div>
-                                    <h2 class="mb-2 fw-bold text-primary">
+                                    <h2 class="mb-2 fw-bold">
                                         <i class="fas fa-tachometer-alt me-3"></i>Admin Dashboard
                                     </h2>
-                                    <p class="text-muted mb-0">
+                                    <p class="mb-0">
                                         <i class="fas fa-calendar-alt me-2"></i>
                                         <span id="currentDate"></span> - Welcome back! Here's your overview
                                     </p>
                                 </div>
                                 <div class="d-flex gap-2">
-                                    <button class="btn btn-outline-secondary btn-lg px-4" onclick="refreshDeliveries()" title="Refresh Dashboard">
+                                    <button class="btn btn-lg px-4" onclick="refreshDeliveries()" title="Refresh Dashboard">
                                         <i class="fas fa-sync-alt me-2"></i>Refresh
                                     </button>
-                                <button class="btn btn-outline-danger btn-lg px-4" id="logoutBtn">
+                                <button class="btn btn-lg px-4" id="logoutBtn">
                                     <i class="fas fa-sign-out-alt me-2"></i>Logout
                                 </button>
                                 </div>
@@ -203,7 +203,7 @@
                         <!-- Quick Actions -->
                         <div class="quick-actions-section mb-5">
                             <h4 class="mb-4 fw-bold">
-                                <i class="fas fa-bolt me-2 text-warning"></i>Quick Actions
+                                <i class="fas fa-bolt me-2"></i>Quick Actions
                             </h4>
                             <div class="row g-4">
                                 <div class="col-lg-3 col-md-6">
@@ -235,13 +235,18 @@
 
                         <!-- Recent Parcels Table -->
                         <div class="recent-parcels-section">
-                            <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                                 <h4 class="mb-0 fw-bold">
-                                    <i class="fas fa-list me-2 text-primary"></i>Recent Parcels
+                                    <i class="fas fa-list me-2"></i>Recent Parcels
                                 </h4>
-                                <button class="btn btn-sm btn-outline-primary" onclick="refreshDeliveries()">
-                                    <i class="fas fa-sync-alt me-2"></i>Refresh
-                                </button>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="exportData('csv')">
+                                        <i class="fas fa-file-csv me-2"></i>Export CSV
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="refreshDeliveries()">
+                                        <i class="fas fa-sync-alt me-2"></i>Refresh
+                                    </button>
+                                </div>
                             </div>
                             <div class="table-responsive-lg">
                                 <table class="table table-hover admin-table align-middle">
@@ -332,6 +337,85 @@
         </div>
     </div>
 </footer>
+
+<!-- Reports Modal -->
+<div class="modal fade admin-modal" id="reportsModal" tabindex="-1" aria-labelledby="reportsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reportsModalLabel">
+                    <i class="fas fa-chart-bar me-2"></i>Analytics & Reports
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="reportsContent">
+                    <div class="text-center py-5">
+                        <i class="fas fa-spinner fa-spin fa-2x mb-3 d-block"></i>
+                        Loading reports...
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-orange" onclick="loadReportsData()">
+                    <i class="fas fa-sync-alt me-2"></i>Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Manage Partners Modal -->
+<div class="modal fade admin-modal" id="managePartnersModal" tabindex="-1" aria-labelledby="managePartnersModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="managePartnersModalLabel">
+                    <i class="fas fa-users me-2"></i>Manage Partners
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h6 class="mb-0 text-muted">Total Partners: <span id="totalPartnersCount" class="fw-bold text-primary">0</span></h6>
+                    </div>
+                    <button class="btn btn-orange" onclick="refreshPartners()">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table partners-table">
+                        <thead>
+                            <tr>
+                                <th>Partner ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Vehicle Type</th>
+                                <th>Status</th>
+                                <th>Approved</th>
+                                <th>Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody id="partnersTableBody">
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-5">
+                                    <i class="fas fa-spinner fa-spin fa-2x mb-3 d-block"></i>
+                                    Loading partners...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -498,12 +582,280 @@ function showAddParcelModal() {
     window.location.href = '{{ url_for("send_parcel") }}';
 }
 
-function showManagePartners() {
-    alert('Partner management feature coming soon!');
+async function showManagePartners() {
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('managePartnersModal'));
+    modal.show();
+    
+    // Load partners
+    await loadPartners();
 }
 
-function showReports() {
-    alert('Reports feature coming soon!');
+async function loadPartners() {
+    try {
+        const response = await fetch('/api/admin/partners', {
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            displayPartners(data.partners);
+        } else {
+            document.getElementById('partnersTableBody').innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center text-danger py-5">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-3 d-block"></i>
+                        ${data.message || 'Failed to load partners'}
+                    </td>
+                </tr>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading partners:', error);
+        document.getElementById('partnersTableBody').innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center text-danger py-5">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-3 d-block"></i>
+                    Error loading partners. Please try again.
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function displayPartners(partners) {
+    const tbody = document.getElementById('partnersTableBody');
+    const totalCount = document.getElementById('totalPartnersCount');
+    
+    if (totalCount) {
+        totalCount.textContent = partners.length;
+    }
+    
+    if (!partners || partners.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center text-muted py-5">
+                    <i class="fas fa-users fa-2x mb-3 d-block"></i>
+                    No partners registered yet.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = partners.map(partner => {
+        const statusBadge = partner.status === 'online' 
+            ? '<span class="status-badge-online"><i class="fas fa-circle me-1"></i>Online</span>'
+            : '<span class="status-badge-offline"><i class="fas fa-circle me-1"></i>Offline</span>';
+        
+        const approvedBadge = partner.approved
+            ? '<span class="approved-badge"><i class="fas fa-check me-1"></i>Approved</span>'
+            : '<span class="pending-badge"><i class="fas fa-clock me-1"></i>Pending</span>';
+        
+        return `
+            <tr>
+                <td><strong class="text-primary">${partner.id}</strong></td>
+                <td>${partner.name || 'N/A'}</td>
+                <td>${partner.email || 'N/A'}</td>
+                <td>${partner.phone || 'N/A'}</td>
+                <td>${partner.vehicle_type || 'N/A'}</td>
+                <td>${statusBadge}</td>
+                <td>${approvedBadge}</td>
+                <td>${partner.created_at || 'N/A'}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function refreshPartners() {
+    loadPartners();
+}
+
+function exportData(format) {
+    if (format !== 'csv') {
+        return;
+    }
+    
+    // Show notification
+    const notification = document.createElement('div');
+    notification.className = 'alert alert-info position-fixed top-0 start-50 translate-middle-x mt-3';
+    notification.style.zIndex = '9999';
+    notification.innerHTML = `<i class="fas fa-spinner fa-spin me-2"></i>Generating CSV file...`;
+    document.body.appendChild(notification);
+    
+    // Create download link
+    const url = `/api/admin/export/csv`;
+    const link = document.createElement('a');
+    link.href = url;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    
+    // Remove notification and link after delay
+    setTimeout(() => {
+        notification.innerHTML = `<i class="fas fa-check me-2"></i>CSV export completed!`;
+        notification.className = 'alert alert-success position-fixed top-0 start-50 translate-middle-x mt-3';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+            document.body.removeChild(link);
+        }, 2000);
+    }, 1000);
+}
+
+async function showReports() {
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('reportsModal'));
+    modal.show();
+    
+    // Load reports data
+    await loadReportsData();
+}
+
+async function loadReportsData() {
+    try {
+        const response = await fetch('/api/admin/stats', {
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            displayReports(data.stats);
+        } else {
+            document.getElementById('reportsContent').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    ${data.message || 'Failed to load reports'}
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading reports:', error);
+        document.getElementById('reportsContent').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Error loading reports. Please try again.
+            </div>
+        `;
+    }
+}
+
+function displayReports(stats) {
+    const content = document.getElementById('reportsContent');
+    
+    // Calculate percentages
+    const totalParcels = stats.total_parcels || 0;
+    const deliveredToday = stats.delivered_today || 0;
+    const inTransit = stats.in_transit || 0;
+    const pending = stats.pending || 0;
+    const totalPartners = stats.total_partners || 0;
+    const activePartners = stats.active_partners || 0;
+    
+    const deliveredPercent = totalParcels > 0 ? ((deliveredToday / totalParcels) * 100).toFixed(1) : 0;
+    const inTransitPercent = totalParcels > 0 ? ((inTransit / totalParcels) * 100).toFixed(1) : 0;
+    const pendingPercent = totalParcels > 0 ? ((pending / totalParcels) * 100).toFixed(1) : 0;
+    const activePartnerPercent = totalPartners > 0 ? ((activePartners / totalPartners) * 100).toFixed(1) : 0;
+    
+    content.innerHTML = `
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="report-card">
+                    <h5 class="report-card-title">
+                        <i class="fas fa-chart-pie me-2"></i>Delivery Status Overview
+                    </h5>
+                    <div class="report-stat-item">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Total Parcels</span>
+                            <strong>${totalParcels}</strong>
+                        </div>
+                    </div>
+                    <div class="report-stat-item">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Delivered Today</span>
+                            <strong class="text-success">${deliveredToday} (${deliveredPercent}%)</strong>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: ${deliveredPercent}%"></div>
+                        </div>
+                    </div>
+                    <div class="report-stat-item">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>In Transit</span>
+                            <strong class="text-warning">${inTransit} (${inTransitPercent}%)</strong>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: ${inTransitPercent}%"></div>
+                        </div>
+                    </div>
+                    <div class="report-stat-item">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Pending</span>
+                            <strong class="text-info">${pending} (${pendingPercent}%)</strong>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: ${pendingPercent}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="report-card">
+                    <h5 class="report-card-title">
+                        <i class="fas fa-users me-2"></i>Partner Statistics
+                    </h5>
+                    <div class="report-stat-item">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Total Partners</span>
+                            <strong>${totalPartners}</strong>
+                        </div>
+                    </div>
+                    <div class="report-stat-item">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Active Partners</span>
+                            <strong class="text-success">${activePartners} (${activePartnerPercent}%)</strong>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: ${activePartnerPercent}%"></div>
+                        </div>
+                    </div>
+                    <div class="report-stat-item">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Offline Partners</span>
+                            <strong class="text-secondary">${totalPartners - activePartners}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="report-card">
+                    <h5 class="report-card-title">
+                        <i class="fas fa-chart-line me-2"></i>Performance Metrics
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="metric-box">
+                                <div class="metric-value">${deliveredToday}</div>
+                                <div class="metric-label">Deliveries Today</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="metric-box">
+                                <div class="metric-value">${activePartners}</div>
+                                <div class="metric-label">Active Partners</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="metric-box">
+                                <div class="metric-value">${pending}</div>
+                                <div class="metric-label">Pending Deliveries</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 function getStatusBadge(status) {
