@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session, make_response
+from flask import Flask, render_template, request, jsonify, session, make_response, redirect, url_for
 import secrets
 import os
 import requests
@@ -9,6 +9,16 @@ import io
 from datetime import datetime
 from database import get_db_connection, init_database
 from config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET
+from validation import (
+    validate_email, validate_phone, validate_name, validate_address,
+    validate_password, validate_aadhar, validate_vehicle_number,
+    validate_vehicle_type, validate_parcel_weight, validate_parcel_type,
+    validate_tracking_id, validate_status, validate_amount,
+    validate_password_confirmation, validate_stops_list, validate_stop_number,
+    validate_total_stops, validate_payment_method, validate_payment_status,
+    validate_partner_status, validate_delivery_id, validate_non_empty_string,
+    validate_positive_integer
+)
 
 
 
@@ -49,6 +59,39 @@ def partner():
 def partner_register():
     try:
         data = request.json
+        
+        # Validate input data
+        is_valid, error = validate_name(data.get('firstName'), "First name")
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
+        is_valid, error = validate_name(data.get('lastName'), "Last name")
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
+        is_valid, error = validate_phone(data.get('phone'))
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
+        is_valid, error = validate_email(data.get('email'))
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
+        is_valid, error = validate_vehicle_type(data.get('vehicleType'))
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
+        is_valid, error = validate_vehicle_number(data.get('vehicleNumber'))
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
+        is_valid, error = validate_aadhar(data.get('aadhar'))
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
+        is_valid, error = validate_password(data.get('password'))
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
         
         # Generate partner ID
         with get_db_connection() as conn:
@@ -96,6 +139,15 @@ def partner_login():
         email = data.get('email')
         password = data.get('password')
         
+        # Validate input
+        is_valid, error = validate_email(email)
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
+        is_valid, error = validate_non_empty_string(password, "Password")
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
         with get_db_connection() as conn:
             cursor = conn.cursor(dictionary=True)
             cursor.execute("""
@@ -138,6 +190,12 @@ def partner_status():
                     return jsonify({'success': False, 'message': 'No data provided'}), 400
                 
                 new_status = data.get('status', 'offline')
+                
+                # Validate status
+                is_valid, error = validate_partner_status(new_status)
+                if not is_valid:
+                    return jsonify({'success': False, 'message': error}), 400
+                
                 print(f"DEBUG: Updating partner {partner_id} status to {new_status}")
                 
                 # Update status in database
@@ -269,6 +327,11 @@ def accept_delivery():
             data = request.json
             delivery_id = data.get('delivery_id')
             
+            # Validate delivery ID
+            is_valid, error = validate_delivery_id(delivery_id)
+            if not is_valid:
+                return jsonify({'success': False, 'message': error}), 400
+            
             # Check if delivery exists and is available
             cursor.execute("""
                 SELECT id, status FROM deliveries WHERE id = %s
@@ -330,6 +393,15 @@ def update_delivery_status():
         data = request.json
         delivery_id = data.get('delivery_id')
         new_status = data.get('status')
+        
+        # Validate input
+        is_valid, error = validate_delivery_id(delivery_id)
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
+        is_valid, error = validate_status(new_status)
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
         
         with get_db_connection() as conn:
             cursor = conn.cursor(dictionary=True)
@@ -416,6 +488,15 @@ def deliver_stop():
         delivery_id = data.get('delivery_id')
         stop_number = data.get('stop_number')
         
+        # Validate input
+        is_valid, error = validate_delivery_id(delivery_id)
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
+        is_valid, error = validate_positive_integer(stop_number, "Stop number")
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
         with get_db_connection() as conn:
             cursor = conn.cursor(dictionary=True)
             
@@ -467,6 +548,11 @@ def deliver_stop():
 @app.route('/api/deliveries/track/<tracking_id>', methods=['GET'])
 def track_delivery(tracking_id):
     try:
+        # Validate tracking ID
+        is_valid, error = validate_tracking_id(tracking_id)
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
         with get_db_connection() as conn:
             cursor = conn.cursor(dictionary=True)
             
@@ -511,11 +597,33 @@ def track_delivery(tracking_id):
 def create_delivery():
     try:
         data = request.json
+        
+        # Validate sender information
+        is_valid, error = validate_name(data.get('senderName'), "Sender name")
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
+        is_valid, error = validate_address(data.get('senderAddress'), "Sender address")
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
+        # Validate stops
         stops = data.get('stops', [])
+        is_valid, error = validate_stops_list(stops)
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
         total_stops = len(stops)
         
-        if total_stops == 0:
-            return jsonify({'success': False, 'message': 'At least one stop is required'}), 400
+        # Validate parcel weight
+        is_valid, error = validate_parcel_weight(data.get('parcelWeight'))
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
+        # Validate parcel type
+        is_valid, error = validate_parcel_type(data.get('parcelType'))
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
         
         # Use first stop as primary receiver (for backward compatibility)
         first_stop = stops[0]
@@ -735,13 +843,22 @@ def calculate_price_endpoint():
         data = request.json
         pickup_address = data.get('pickup_address', '')
         stops = data.get('stops', [])
-        weight = float(data.get('weight', 0))
+        weight = data.get('weight', 0)
         
-        if not pickup_address or len(stops) == 0:
-            return jsonify({
-                'success': False,
-                'message': 'Pickup address and at least one stop are required'
-            }), 400
+        # Validate input
+        is_valid, error = validate_address(pickup_address, "Pickup address")
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
+        is_valid, error = validate_stops_list(stops)
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
+        is_valid, error = validate_parcel_weight(weight)
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
+        weight = float(weight)
         
         # Calculate total distance
         total_distance = calculate_total_distance(pickup_address, stops)
@@ -766,6 +883,15 @@ def admin_login():
         data = request.json
         email = data.get('email')
         password = data.get('password')
+        
+        # Validate input
+        is_valid, error = validate_email(email)
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
+        is_valid, error = validate_non_empty_string(password, "Password")
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
         
         # Demo credentials: admin@boxy.com / admin123
         if email == 'admin@boxy.com' and password == 'admin123':
@@ -951,7 +1077,18 @@ def create_razorpay_order():
     try:
         data = request.json
         tracking_id = data.get('tracking_id')
-        amount = float(data.get('amount', 0))
+        amount = data.get('amount', 0)
+        
+        # Validate input
+        is_valid, error = validate_tracking_id(tracking_id)
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
+        is_valid, error = validate_amount(amount)
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
+        amount = float(amount)
         
         # Validate amount - if 0 or invalid, try to get from database
         if amount <= 0:
@@ -1021,6 +1158,21 @@ def razorpay_success():
         razorpay_payment_id = data.get('razorpay_payment_id')
         razorpay_order_id = data.get('razorpay_order_id')
         razorpay_signature = data.get('razorpay_signature')
+        
+        # Validate tracking ID
+        is_valid, error = validate_tracking_id(tracking_id)
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
+        # Validate required payment fields
+        if not razorpay_payment_id or not isinstance(razorpay_payment_id, str):
+            return jsonify({'success': False, 'message': 'Payment ID is required'}), 400
+        
+        if not razorpay_order_id or not isinstance(razorpay_order_id, str):
+            return jsonify({'success': False, 'message': 'Order ID is required'}), 400
+        
+        if not razorpay_signature or not isinstance(razorpay_signature, str):
+            return jsonify({'success': False, 'message': 'Payment signature is required'}), 400
         
         # Verify signature
         message = f"{razorpay_order_id}|{razorpay_payment_id}"
@@ -1188,6 +1340,11 @@ def payment_status(tracking_id):
 def select_cod(tracking_id):
     """Customer selects Cash on Delivery"""
     try:
+        # Validate tracking ID
+        is_valid, error = validate_tracking_id(tracking_id)
+        if not is_valid:
+            return jsonify({'success': False, 'message': error}), 400
+        
         with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
@@ -1209,6 +1366,7 @@ def select_cod(tracking_id):
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
+# User API Routes
 @app.route('/api/admin/partners', methods=['GET'])
 def admin_partners():
     try:
@@ -1325,4 +1483,3 @@ def generate_csv(deliveries):
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8000)
-
