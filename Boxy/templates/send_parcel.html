@@ -72,6 +72,11 @@
                                     <input type="tel" class="form-control form-control-lg" id="senderPhone" name="senderPhone" placeholder="10-digit mobile number" required>
                                 </div>
                                 
+                                <div class="col-md-6">
+                                    <label for="senderEmail" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control form-control-lg" id="senderEmail" name="senderEmail" placeholder="your.email@example.com">
+                                </div>
+                                
                                 <!-- Pickup Address -->
                                 <div class="col-12 mt-4">
                                     <h4 class="form-section-title mb-4">
@@ -489,6 +494,8 @@ document.getElementById('sendParcelForm').addEventListener('submit', async funct
     
     const formData = {
         senderName: document.getElementById('senderName').value,
+        senderPhone: document.getElementById('senderPhone').value,
+        senderEmail: document.getElementById('senderEmail').value,
         senderAddress: document.getElementById('senderAddress').value,
         parcelType: document.getElementById('parcelType').value,
         parcelWeight: document.getElementById('parcelWeight').value,

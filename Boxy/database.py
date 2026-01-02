@@ -66,6 +66,7 @@ def init_database():
                     id VARCHAR(20) PRIMARY KEY,
                     sender_name VARCHAR(100) NOT NULL,
                     sender_address TEXT NOT NULL,
+                    sender_email VARCHAR(100) NULL,
                     receiver_name VARCHAR(100) NOT NULL,
                     receiver_address TEXT NOT NULL,
                     receiver_phone VARCHAR(20) NOT NULL,
@@ -185,6 +186,19 @@ def init_database():
             except Error as e:
                 if "doesn't exist" not in str(e).lower():
                     print(f"Note: Could not check/update status ENUM: {e}")
+            
+            # Add sender_email column if it doesn't exist
+            try:
+                cursor.execute("SHOW COLUMNS FROM deliveries LIKE 'sender_email'")
+                if not cursor.fetchone():
+                    cursor.execute("ALTER TABLE deliveries ADD COLUMN sender_email VARCHAR(100) NULL AFTER sender_address")
+                    conn.commit()
+                    print("✓ Added 'sender_email' column to deliveries table")
+                else:
+                    print("✓ Column 'sender_email' already exists in deliveries table")
+            except Error as e:
+                if "doesn't exist" not in str(e).lower():
+                    print(f"Note: Could not check/add sender_email column: {e}")
             
             conn.commit()
             print(" Database tables initialized successfully!")

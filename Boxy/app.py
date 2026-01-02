@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session, make_response, redirect, url_for
+from flask import Flask, render_template, request, jsonify, session, make_response
 import secrets
 import os
 import requests
@@ -9,18 +9,9 @@ import io
 from datetime import datetime
 from database import get_db_connection, init_database
 from config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET
-from validation import (
-    validate_email, validate_phone, validate_name, validate_address,
-    validate_password, validate_aadhar, validate_vehicle_number,
-    validate_vehicle_type, validate_parcel_weight, validate_parcel_type,
-    validate_tracking_id, validate_status, validate_amount,
-    validate_password_confirmation, validate_stops_list, validate_stop_number,
-    validate_total_stops, validate_payment_method, validate_payment_status,
-    validate_partner_status, validate_delivery_id, validate_non_empty_string,
-    validate_positive_integer
-)
-
-
+from email_service import send_confirmation_email, send_tracking_update, send_payment_receipt
+from dotenv import load_dotenv  # Correct import
+load_dotenv()  # This loads variables from .env file
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
@@ -59,39 +50,6 @@ def partner():
 def partner_register():
     try:
         data = request.json
-        
-        # Validate input data
-        is_valid, error = validate_name(data.get('firstName'), "First name")
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
-        is_valid, error = validate_name(data.get('lastName'), "Last name")
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
-        is_valid, error = validate_phone(data.get('phone'))
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
-        is_valid, error = validate_email(data.get('email'))
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
-        is_valid, error = validate_vehicle_type(data.get('vehicleType'))
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
-        is_valid, error = validate_vehicle_number(data.get('vehicleNumber'))
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
-        is_valid, error = validate_aadhar(data.get('aadhar'))
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
-        is_valid, error = validate_password(data.get('password'))
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
         
         # Generate partner ID
         with get_db_connection() as conn:
@@ -139,15 +97,6 @@ def partner_login():
         email = data.get('email')
         password = data.get('password')
         
-        # Validate input
-        is_valid, error = validate_email(email)
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
-        is_valid, error = validate_non_empty_string(password, "Password")
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
         with get_db_connection() as conn:
             cursor = conn.cursor(dictionary=True)
             cursor.execute("""
@@ -190,12 +139,6 @@ def partner_status():
                     return jsonify({'success': False, 'message': 'No data provided'}), 400
                 
                 new_status = data.get('status', 'offline')
-                
-                # Validate status
-                is_valid, error = validate_partner_status(new_status)
-                if not is_valid:
-                    return jsonify({'success': False, 'message': error}), 400
-                
                 print(f"DEBUG: Updating partner {partner_id} status to {new_status}")
                 
                 # Update status in database
@@ -327,11 +270,6 @@ def accept_delivery():
             data = request.json
             delivery_id = data.get('delivery_id')
             
-            # Validate delivery ID
-            is_valid, error = validate_delivery_id(delivery_id)
-            if not is_valid:
-                return jsonify({'success': False, 'message': error}), 400
-            
             # Check if delivery exists and is available
             cursor.execute("""
                 SELECT id, status FROM deliveries WHERE id = %s
@@ -352,14 +290,24 @@ def accept_delivery():
             """, (partner_id, delivery_id))
             conn.commit()
             
-            # Get updated delivery
+            # Get updated delivery with sender_email
             cursor.execute("""
-                SELECT id, sender_name, sender_address, receiver_name, receiver_address,
+                SELECT id, sender_name, sender_address, sender_email, receiver_name, receiver_address,
                        receiver_phone, parcel_type, weight, status, partner_id, total_stops,
                        created_at, accepted_at, updated_at, delivered_at
                 FROM deliveries WHERE id = %s
             """, (delivery_id,))
             updated_delivery = cursor.fetchone()
+            
+            # Get partner name if partner_id exists
+            partner_name = None
+            if updated_delivery.get('partner_id'):
+                cursor.execute("""
+                    SELECT first_name, last_name FROM partners WHERE id = %s
+                """, (updated_delivery['partner_id'],))
+                partner = cursor.fetchone()
+                if partner:
+                    partner_name = f"{partner['first_name']} {partner['last_name']}"
             
             # Get stops
             cursor.execute("""
@@ -379,6 +327,21 @@ def accept_delivery():
                     if isinstance(value, datetime):
                         stop[key] = value.isoformat()
             
+            # Send tracking update email when delivery is accepted
+            sender_email = updated_delivery.get('sender_email')
+            if sender_email:
+                try:
+                    send_tracking_update(
+                        to_email=sender_email,
+                        tracking_id=delivery_id,
+                        sender_name=updated_delivery.get('sender_name', ''),
+                        status='accepted',
+                        partner_name=partner_name
+                    )
+                except Exception as e:
+                    # Log error but don't fail the request
+                    print(f"Failed to send tracking update email: {str(e)}")
+            
             return jsonify({'success': True, 'delivery': updated_delivery})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
@@ -393,15 +356,6 @@ def update_delivery_status():
         data = request.json
         delivery_id = data.get('delivery_id')
         new_status = data.get('status')
-        
-        # Validate input
-        is_valid, error = validate_delivery_id(delivery_id)
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
-        is_valid, error = validate_status(new_status)
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
         
         with get_db_connection() as conn:
             cursor = conn.cursor(dictionary=True)
@@ -457,9 +411,9 @@ def update_delivery_status():
             
             conn.commit()
             
-            # Get updated delivery
+            # Get updated delivery with sender_email
             cursor.execute("""
-                SELECT id, sender_name, sender_address, receiver_name, receiver_address,
+                SELECT id, sender_name, sender_address, sender_email, receiver_name, receiver_address,
                        receiver_phone, parcel_type, weight, status, partner_id,
                        created_at, accepted_at, updated_at, delivered_at,
                        payment_status, payment_method, total_amount
@@ -467,10 +421,35 @@ def update_delivery_status():
             """, (delivery_id,))
             updated_delivery = cursor.fetchone()
             
+            # Get partner name if partner_id exists
+            partner_name = None
+            if updated_delivery.get('partner_id'):
+                cursor.execute("""
+                    SELECT first_name, last_name FROM partners WHERE id = %s
+                """, (updated_delivery['partner_id'],))
+                partner = cursor.fetchone()
+                if partner:
+                    partner_name = f"{partner['first_name']} {partner['last_name']}"
+            
             # Convert datetime objects to strings
             for key, value in updated_delivery.items():
                 if isinstance(value, datetime):
                     updated_delivery[key] = value.isoformat()
+            
+            # Send tracking update email if sender email is provided
+            sender_email = updated_delivery.get('sender_email')
+            if sender_email:
+                try:
+                    send_tracking_update(
+                        to_email=sender_email,
+                        tracking_id=delivery_id,
+                        sender_name=updated_delivery.get('sender_name', ''),
+                        status=new_status,
+                        partner_name=partner_name
+                    )
+                except Exception as e:
+                    # Log error but don't fail the request
+                    print(f"Failed to send tracking update email: {str(e)}")
             
             return jsonify({'success': True, 'delivery': updated_delivery})
     except Exception as e:
@@ -487,15 +466,6 @@ def deliver_stop():
         data = request.json
         delivery_id = data.get('delivery_id')
         stop_number = data.get('stop_number')
-        
-        # Validate input
-        is_valid, error = validate_delivery_id(delivery_id)
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
-        is_valid, error = validate_positive_integer(stop_number, "Stop number")
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
         
         with get_db_connection() as conn:
             cursor = conn.cursor(dictionary=True)
@@ -548,11 +518,6 @@ def deliver_stop():
 @app.route('/api/deliveries/track/<tracking_id>', methods=['GET'])
 def track_delivery(tracking_id):
     try:
-        # Validate tracking ID
-        is_valid, error = validate_tracking_id(tracking_id)
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
         with get_db_connection() as conn:
             cursor = conn.cursor(dictionary=True)
             
@@ -597,33 +562,11 @@ def track_delivery(tracking_id):
 def create_delivery():
     try:
         data = request.json
-        
-        # Validate sender information
-        is_valid, error = validate_name(data.get('senderName'), "Sender name")
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
-        is_valid, error = validate_address(data.get('senderAddress'), "Sender address")
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
-        # Validate stops
         stops = data.get('stops', [])
-        is_valid, error = validate_stops_list(stops)
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
         total_stops = len(stops)
         
-        # Validate parcel weight
-        is_valid, error = validate_parcel_weight(data.get('parcelWeight'))
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
-        # Validate parcel type
-        is_valid, error = validate_parcel_type(data.get('parcelType'))
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
+        if total_stops == 0:
+            return jsonify({'success': False, 'message': 'At least one stop is required'}), 400
         
         # Use first stop as primary receiver (for backward compatibility)
         first_stop = stops[0]
@@ -643,12 +586,43 @@ def create_delivery():
             price_breakdown = calculate_price(total_distance, weight, total_stops)
             total_amount = price_breakdown['total']
             
+            # Validate sender email if provided
+            sender_email = data.get('senderEmail', '').strip()
+            if sender_email:
+                from validation import validate_email
+                is_valid, error = validate_email(sender_email)
+                if not is_valid:
+                    return jsonify({'success': False, 'message': error}), 400
+            
             # Check if total_amount column exists
             cursor.execute("SHOW COLUMNS FROM deliveries LIKE 'total_amount'")
             has_total_amount = cursor.fetchone() is not None
             
+            # Check if sender_email column exists
+            cursor.execute("SHOW COLUMNS FROM deliveries LIKE 'sender_email'")
+            has_sender_email = cursor.fetchone() is not None
+            
             # Insert new delivery
-            if has_total_amount:
+            if has_total_amount and has_sender_email:
+                cursor.execute("""
+                    INSERT INTO deliveries (id, sender_name, sender_address, sender_email, receiver_name, 
+                                         receiver_address, receiver_phone, parcel_type, weight, status, total_stops, total_amount)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'available', %s, %s)
+                """, (
+                    delivery_id,
+                    data.get('senderName'),
+                    data.get('senderAddress'),
+                    sender_email if sender_email else None,
+                    first_stop.get('receiver_name'),
+                    first_stop.get('drop_address'),
+                    first_stop.get('receiver_phone'),
+                    data.get('parcelType'),
+                    weight,
+                    total_stops,
+                    total_amount
+                ))
+            elif has_total_amount:
+                # sender_email column doesn't exist yet
                 cursor.execute("""
                     INSERT INTO deliveries (id, sender_name, sender_address, receiver_name, 
                                          receiver_address, receiver_phone, parcel_type, weight, status, total_stops, total_amount)
@@ -665,8 +639,31 @@ def create_delivery():
                     total_stops,
                     total_amount
                 ))
+            elif has_sender_email:
+                # total_amount column doesn't exist yet
+                cursor.execute("""
+                    INSERT INTO deliveries (id, sender_name, sender_address, sender_email, receiver_name, 
+                                         receiver_address, receiver_phone, parcel_type, weight, status, total_stops)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'available', %s)
+                """, (
+                    delivery_id,
+                    data.get('senderName'),
+                    data.get('senderAddress'),
+                    sender_email if sender_email else None,
+                    first_stop.get('receiver_name'),
+                    first_stop.get('drop_address'),
+                    first_stop.get('receiver_phone'),
+                    data.get('parcelType'),
+                    weight,
+                    total_stops
+                ))
+                # Try to add total_amount after insert
+                try:
+                    cursor.execute("UPDATE deliveries SET total_amount = %s WHERE id = %s", (total_amount, delivery_id))
+                except:
+                    pass  # Column doesn't exist yet, will be added by migration
             else:
-                # Fallback: insert without total_amount (migration will add it later)
+                # Fallback: insert without total_amount and sender_email (migration will add them later)
                 cursor.execute("""
                     INSERT INTO deliveries (id, sender_name, sender_address, receiver_name, 
                                          receiver_address, receiver_phone, parcel_type, weight, status, total_stops)
@@ -682,9 +679,14 @@ def create_delivery():
                     weight,
                     total_stops
                 ))
-                # Try to add total_amount after insert
+                # Try to add total_amount and sender_email after insert
                 try:
                     cursor.execute("UPDATE deliveries SET total_amount = %s WHERE id = %s", (total_amount, delivery_id))
+                except:
+                    pass  # Column doesn't exist yet, will be added by migration
+                try:
+                    if sender_email:
+                        cursor.execute("UPDATE deliveries SET sender_email = %s WHERE id = %s", (sender_email, delivery_id))
                 except:
                     pass  # Column doesn't exist yet, will be added by migration
             
@@ -719,6 +721,25 @@ def create_delivery():
                 for key, value in delivery_dict.items():
                     if isinstance(value, datetime):
                         delivery_dict[key] = value.isoformat()
+            
+            # Send confirmation email if sender email is provided
+            if sender_email:
+                try:
+                    send_confirmation_email(
+                        to_email=sender_email,
+                        tracking_id=delivery_id,
+                        sender_name=data.get('senderName', ''),
+                        receiver_name=first_stop.get('receiver_name', ''),
+                        sender_address=data.get('senderAddress', ''),
+                        receiver_address=first_stop.get('drop_address', ''),
+                        parcel_type=data.get('parcelType', ''),
+                        weight=weight,
+                        total_stops=total_stops,
+                        total_amount=total_amount
+                    )
+                except Exception as e:
+                    # Log error but don't fail the request
+                    print(f"Failed to send confirmation email: {str(e)}")
             
             return jsonify({
                 'success': True, 
@@ -843,22 +864,13 @@ def calculate_price_endpoint():
         data = request.json
         pickup_address = data.get('pickup_address', '')
         stops = data.get('stops', [])
-        weight = data.get('weight', 0)
+        weight = float(data.get('weight', 0))
         
-        # Validate input
-        is_valid, error = validate_address(pickup_address, "Pickup address")
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
-        is_valid, error = validate_stops_list(stops)
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
-        is_valid, error = validate_parcel_weight(weight)
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
-        weight = float(weight)
+        if not pickup_address or len(stops) == 0:
+            return jsonify({
+                'success': False,
+                'message': 'Pickup address and at least one stop are required'
+            }), 400
         
         # Calculate total distance
         total_distance = calculate_total_distance(pickup_address, stops)
@@ -883,15 +895,6 @@ def admin_login():
         data = request.json
         email = data.get('email')
         password = data.get('password')
-        
-        # Validate input
-        is_valid, error = validate_email(email)
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
-        is_valid, error = validate_non_empty_string(password, "Password")
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
         
         # Demo credentials: admin@boxy.com / admin123
         if email == 'admin@boxy.com' and password == 'admin123':
@@ -1077,18 +1080,7 @@ def create_razorpay_order():
     try:
         data = request.json
         tracking_id = data.get('tracking_id')
-        amount = data.get('amount', 0)
-        
-        # Validate input
-        is_valid, error = validate_tracking_id(tracking_id)
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
-        is_valid, error = validate_amount(amount)
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
-        amount = float(amount)
+        amount = float(data.get('amount', 0))
         
         # Validate amount - if 0 or invalid, try to get from database
         if amount <= 0:
@@ -1159,21 +1151,6 @@ def razorpay_success():
         razorpay_order_id = data.get('razorpay_order_id')
         razorpay_signature = data.get('razorpay_signature')
         
-        # Validate tracking ID
-        is_valid, error = validate_tracking_id(tracking_id)
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
-        # Validate required payment fields
-        if not razorpay_payment_id or not isinstance(razorpay_payment_id, str):
-            return jsonify({'success': False, 'message': 'Payment ID is required'}), 400
-        
-        if not razorpay_order_id or not isinstance(razorpay_order_id, str):
-            return jsonify({'success': False, 'message': 'Order ID is required'}), 400
-        
-        if not razorpay_signature or not isinstance(razorpay_signature, str):
-            return jsonify({'success': False, 'message': 'Payment signature is required'}), 400
-        
         # Verify signature
         message = f"{razorpay_order_id}|{razorpay_payment_id}"
         generated_signature = hmac.new(
@@ -1218,7 +1195,16 @@ def razorpay_success():
         
         # Update delivery payment status
         with get_db_connection() as conn:
-            cursor = conn.cursor()
+            cursor = conn.cursor(dictionary=True)
+            
+            # Get delivery info before updating
+            cursor.execute("""
+                SELECT sender_name, sender_email, total_amount
+                FROM deliveries WHERE id = %s
+            """, (tracking_id,))
+            delivery_info = cursor.fetchone()
+            
+            # Update payment status
             cursor.execute("""
                 UPDATE deliveries 
                 SET payment_status = 'paid', 
@@ -1234,6 +1220,21 @@ def razorpay_success():
                 }), 400
             
             conn.commit()
+            
+            # Send payment receipt email if sender email is provided
+            if delivery_info and delivery_info.get('sender_email'):
+                try:
+                    send_payment_receipt(
+                        to_email=delivery_info['sender_email'],
+                        tracking_id=tracking_id,
+                        sender_name=delivery_info.get('sender_name', ''),
+                        total_amount=float(delivery_info.get('total_amount', 0)),
+                        payment_method='online',
+                        payment_id=razorpay_payment_id
+                    )
+                except Exception as e:
+                    # Log error but don't fail the request
+                    print(f"Failed to send payment receipt email: {str(e)}")
             
             return jsonify({
                 'success': True,
@@ -1294,6 +1295,13 @@ def cash_payment_confirm(booking_id):
             if delivery['payment_method'] != 'cash':
                 return jsonify({'success': False, 'message': 'Not a cash payment'}), 400
             
+            # Get delivery info before updating
+            cursor.execute("""
+                SELECT sender_name, sender_email, total_amount
+                FROM deliveries WHERE id = %s
+            """, (booking_id,))
+            delivery_info = cursor.fetchone()
+            
             # Update payment status (use regular cursor for UPDATE)
             cursor.execute("""
                 UPDATE deliveries 
@@ -1306,6 +1314,21 @@ def cash_payment_confirm(booking_id):
                 return jsonify({'success': False, 'message': 'Failed to update payment status'}), 400
             
             conn.commit()
+            
+            # Send payment receipt email if sender email is provided
+            if delivery_info and delivery_info.get('sender_email'):
+                try:
+                    send_payment_receipt(
+                        to_email=delivery_info['sender_email'],
+                        tracking_id=booking_id,
+                        sender_name=delivery_info.get('sender_name', ''),
+                        total_amount=float(delivery_info.get('total_amount', 0)),
+                        payment_method='cash',
+                        payment_id=None
+                    )
+                except Exception as e:
+                    # Log error but don't fail the request
+                    print(f"Failed to send payment receipt email: {str(e)}")
             
             return jsonify({'success': True, 'message': 'Cash payment confirmed'})
     except Exception as e:
@@ -1340,11 +1363,6 @@ def payment_status(tracking_id):
 def select_cod(tracking_id):
     """Customer selects Cash on Delivery"""
     try:
-        # Validate tracking ID
-        is_valid, error = validate_tracking_id(tracking_id)
-        if not is_valid:
-            return jsonify({'success': False, 'message': error}), 400
-        
         with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
@@ -1366,7 +1384,6 @@ def select_cod(tracking_id):
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
-# User API Routes
 @app.route('/api/admin/partners', methods=['GET'])
 def admin_partners():
     try:
