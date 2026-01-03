@@ -850,23 +850,36 @@
 {% endblock %}
 
 {% block extra_js %}
+<script id="server-customer-data" type="application/json">
+{% if customer %}
+{
+    "name": "{{ customer.first_name }} {{ customer.last_name }}",
+    "email": "{{ customer.email }}",
+    "phone": "{{ customer.phone }}",
+    "address": "{{ customer.address }}"
+}
+{% else %}
+null
+{% endif %}
+</script>
 <script>
 // Customer authentication state
 let customerInfo = null;
 
+// Server-side customer data (set by Flask template)
+const serverCustomerDataScript = document.getElementById('server-customer-data');
+const serverCustomerData = serverCustomerDataScript ? JSON.parse(serverCustomerDataScript.textContent) : null;
+
 // Check login status on page load
 async function checkLoginStatus() {
     // Check if customer info is passed from backend (server-side)
-    {% if customer %}
-    customerInfo = {
-        name: "{{ customer.first_name }} {{ customer.last_name }}",
-        email: "{{ customer.email }}",
-        phone: "{{ customer.phone }}",
-        address: "{{ customer.address }}"
-    };
-    showParcelForm();
-    displayCustomerInfo();
-    {% else %}
+    if (serverCustomerData) {
+        customerInfo = serverCustomerData;
+        showParcelForm();
+        displayCustomerInfo();
+        return;
+    }
+    
     // Check via API if not passed from backend
     try {
         const response = await fetch('/api/customer/check');
@@ -889,7 +902,6 @@ async function checkLoginStatus() {
             showLoginModal();
         }, 100);
     }
-    {% endif %}
 }
 
 // Show login modal with animation
