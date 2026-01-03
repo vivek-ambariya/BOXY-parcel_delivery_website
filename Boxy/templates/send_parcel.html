@@ -37,56 +37,164 @@
     </div>
 </nav>
 
+<!-- Login Modal Overlay with Animation -->
+<div id="loginModal" class="modal-overlay">
+    <div class="auth-container">
+        <div class="auth-box" id="authBox">
+            <!-- Sign In Panel (Left) -->
+            <div class="sign-in-panel active" id="signInPanel">
+                <div class="form-wrapper">
+                    <h2 class="auth-title animation">Sign In</h2>
+                    <p class="auth-subtitle animation">Welcome back! Please login to continue</p>
+                    
+                    <form id="customerLoginForm" class="auth-form">
+                        <div class="input-box animation">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="text" id="loginEmailOrPhone" placeholder="Email or Phone" required>
+                        </div>
+                        
+                        <div class="input-box animation">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="loginPassword" placeholder="Password" required>
+                        </div>
+                        
+                        <div class="forgot-password animation">
+                            <a href="#" class="forgot-link">Forgot your password?</a>
+                        </div>
+                        
+                        <button type="submit" class="btn-auth animation">
+                            <span>SIGN IN</span>
+                        </button>
+                    </form>
+                    
+                    <div id="loginError" class="error-message animation d-none"></div>
+                </div>
+            </div>
+            
+            <!-- Sign Up Panel (Right) -->
+            <div class="sign-up-panel active" id="signUpPanel">
+                <div class="overlay-panel">
+                    <h2 class="overlay-title animation">Hello, Friend!</h2>
+                    <p class="overlay-text animation">Enter your personal details and start your journey with us</p>
+                    <button type="button" class="ghost-btn animation" id="showRegisterFormBtn">
+                        <span>SIGN UP</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Registration Form Panel (Slides in from right) -->
+            <div class="register-panel" id="registerPanel">
+                <div class="form-wrapper">
+                    <h2 class="auth-title animation">Create Account</h2>
+                    <p class="auth-subtitle animation">Fill in your details to get started</p>
+                    
+                    <form id="customerRegisterForm" class="auth-form">
+                        <div class="input-box animation">
+                            <i class="fas fa-user input-icon"></i>
+                            <input type="text" id="regFirstName" placeholder="First Name" required>
+                        </div>
+                        
+                        <div class="input-box animation">
+                            <i class="fas fa-user input-icon"></i>
+                            <input type="text" id="regLastName" placeholder="Last Name" required>
+                        </div>
+                        
+                        <div class="input-box animation">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="regEmail" placeholder="Email" required>
+                        </div>
+                        
+                        <div class="input-box animation">
+                            <i class="fas fa-phone input-icon"></i>
+                            <input type="tel" id="regPhone" placeholder="Phone" required>
+                        </div>
+                        
+                        <div class="input-box animation">
+                            <i class="fas fa-map-marker-alt input-icon"></i>
+                            <input type="text" id="regAddress" placeholder="Pickup Address" required>
+                        </div>
+                        
+                        <div class="input-box animation">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="regPassword" placeholder="Password" required>
+                        </div>
+                        
+                        <div class="input-box animation">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="regConfirmPassword" placeholder="Confirm Password" required>
+                        </div>
+                        
+                        <button type="submit" class="btn-auth animation">
+                            <span>SIGN UP</span>
+                        </button>
+                    </form>
+                    
+                    <div id="registerError" class="error-message animation d-none"></div>
+                </div>
+            </div>
+            
+            <!-- Welcome Back Panel (Slides in from left when switching to login) -->
+            <div class="welcome-panel" id="welcomePanel">
+                <div class="overlay-panel">
+                    <h2 class="overlay-title animation">Welcome Back!</h2>
+                    <p class="overlay-text animation">To keep connected with us please login with your personal info</p>
+                    <button type="button" class="ghost-btn animation" id="showLoginFormBtn">
+                        <span>SIGN IN</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Send Parcel Section -->
 <section class="send-parcel-section py-5">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-10">
-                <div class="parcel-form-card card border-0 shadow-lg">
+                <div class="parcel-form-card card border-0 shadow-lg" id="parcelFormCard">
                     <div class="card-header bg-orange text-white p-4">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-box me-3 fa-2x"></i>
-                            <div>
-                                <h3 class="mb-0">Booking Form</h3>
-                                <p class="mb-0 small">Enter parcel details</p>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-box me-3 fa-2x"></i>
+                                <div>
+                                    <h3 class="mb-0">Booking Form</h3>
+                                    <p class="mb-0 small">Enter parcel details</p>
+                                </div>
+                            </div>
+                            <div id="customerInfo" class="d-none">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-light text-dark">
+                                        <i class="fas fa-user me-1"></i><span id="customerNameDisplay"></span>
+                                    </span>
+                                    <button type="button" class="btn btn-sm btn-outline-light" id="logoutBtn" title="Logout">
+                                        <i class="fas fa-sign-out-alt me-1"></i>Logout
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="card-body p-5 bg-cream">
+                        <!-- Welcome Back Message -->
+                        <div id="welcomeMessage" class="alert alert-success mb-4 d-none" role="alert">
+                            <h5 class="alert-heading"><i class="fas fa-check-circle me-2"></i>Welcome back, <span id="welcomeName"></span>!</h5>
+                            <p class="mb-0">Your sender information will be used automatically.</p>
+                        </div>
+                        
                         <form id="sendParcelForm">
                             <div class="row g-4">
-                                <!-- Sender Information -->
+                                <!-- Sender Information (Read-only, from logged-in user) -->
                                 <div class="col-12">
                                     <h4 class="form-section-title mb-4">
                                         <i class="fas fa-user me-2"></i>Sender Information
                                     </h4>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <label for="senderName" class="form-label">Sender Name <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control form-control-lg" id="senderName" name="senderName" placeholder="Enter your name" required>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <label for="senderPhone" class="form-label">Phone Number <span class="text-danger">*</span></label>
-                                    <input type="tel" class="form-control form-control-lg" id="senderPhone" name="senderPhone" placeholder="10-digit mobile number" required>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <label for="senderEmail" class="form-label">Email Address</label>
-                                    <input type="email" class="form-control form-control-lg" id="senderEmail" name="senderEmail" placeholder="your.email@example.com">
-                                </div>
-                                
-                                <!-- Pickup Address -->
-                                <div class="col-12 mt-4">
-                                    <h4 class="form-section-title mb-4">
-                                        <i class="fas fa-map-marker-alt me-2"></i>Pickup Address
-                                    </h4>
-                                </div>
-                                
-                                <div class="col-md-12">
-                                    <label for="senderAddress" class="form-label">Pickup Address <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control form-control-lg" id="senderAddress" name="senderAddress" placeholder="Enter pickup address with landmark" required>
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>Sender:</strong> <span id="displaySenderName"></span><br>
+                                        <strong>Phone:</strong> <span id="displaySenderPhone"></span><br>
+                                        <strong>Email:</strong> <span id="displaySenderEmail"></span><br>
+                                        <strong>Pickup Address:</strong> <span id="displaySenderAddress"></span>
+                                    </div>
                                 </div>
 
                                 <!-- Drop Stops (Multi-Stop Feature) -->
@@ -277,8 +385,725 @@
 </footer>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+/* Login Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.5s ease-in;
+    backdrop-filter: blur(3px);
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.auth-container {
+    background-color: #fff;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow: hidden;
+    position: relative;
+    animation: slideUp 0.5s ease-out;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-box {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    min-height: 550px;
+}
+
+/* Sign In Panel (Left) */
+.sign-in-panel {
+    width: 50%;
+    padding: 60px 50px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.6s ease-in-out;
+    z-index: 2;
+}
+
+.sign-in-panel.active {
+    transform: translateX(0);
+}
+
+.sign-in-panel.inactive {
+    transform: translateX(-100%);
+}
+
+/* Sign Up Panel (Right - Welcome) */
+.sign-up-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 50px;
+    transition: transform 0.6s ease-in-out, opacity 0.6s ease-in-out;
+    z-index: 1;
+}
+
+.sign-up-panel.active {
+    transform: translateX(0) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+}
+
+.sign-up-panel.inactive {
+    transform: translateX(100%);
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* Register Form Panel */
+.register-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    background: #fff;
+    padding: 20px 50px 30px 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    transform: translateX(100%);
+    transition: transform 0.6s ease-in-out;
+    z-index: 3;
+    overflow-y: auto;
+    max-height: 100%;
+    box-sizing: border-box;
+}
+
+.register-panel.active {
+    transform: translateX(0);
+}
+
+/* Welcome Panel (for switching back to login) */
+.welcome-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 50px;
+    transform: translateX(-100%);
+    transition: transform 0.6s ease-in-out;
+    z-index: 1;
+}
+
+.welcome-panel.active {
+    transform: translateX(0);
+}
+
+.overlay-panel {
+    text-align: center;
+    color: white;
+}
+
+.overlay-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: white;
+    letter-spacing: -0.5px;
+}
+
+.overlay-text {
+    font-size: 15px;
+    margin-bottom: 40px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.95);
+    padding: 0 20px;
+}
+
+.form-wrapper {
+    width: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+}
+
+.auth-title {
+    font-size: 2.2rem;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #333;
+    letter-spacing: -0.5px;
+}
+
+.auth-subtitle {
+    color: #666;
+    margin-bottom: 25px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.auth-form {
+    width: 100%;
+}
+
+.input-box {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.input-box input {
+    width: 100%;
+    height: 50px;
+    padding: 0 45px 0 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 15px;
+    background: #fff;
+    outline: none;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.input-box input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.input-box input::placeholder {
+    color: #999;
+    font-size: 15px;
+    opacity: 0.7;
+}
+
+.input-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+    font-size: 1.1rem;
+    transition: color 0.3s ease;
+}
+
+.input-box input:focus ~ .input-icon {
+    color: #667eea;
+}
+
+.forgot-password {
+    text-align: right;
+    margin-bottom: 20px;
+}
+
+.forgot-link {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.forgot-link:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
+.btn-auth {
+    width: 100%;
+    height: 50px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-auth:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-auth:active {
+    transform: translateY(0);
+}
+
+.btn-auth span {
+    position: relative;
+    z-index: 1;
+}
+
+.ghost-btn {
+    width: 200px;
+    height: 50px;
+    background: transparent;
+    border: 2px solid white;
+    border-radius: 10px;
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.ghost-btn:hover {
+    background: white;
+    color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(255, 255, 255, 0.3);
+}
+
+.ghost-btn span {
+    position: relative;
+    z-index: 1;
+}
+
+.error-message {
+    background: #fee;
+    color: #c33;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 15px;
+    font-size: 0.9rem;
+    border-left: 4px solid #c33;
+}
+
+/* Animations */
+.animation {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.animation:nth-child(1) { animation-delay: 0.1s; }
+.animation:nth-child(2) { animation-delay: 0.2s; }
+.animation:nth-child(3) { animation-delay: 0.3s; }
+.animation:nth-child(4) { animation-delay: 0.4s; }
+.animation:nth-child(5) { animation-delay: 0.5s; }
+.animation:nth-child(6) { animation-delay: 0.6s; }
+.animation:nth-child(7) { animation-delay: 0.7s; }
+.animation:nth-child(8) { animation-delay: 0.8s; }
+
+@keyframes fadeIn {
+    from { 
+        opacity: 0;
+    }
+    to { 
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#parcelFormCard {
+    transition: opacity 0.5s ease, pointer-events 0.5s ease, transform 0.5s ease;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#parcelFormCard.faded {
+    opacity: 0.3;
+    pointer-events: none;
+    transform: scale(0.98);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .auth-container {
+        width: 95%;
+        min-height: auto;
+    }
+    
+    .sign-in-panel,
+    .sign-up-panel,
+    .register-panel,
+    .welcome-panel {
+        width: 100%;
+        padding: 40px 30px;
+    }
+    
+    .sign-in-panel.inactive,
+    .sign-up-panel.inactive,
+    .register-panel.active,
+    .welcome-panel.active {
+        transform: translateX(0);
+    }
+    
+    .overlay-title {
+        font-size: 2rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <script>
+// Customer authentication state
+let customerInfo = null;
+
+// Check login status on page load
+async function checkLoginStatus() {
+    // Check if customer info is passed from backend (server-side)
+    {% if customer %}
+    customerInfo = {
+        name: "{{ customer.first_name }} {{ customer.last_name }}",
+        email: "{{ customer.email }}",
+        phone: "{{ customer.phone }}",
+        address: "{{ customer.address }}"
+    };
+    showParcelForm();
+    displayCustomerInfo();
+    {% else %}
+    // Check via API if not passed from backend
+    try {
+        const response = await fetch('/api/customer/check');
+        const data = await response.json();
+        
+        if (data.success && data.logged_in) {
+            customerInfo = data.customer;
+            showParcelForm();
+            displayCustomerInfo();
+        } else {
+            // Show login modal after a short delay to ensure DOM is ready
+            setTimeout(() => {
+                showLoginModal();
+            }, 100);
+        }
+    } catch (error) {
+        console.error('Error checking login status:', error);
+        // Show login modal on error
+        setTimeout(() => {
+            showLoginModal();
+        }, 100);
+    }
+    {% endif %}
+}
+
+// Show login modal with animation
+function showLoginModal() {
+    const modal = document.getElementById('loginModal');
+    const formCard = document.getElementById('parcelFormCard');
+    
+    if (!modal) {
+        console.error('Modal not found');
+        return;
+    }
+    
+    // Show modal immediately
+    modal.style.display = 'flex';
+    
+    // Fade the form card
+    if (formCard) {
+        formCard.classList.add('faded');
+    }
+    
+    // Initialize panels - ensure they're visible
+    const signInPanel = document.getElementById('signInPanel');
+    const signUpPanel = document.getElementById('signUpPanel');
+    const registerPanel = document.getElementById('registerPanel');
+    const welcomePanel = document.getElementById('welcomePanel');
+    
+    if (signInPanel && signUpPanel) {
+        // Reset to login view
+        signInPanel.classList.add('active');
+        signInPanel.classList.remove('inactive');
+        signUpPanel.classList.add('active');
+        signUpPanel.classList.remove('inactive');
+    }
+    
+    if (registerPanel) {
+        registerPanel.classList.remove('active');
+    }
+    
+    if (welcomePanel) {
+        welcomePanel.classList.remove('active');
+    }
+    
+    // Force reflow to ensure visibility
+    setTimeout(() => {
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    }, 10);
+}
+
+// Hide login modal and show form with animation
+function showParcelForm() {
+    const modal = document.getElementById('loginModal');
+    const formCard = document.getElementById('parcelFormCard');
+    
+    if (!modal || !formCard) {
+        console.error('Modal or form card not found');
+        return;
+    }
+    
+    // Remove faded class to show form
+    formCard.classList.remove('faded');
+    
+    // Hide modal after animation
+    setTimeout(() => {
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }, 300);
+}
+
+// Display customer information
+function displayCustomerInfo() {
+    if (customerInfo) {
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        welcomeMessage.classList.remove('d-none');
+        document.getElementById('welcomeName').textContent = customerInfo.name;
+        document.getElementById('displaySenderName').textContent = customerInfo.name;
+        document.getElementById('displaySenderPhone').textContent = customerInfo.phone;
+        document.getElementById('displaySenderEmail').textContent = customerInfo.email;
+        document.getElementById('displaySenderAddress').textContent = customerInfo.address;
+        document.getElementById('customerInfo').classList.remove('d-none');
+        document.getElementById('customerNameDisplay').textContent = customerInfo.name;
+        
+        // Hide welcome message after 5 seconds
+        setTimeout(() => {
+            welcomeMessage.classList.add('d-none');
+        }, 5000);
+    }
+}
+
+// Handle logout
+async function handleLogout() {
+    if (!confirm('Are you sure you want to logout?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/customer/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Clear customer info
+            customerInfo = null;
+            
+            // Hide customer info and welcome message
+            document.getElementById('customerInfo').classList.add('d-none');
+            document.getElementById('welcomeMessage').classList.add('d-none');
+            
+            // Reset form
+            document.getElementById('sendParcelForm').reset();
+            
+            // Show login modal
+            showLoginModal();
+        } else {
+            alert('Logout failed. Please try again.');
+        }
+    } catch (error) {
+        console.error('Logout error:', error);
+        alert('An error occurred during logout. Please try again.');
+    }
+}
+
+// Handle login form submission
+document.getElementById('customerLoginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const emailOrPhone = document.getElementById('loginEmailOrPhone').value;
+    const password = document.getElementById('loginPassword').value;
+    const errorDiv = document.getElementById('loginError');
+    
+    try {
+        const response = await fetch('/api/customer/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                emailOrPhone: emailOrPhone,
+                password: password
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            customerInfo = data.customer;
+            showParcelForm();
+            displayCustomerInfo();
+            errorDiv.classList.add('d-none');
+            document.getElementById('customerLoginForm').reset();
+        } else {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.textContent = data.message || 'Login failed';
+            errorDiv.classList.remove('d-none');
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        const errorDiv = document.getElementById('loginError');
+        errorDiv.textContent = 'An error occurred. Please try again.';
+        errorDiv.classList.remove('d-none');
+    }
+});
+
+// Handle registration form submission
+document.getElementById('customerRegisterForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const password = document.getElementById('regPassword').value;
+    const confirmPassword = document.getElementById('regConfirmPassword').value;
+    
+    if (password !== confirmPassword) {
+        const errorDiv = document.getElementById('registerError');
+        errorDiv.textContent = 'Passwords do not match';
+        errorDiv.classList.remove('d-none');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/customer/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                firstName: document.getElementById('regFirstName').value,
+                lastName: document.getElementById('regLastName').value,
+                email: document.getElementById('regEmail').value,
+                phone: document.getElementById('regPhone').value,
+                address: document.getElementById('regAddress').value,
+                password: password
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            customerInfo = {
+                name: data.customer_name,
+                email: document.getElementById('regEmail').value,
+                phone: document.getElementById('regPhone').value,
+                address: document.getElementById('regAddress').value
+            };
+            showParcelForm();
+            displayCustomerInfo();
+            errorDiv.classList.add('d-none');
+            document.getElementById('customerRegisterForm').reset();
+        } else {
+            const errorDiv = document.getElementById('registerError');
+            errorDiv.textContent = data.message || 'Registration failed';
+            errorDiv.classList.remove('d-none');
+        }
+    } catch (error) {
+        console.error('Registration error:', error);
+        const errorDiv = document.getElementById('registerError');
+        errorDiv.textContent = 'An error occurred. Please try again.';
+        errorDiv.classList.remove('d-none');
+    }
+});
+
+// Toggle between login and registration forms with slide animation
+document.getElementById('showRegisterFormBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    
+    // Slide panels
+    document.getElementById('signInPanel').classList.remove('active');
+    document.getElementById('signInPanel').classList.add('inactive');
+    document.getElementById('signUpPanel').classList.remove('active');
+    document.getElementById('signUpPanel').classList.add('inactive');
+    document.getElementById('registerPanel').classList.add('active');
+    document.getElementById('welcomePanel').classList.add('active');
+    
+    // Clear errors
+    document.getElementById('loginError').classList.add('d-none');
+    document.getElementById('registerError').classList.add('d-none');
+});
+
+document.getElementById('showLoginFormBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    
+    // Slide panels back
+    document.getElementById('signInPanel').classList.add('active');
+    document.getElementById('signInPanel').classList.remove('inactive');
+    document.getElementById('signUpPanel').classList.add('active');
+    document.getElementById('signUpPanel').classList.remove('inactive');
+    document.getElementById('registerPanel').classList.remove('active');
+    document.getElementById('welcomePanel').classList.remove('active');
+    
+    // Clear errors
+    document.getElementById('loginError').classList.add('d-none');
+    document.getElementById('registerError').classList.add('d-none');
+});
+
+// Add logout button event listener (set up early)
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', handleLogout);
+}
+
+// Check login on page load when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    checkLoginStatus();
+    
+    // Set up logout button if not already set
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn && !logoutBtn.hasAttribute('data-listener-added')) {
+        logoutBtn.setAttribute('data-listener-added', 'true');
+        logoutBtn.addEventListener('click', handleLogout);
+    }
+});
+
+// Also check immediately if DOM is already loaded
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(checkLoginStatus, 100);
+}
+
 let stopCount = 1;
 const maxStops = 5;
 
@@ -370,7 +1195,7 @@ function updateStopCount() {
 
 // Update estimated cost with live calculation
 async function updateEstimatedCost() {
-    const pickupAddress = document.getElementById('senderAddress').value;
+    const pickupAddress = customerInfo ? customerInfo.address : '';
     const weight = parseFloat(document.getElementById('parcelWeight').value) || 0;
     const stops = collectStopsData();
     
@@ -492,11 +1317,15 @@ document.getElementById('sendParcelForm').addEventListener('submit', async funct
         return;
     }
     
+    // Check if customer is logged in
+    if (!customerInfo) {
+        alert('Please login to send a parcel');
+        showLoginModal();
+        return;
+    }
+    
     const formData = {
-        senderName: document.getElementById('senderName').value,
-        senderPhone: document.getElementById('senderPhone').value,
-        senderEmail: document.getElementById('senderEmail').value,
-        senderAddress: document.getElementById('senderAddress').value,
+        // Sender info comes from logged-in customer (handled by backend)
         parcelType: document.getElementById('parcelType').value,
         parcelWeight: document.getElementById('parcelWeight').value,
         stops: stops,
@@ -545,7 +1374,8 @@ document.getElementById('sendParcelForm').addEventListener('submit', async funct
 });
 
 // Add event listeners for live price updates
-document.getElementById('senderAddress').addEventListener('input', debounce(updateEstimatedCost, 500));
+// Update cost when weight or stops change (pickup address comes from customer info)
+document.getElementById('parcelWeight').addEventListener('input', debounce(updateEstimatedCost, 500));
 document.getElementById('parcelWeight').addEventListener('input', debounce(updateEstimatedCost, 300));
 
 // Debounce function to limit API calls
@@ -572,6 +1402,19 @@ document.addEventListener('input', function(e) {
 
 // Initialize
 updateEstimatedCost();
+
+// Ensure modal is properly initialized on page load
+window.addEventListener('load', function() {
+    // Double check login status after page fully loads
+    setTimeout(() => {
+        if (!customerInfo) {
+            const modal = document.getElementById('loginModal');
+            if (modal && modal.style.display === 'none') {
+                showLoginModal();
+            }
+        }
+    }, 200);
+});
 </script>
 {% endblock %}
 
