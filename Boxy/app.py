@@ -29,23 +29,7 @@ def about():
 
 @app.route('/send-parcel')
 def send_parcel():
-    # Check if customer is logged in
-    customer_id = session.get('customer_id')
-    customer_info = None
-    
-    if customer_id:
-        try:
-            with get_db_connection() as conn:
-                cursor = conn.cursor(dictionary=True)
-                cursor.execute("""
-                    SELECT id, first_name, last_name, email, phone, address
-                    FROM customers WHERE id = %s
-                """, (customer_id,))
-                customer_info = cursor.fetchone()
-        except Exception as e:
-            print(f"Error fetching customer info: {e}")
-    
-    return render_template('send_parcel.html', customer=customer_info)
+    return render_template('send_parcel.html')
 
 @app.route('/track-parcel')
 def track_parcel():
@@ -58,131 +42,6 @@ def admin():
 @app.route('/partner')
 def partner():
     return render_template('partner.html')
-
-# API Routes for Customer Operations
-@app.route('/api/customer/register', methods=['POST'])
-def customer_register():
-    try:
-        data = request.json
-        
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            
-            # Check if email already exists
-            cursor.execute("SELECT id FROM customers WHERE email = %s", (data.get('email'),))
-            if cursor.fetchone():
-                return jsonify({'success': False, 'message': 'Email already registered'}), 400
-            
-            # Check if phone already exists
-            cursor.execute("SELECT id FROM customers WHERE phone = %s", (data.get('phone'),))
-            if cursor.fetchone():
-                return jsonify({'success': False, 'message': 'Phone number already registered'}), 400
-            
-            # Insert new customer
-            cursor.execute("""
-                INSERT INTO customers (first_name, last_name, email, phone, address, password)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """, (
-                data.get('firstName'),
-                data.get('lastName'),
-                data.get('email'),
-                data.get('phone'),
-                data.get('address'),
-                data.get('password')  # In production, hash this password
-            ))
-            
-            customer_id = cursor.lastrowid
-            conn.commit()
-            
-            # Set session
-            session['customer_id'] = customer_id
-            session['customer_name'] = f"{data.get('firstName')} {data.get('lastName')}"
-            session['customer_email'] = data.get('email')
-            
-            return jsonify({
-                'success': True,
-                'customer_id': customer_id,
-                'customer_name': session['customer_name'],
-                'message': 'Registration successful!'
-            })
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-@app.route('/api/customer/login', methods=['POST'])
-def customer_login():
-    try:
-        data = request.json
-        email_or_phone = data.get('emailOrPhone')
-        password = data.get('password')
-        
-        with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
-            cursor.execute("""
-                SELECT id, first_name, last_name, email, phone, address
-                FROM customers 
-                WHERE (email = %s OR phone = %s) AND password = %s
-            """, (email_or_phone, email_or_phone, password))
-            
-            customer = cursor.fetchone()
-            
-            if customer:
-                # Set session
-                session['customer_id'] = customer['id']
-                session['customer_name'] = f"{customer['first_name']} {customer['last_name']}"
-                session['customer_email'] = customer['email']
-                
-                return jsonify({
-                    'success': True,
-                    'customer': {
-                        'id': customer['id'],
-                        'name': session['customer_name'],
-                        'email': customer['email'],
-                        'phone': customer['phone'],
-                        'address': customer['address']
-                    },
-                    'message': 'Login successful!'
-                })
-            else:
-                return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-@app.route('/api/customer/logout', methods=['POST'])
-def customer_logout():
-    session.pop('customer_id', None)
-    session.pop('customer_name', None)
-    session.pop('customer_email', None)
-    return jsonify({'success': True})
-
-@app.route('/api/customer/check', methods=['GET'])
-def customer_check():
-    customer_id = session.get('customer_id')
-    if customer_id:
-        try:
-            with get_db_connection() as conn:
-                cursor = conn.cursor(dictionary=True)
-                cursor.execute("""
-                    SELECT id, first_name, last_name, email, phone, address
-                    FROM customers WHERE id = %s
-                """, (customer_id,))
-                customer = cursor.fetchone()
-                
-                if customer:
-                    return jsonify({
-                        'success': True,
-                        'logged_in': True,
-                        'customer': {
-                            'id': customer['id'],
-                            'name': f"{customer['first_name']} {customer['last_name']}",
-                            'email': customer['email'],
-                            'phone': customer['phone'],
-                            'address': customer['address']
-                        }
-                    })
-        except Exception as e:
-            print(f"Error checking customer: {e}")
-    
-    return jsonify({'success': True, 'logged_in': False})
 
 # API Routes for Partner Operations
 @app.route('/api/partner/register', methods=['POST'])
@@ -700,11 +559,6 @@ def track_delivery(tracking_id):
 @app.route('/api/deliveries/create', methods=['POST'])
 def create_delivery():
     try:
-        # Check if customer is logged in
-        customer_id = session.get('customer_id')
-        if not customer_id:
-            return jsonify({'success': False, 'message': 'Please login to send a parcel'}), 401
-        
         data = request.json
         stops = data.get('stops', [])
         total_stops = len(stops)
@@ -718,34 +572,20 @@ def create_delivery():
         with get_db_connection() as conn:
             cursor = conn.cursor()
             
-            # Get customer information
-            cursor.execute("""
-                SELECT first_name, last_name, email, phone, address
-                FROM customers WHERE id = %s
-            """, (customer_id,))
-            customer = cursor.fetchone()
-            
-            if not customer:
-                return jsonify({'success': False, 'message': 'Customer not found'}), 404
-            
-            # Use customer info as sender info
-            sender_name = f"{customer[0]} {customer[1]}"
-            sender_email = customer[2]
-            sender_phone = customer[3]
-            pickup_address = customer[4]  # Use customer's saved address
-            
             # Generate delivery ID
             cursor.execute("SELECT COUNT(*) FROM deliveries")
             count = cursor.fetchone()[0]
             delivery_id = f"QP{count + 1:09d}"
             
             # Calculate total amount
+            pickup_address = data.get('senderAddress')
             weight = float(data.get('parcelWeight', 0))
             total_distance = calculate_total_distance(pickup_address, stops)
             price_breakdown = calculate_price(total_distance, weight, total_stops)
             total_amount = price_breakdown['total']
             
             # Validate sender email if provided
+            sender_email = data.get('senderEmail', '').strip()
             if sender_email:
                 from validation import validate_email
                 is_valid, error = validate_email(sender_email)
@@ -768,8 +608,8 @@ def create_delivery():
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'available', %s, %s)
                 """, (
                     delivery_id,
-                    sender_name,
-                    pickup_address,
+                    data.get('senderName'),
+                    data.get('senderAddress'),
                     sender_email if sender_email else None,
                     first_stop.get('receiver_name'),
                     first_stop.get('drop_address'),
@@ -787,8 +627,8 @@ def create_delivery():
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'available', %s, %s)
                 """, (
                     delivery_id,
-                    sender_name,
-                    pickup_address,
+                    data.get('senderName'),
+                    data.get('senderAddress'),
                     first_stop.get('receiver_name'),
                     first_stop.get('drop_address'),
                     first_stop.get('receiver_phone'),
@@ -805,8 +645,8 @@ def create_delivery():
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'available', %s)
                 """, (
                     delivery_id,
-                    sender_name,
-                    pickup_address,
+                    data.get('senderName'),
+                    data.get('senderAddress'),
                     sender_email if sender_email else None,
                     first_stop.get('receiver_name'),
                     first_stop.get('drop_address'),
@@ -828,8 +668,8 @@ def create_delivery():
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'available', %s)
                 """, (
                     delivery_id,
-                    sender_name,
-                    pickup_address,
+                    data.get('senderName'),
+                    data.get('senderAddress'),
                     first_stop.get('receiver_name'),
                     first_stop.get('drop_address'),
                     first_stop.get('receiver_phone'),
@@ -886,9 +726,9 @@ def create_delivery():
                     send_confirmation_email(
                         to_email=sender_email,
                         tracking_id=delivery_id,
-                        sender_name=sender_name,
+                        sender_name=data.get('senderName', ''),
                         receiver_name=first_stop.get('receiver_name', ''),
-                        sender_address=pickup_address,
+                        sender_address=data.get('senderAddress', ''),
                         receiver_address=first_stop.get('drop_address', ''),
                         parcel_type=data.get('parcelType', ''),
                         weight=weight,

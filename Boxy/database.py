@@ -40,22 +40,6 @@ def init_database():
         with get_db_connection() as conn:
             cursor = conn.cursor()
             
-            # Create customers table
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS customers (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    first_name VARCHAR(100) NOT NULL,
-                    last_name VARCHAR(100) NOT NULL,
-                    email VARCHAR(100) UNIQUE NOT NULL,
-                    phone VARCHAR(20) UNIQUE NOT NULL,
-                    address TEXT NOT NULL,
-                    password VARCHAR(255) NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    INDEX idx_email (email),
-                    INDEX idx_phone (phone)
-                )
-            """)
-            
             # Create partners table
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS partners (
@@ -82,7 +66,6 @@ def init_database():
                     id VARCHAR(20) PRIMARY KEY,
                     sender_name VARCHAR(100) NOT NULL,
                     sender_address TEXT NOT NULL,
-                    sender_email VARCHAR(100) NULL,
                     receiver_name VARCHAR(100) NOT NULL,
                     receiver_address TEXT NOT NULL,
                     receiver_phone VARCHAR(20) NOT NULL,
@@ -202,19 +185,6 @@ def init_database():
             except Error as e:
                 if "doesn't exist" not in str(e).lower():
                     print(f"Note: Could not check/update status ENUM: {e}")
-            
-            # Add sender_email column if it doesn't exist
-            try:
-                cursor.execute("SHOW COLUMNS FROM deliveries LIKE 'sender_email'")
-                if not cursor.fetchone():
-                    cursor.execute("ALTER TABLE deliveries ADD COLUMN sender_email VARCHAR(100) NULL AFTER sender_address")
-                    conn.commit()
-                    print("✓ Added 'sender_email' column to deliveries table")
-                else:
-                    print("✓ Column 'sender_email' already exists in deliveries table")
-            except Error as e:
-                if "doesn't exist" not in str(e).lower():
-                    print(f"Note: Could not check/add sender_email column: {e}")
             
             conn.commit()
             print(" Database tables initialized successfully!")
