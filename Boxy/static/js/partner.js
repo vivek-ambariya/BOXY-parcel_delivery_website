@@ -28,26 +28,36 @@ async function checkLoginStatus() {
                 isLive = data.status === 'online';
                 currentPartner.status = data.status;
                 localStorage.setItem('currentPartner', JSON.stringify(currentPartner));
+                showDashboard();
+            } else {
+                // Not logged in, show modal
+                const modal = document.getElementById('partnerLoginModal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                }
             }
         } catch (error) {
             console.error('Error fetching status:', error);
             // Fallback to localStorage status
             isLive = currentPartner.status === 'online';
+            showDashboard();
         }
-        showDashboard();
+    } else {
+        // No saved partner, show modal
+        const modal = document.getElementById('partnerLoginModal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
     }
 }
 
 // Setup event listeners
 function setupEventListeners() {
-    // Registration form
-    document.getElementById('partnerRegisterForm').addEventListener('submit', handleRegister);
-    
-    // Login form
-    document.getElementById('partnerLoginForm').addEventListener('submit', handleLogin);
-    
     // Logout button
-    document.getElementById('partnerLogoutBtn').addEventListener('click', handleLogout);
+    const logoutBtn = document.getElementById('partnerLogoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    }
     
     // Status toggle
     document.querySelectorAll('input[name="statusToggle"]').forEach(radio => {
@@ -327,10 +337,18 @@ function updateGoLiveUI() {
 
 // Show dashboard
 function showDashboard() {
-    document.getElementById('authSection').classList.add('d-none');
-    document.getElementById('benefitsSection').classList.add('d-none');
-    document.getElementById('pageHeader').classList.add('d-none');
-    document.getElementById('partnerDashboard').classList.remove('d-none');
+    // Hide modal if it exists
+    const modal = document.getElementById('partnerLoginModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    
+    // Hide page header and show dashboard
+    const pageHeader = document.getElementById('pageHeader');
+    const partnerDashboard = document.getElementById('partnerDashboard');
+    
+    if (pageHeader) pageHeader.classList.add('d-none');
+    if (partnerDashboard) partnerDashboard.classList.remove('d-none');
     
     // Update partner info
     const partnerNameEl = document.getElementById('partnerName');
@@ -365,13 +383,36 @@ function showDashboard() {
 
 // Hide dashboard
 function hideDashboard() {
-    document.getElementById('authSection').classList.remove('d-none');
-    document.getElementById('benefitsSection').classList.remove('d-none');
-    document.getElementById('pageHeader').classList.remove('d-none');
-    document.getElementById('partnerDashboard').classList.add('d-none');
+    // Hide dashboard
+    const partnerDashboard = document.getElementById('partnerDashboard');
+    if (partnerDashboard) {
+        partnerDashboard.classList.add('d-none');
+    }
     
-    document.getElementById('partnerLoginForm').reset();
-    document.getElementById('loginError').classList.add('d-none');
+    // Show login modal
+    const modal = document.getElementById('partnerLoginModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        // Reset to login view - call function from inline script if available
+        if (typeof showPartnerLoginForm === 'function') {
+            showPartnerLoginForm();
+        } else {
+            // Fallback: manually set classes
+            const signInPanel = document.getElementById('partnerSignInPanel');
+            const signUpPanel = document.getElementById('partnerSignUpPanel');
+            const registerPanel = document.getElementById('partnerRegisterPanel');
+            const welcomePanel = document.getElementById('partnerWelcomePanel');
+            
+            if (signInPanel && signUpPanel) {
+                signInPanel.classList.add('active');
+                signInPanel.classList.remove('inactive');
+                signUpPanel.classList.add('active');
+                signUpPanel.classList.remove('inactive');
+            }
+            if (registerPanel) registerPanel.classList.remove('active');
+            if (welcomePanel) welcomePanel.classList.remove('active');
+        }
+    }
 }
 
 // Load deliveries

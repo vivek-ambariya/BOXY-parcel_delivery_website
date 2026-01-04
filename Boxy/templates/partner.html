@@ -38,7 +38,7 @@
 </nav>
 
 <!-- Partner Login Modal Overlay with Animation -->
-<div id="partnerLoginModal" class="modal-overlay">
+<div id="partnerLoginModal" class="modal-overlay" style="display: none;">
     <div class="auth-container">
         <div class="auth-box" id="partnerAuthBox">
             <!-- Sign In Panel (Left) -->
@@ -177,172 +177,6 @@
                     </p>
                 </div>
 
-                <!-- Login/Register Tabs (Hidden - replaced by modal) -->
-                <div id="authSection" class="d-none">
-                    <ul class="nav nav-tabs justify-content-center mb-4" id="partnerTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" 
-                                    type="button" role="tab">
-                                <i class="fas fa-user-plus me-2"></i>Register as Partner
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" 
-                                    type="button" role="tab">
-                                <i class="fas fa-sign-in-alt me-2"></i>Partner Login
-                            </button>
-                        </li>
-                    </ul>
-
-                    <!-- Tab Content -->
-                    <div class="tab-content" id="partnerTabContent">
-                        <!-- Register Tab -->
-                        <div class="tab-pane fade show active" id="register" role="tabpanel">
-                            <div class="partner-card card border-0 shadow-lg">
-                                <div class="card-body p-5">
-                                    <h4 class="mb-4"><i class="fas fa-user-plus me-2"></i>Partner Registration</h4>
-                                    
-                                    <form id="partnerRegisterForm">
-                                        <div class="row g-4">
-                                            <div class="col-md-6">
-                                                <label for="partnerFirstName" class="form-label">First Name <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control form-control-lg" id="partnerFirstName" required>
-                                            </div>
-                                            
-                                            <div class="col-md-6">
-                                                <label for="partnerLastName" class="form-label">Last Name <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control form-control-lg" id="partnerLastName" required>
-                                            </div>
-                                            
-                                            <div class="col-md-6">
-                                                <label for="partnerPhone" class="form-label">Phone Number <span class="text-danger">*</span></label>
-                                                <input type="tel" class="form-control form-control-lg" id="partnerPhone" 
-                                                       placeholder="+91 9876543210" required>
-                                            </div>
-                                            
-                                            <div class="col-md-6">
-                                                <label for="partnerEmail" class="form-label">Email Address <span class="text-danger">*</span></label>
-                                                <input type="email" class="form-control form-control-lg" id="partnerEmail" required>
-                                            </div>
-                                            
-                                            <div class="col-md-6">
-                                                <label for="partnerVehicle" class="form-label">Vehicle Type <span class="text-danger">*</span></label>
-                                                <select class="form-select form-select-lg" id="partnerVehicle" required>
-                                                    <option value="">Select Vehicle</option>
-                                                    <option value="bike">Bike</option>
-                                                    <option value="scooter">Scooter</option>
-                                                    <option value="cycle">Cycle</option>
-                                                    <option value="car">Car</option>
-                                                </select>
-                                            </div>
-                                            
-                                            <div class="col-md-6">
-                                                <label for="partnerVehicleNumber" class="form-label">Vehicle Number <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control form-control-lg" id="partnerVehicleNumber" 
-                                                       placeholder="MH 12 AB 1234" required>
-                                            </div>
-                                            
-                                            <div class="col-md-6">
-                                                <label for="partnerAadhar" class="form-label">Aadhar Number / ID Proof <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control form-control-lg" id="partnerAadhar" 
-                                                       placeholder="1234 5678 9012" maxlength="12" required>
-                                                <small class="form-text text-muted">12-digit Aadhar number</small>
-                                            </div>
-                                            
-                                            <div class="col-md-6">
-                                                <label for="partnerPhoto" class="form-label">Upload Photo (Optional)</label>
-                                                <input type="file" class="form-control form-control-lg" id="partnerPhoto" accept="image/*">
-                                                <small class="form-text text-muted">Profile picture (for college demo - simulated)</small>
-                                            </div>
-                                            
-                                            <div class="col-md-6">
-                                                <label for="partnerPassword" class="form-label">Password <span class="text-danger">*</span></label>
-                                                <input type="password" class="form-control form-control-lg" id="partnerPassword" required>
-                                            </div>
-                                            
-                                            <div class="col-md-6">
-                                                <label for="partnerConfirmPassword" class="form-label">Confirm Password <span class="text-danger">*</span></label>
-                                                <input type="password" class="form-control form-control-lg" id="partnerConfirmPassword" required>
-                                            </div>
-                                            
-                                            <div class="col-12">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" id="agreeTerms" required>
-                                                    <label class="form-check-label" for="agreeTerms">
-                                                        I agree to the <a href="#">Terms and Conditions</a> and <a href="#">Privacy Policy</a>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="col-12">
-                                                <div class="d-grid">
-                                                    <button type="submit" class="btn btn-primary btn-lg btn-blue">
-                                                        <i class="fas fa-user-plus me-2"></i>Register as Partner
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </form>
-
-                                    <!-- Success Message -->
-                                    <div id="registerSuccess" class="alert alert-success mt-4 d-none" role="alert">
-                                        <h5 class="alert-heading"><i class="fas fa-check-circle me-2"></i>Registration Successful!</h5>
-                                        <p class="mb-0">Your partner account has been created and auto-approved. You can now login to access your dashboard.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Login Tab -->
-                        <div class="tab-pane fade" id="login" role="tabpanel">
-                            <div class="partner-card card border-0 shadow-lg">
-                                <div class="card-body p-5">
-                                    <h4 class="mb-4"><i class="fas fa-sign-in-alt me-2"></i>Partner Login</h4>
-                                    
-                                    <form id="partnerLoginForm">
-                                        <div class="mb-4">
-                                            <label for="loginEmail" class="form-label fw-bold">
-                                                <i class="fas fa-envelope me-2"></i>Email Address or Phone
-                                            </label>
-                                            <input type="text" class="form-control form-control-lg" id="loginEmail" 
-                                                   placeholder="Enter email or phone" required>
-                                        </div>
-                                        
-                                        <div class="mb-4">
-                                            <label for="loginPassword" class="form-label fw-bold">
-                                                <i class="fas fa-lock me-2"></i>Password
-                                            </label>
-                                            <input type="password" class="form-control form-control-lg" id="loginPassword" 
-                                                   placeholder="Enter your password" required>
-                                        </div>
-                                        
-                                        <div class="mb-4 form-check">
-                                            <input type="checkbox" class="form-check-input" id="rememberPartner">
-                                            <label class="form-check-label" for="rememberPartner">
-                                                Remember me
-                                            </label>
-                                        </div>
-                                        
-                                        <div class="d-grid mb-3">
-                                            <button type="submit" class="btn btn-primary btn-lg btn-blue">
-                                                <i class="fas fa-sign-in-alt me-2"></i>Login
-                                            </button>
-                                        </div>
-                                        
-                                        <div class="text-center">
-                                            <a href="#" class="text-decoration-none">Forgot Password?</a>
-                                        </div>
-                                    </form>
-
-                                    <div id="loginError" class="alert alert-danger mt-3 d-none" role="alert">
-                                        <i class="fas fa-exclamation-circle me-2"></i><span id="loginErrorMsg"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Partner Dashboard (Hidden by default) -->
                 <div id="partnerDashboard" class="d-none">
                     <!-- Dashboard Header -->
@@ -476,37 +310,6 @@
                         </div>
                     </div>
 
-                </div>
-
-                <!-- Benefits Section (Only show when not logged in) -->
-                <div class="row g-4 mt-4" id="benefitsSection">
-                    <div class="col-md-4">
-                        <div class="benefit-card text-center p-4">
-                            <div class="benefit-icon mb-3">
-                                <i class="fas fa-dollar-sign"></i>
-                            </div>
-                            <h5>Earn More</h5>
-                            <p class="text-muted">Competitive rates and flexible payment options</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="benefit-card text-center p-4">
-                            <div class="benefit-icon mb-3">
-                                <i class="fas fa-clock"></i>
-                            </div>
-                            <h5>Flexible Hours</h5>
-                            <p class="text-muted">Work on your own schedule, choose your delivery times</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="benefit-card text-center p-4">
-                            <div class="benefit-icon mb-3">
-                                <i class="fas fa-headset"></i>
-                            </div>
-                            <h5>24/7 Support</h5>
-                            <p class="text-muted">Get help whenever you need it</p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -957,9 +760,6 @@
 <script>
 // Partner Modal JavaScript
 document.addEventListener('DOMContentLoaded', function() {
-    // Show modal on page load if not logged in
-    checkPartnerLoginStatus();
-    
     // Toggle between login and registration forms
     const partnerShowRegisterBtn = document.getElementById('partnerShowRegisterBtn');
     const partnerShowLoginBtn = document.getElementById('partnerShowLoginBtn');
@@ -1013,9 +813,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Hide modal and show dashboard
-                    hidePartnerModal();
-                    // Reload page to show dashboard
+                    // Store partner data
+                    localStorage.setItem('currentPartner', JSON.stringify(data.partner));
+                    
+                    // Hide modal
+                    const modal = document.getElementById('partnerLoginModal');
+                    if (modal) {
+                        modal.style.display = 'none';
+                    }
+                    
+                    // Reload page to show dashboard (partner.js will handle it)
                     window.location.reload();
                 } else {
                     errorDiv.textContent = data.message || 'Login failed';
