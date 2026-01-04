@@ -374,3 +374,384 @@ def send_payment_receipt(to_email, tracking_id, sender_name, total_amount,
     
     return send_email(to_email, subject, html_body, text_body)
 
+def send_password_reset_email(to_email, reset_token, reset_url):
+    """
+    Send password reset email with reset link
+    
+    Args:
+        to_email: Recipient email address
+        reset_token: Password reset token
+        reset_url: Full URL for password reset (e.g., http://localhost:5000/reset-password?token=...)
+    
+    Returns:
+        bool: True if email sent successfully, False otherwise
+    """
+    subject = "Reset Your Boxy Password"
+    
+    html_body = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+            }}
+            .container {{
+                background-color: #f9f9f9;
+                border-radius: 10px;
+                padding: 30px;
+                border: 1px solid #e0e0e0;
+            }}
+            .header {{
+                text-align: center;
+                margin-bottom: 30px;
+            }}
+            .logo {{
+                font-size: 32px;
+                font-weight: bold;
+                color: #7c3aed;
+                margin-bottom: 10px;
+            }}
+            .content {{
+                background-color: white;
+                padding: 25px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+            }}
+            .button {{
+                display: inline-block;
+                padding: 12px 30px;
+                background-color: #7c3aed;
+                color: white;
+                text-decoration: none;
+                border-radius: 5px;
+                margin: 20px 0;
+                font-weight: bold;
+            }}
+            .button:hover {{
+                background-color: #6d28d9;
+            }}
+            .footer {{
+                text-align: center;
+                color: #666;
+                font-size: 12px;
+                margin-top: 20px;
+            }}
+            .warning {{
+                background-color: #fff3cd;
+                border-left: 4px solid #ffc107;
+                padding: 15px;
+                margin: 20px 0;
+                border-radius: 4px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">📦 Boxy</div>
+            </div>
+            <div class="content">
+                <h2>Password Reset Request</h2>
+                <p>Hello,</p>
+                <p>We received a request to reset your password for your Boxy account.</p>
+                <p>Click the button below to reset your password:</p>
+                <div style="text-align: center;">
+                    <a href="{reset_url}" class="button">Reset Password</a>
+                </div>
+                <p>Or copy and paste this link into your browser:</p>
+                <p style="word-break: break-all; color: #7c3aed;">{reset_url}</p>
+                <div class="warning">
+                    <strong>⚠️ Important:</strong>
+                    <ul>
+                        <li>This link will expire in 1 hour</li>
+                        <li>If you didn't request this, please ignore this email</li>
+                        <li>For security, never share this link with anyone</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer">
+                <p>This is an automated email. Please do not reply.</p>
+                <p>&copy; 2024 Boxy. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    text_body = f"""
+    Password Reset Request - Boxy
+    
+    Hello,
+    
+    We received a request to reset your password for your Boxy account.
+    
+    Click this link to reset your password:
+    {reset_url}
+    
+    This link will expire in 1 hour.
+    
+    If you didn't request this, please ignore this email.
+    
+    For security, never share this link with anyone.
+    
+    © 2024 Boxy. All rights reserved.
+    """
+    
+    return send_email(to_email, subject, html_body, text_body)
+
+def send_password_reset_otp_email(to_email, otp):
+    """
+    Send password reset email with 4-digit OTP
+    
+    Args:
+        to_email: Recipient email address
+        otp: 4-digit OTP code
+    
+    Returns:
+        bool: True if email sent successfully, False otherwise
+    """
+    subject = "Your Boxy Password Reset OTP"
+    
+    html_body = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+            }}
+            .container {{
+                background-color: #f9f9f9;
+                border-radius: 10px;
+                padding: 30px;
+                border: 1px solid #e0e0e0;
+            }}
+            .header {{
+                text-align: center;
+                margin-bottom: 30px;
+            }}
+            .logo {{
+                font-size: 32px;
+                font-weight: bold;
+                color: #7c3aed;
+                margin-bottom: 10px;
+            }}
+            .content {{
+                background-color: white;
+                padding: 25px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+            }}
+            .otp-box {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 20px;
+                border-radius: 10px;
+                text-align: center;
+                margin: 30px 0;
+                font-size: 36px;
+                font-weight: bold;
+                letter-spacing: 10px;
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            }}
+            .footer {{
+                text-align: center;
+                color: #666;
+                font-size: 12px;
+                margin-top: 20px;
+            }}
+            .warning {{
+                background-color: #fff3cd;
+                border-left: 4px solid #ffc107;
+                padding: 15px;
+                margin: 20px 0;
+                border-radius: 4px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">📦 Boxy</div>
+            </div>
+            <div class="content">
+                <h2>Password Reset OTP</h2>
+                <p>Hello,</p>
+                <p>We received a request to reset your password for your Boxy account.</p>
+                <p>Use the following OTP to reset your password:</p>
+                <div class="otp-box">
+                    {otp}
+                </div>
+                <div class="warning">
+                    <strong>⚠️ Important:</strong>
+                    <ul>
+                        <li>If you didn't request this, please ignore this email</li>
+                        <li>For security, never share this OTP with anyone</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer">
+                <p>This is an automated email. Please do not reply.</p>
+                <p>&copy; 2024 Boxy. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    text_body = f"""
+    Password Reset OTP - Boxy
+    
+    Hello,
+    
+    We received a request to reset your password for your Boxy account.
+    
+    Your OTP is: {otp}
+    
+    If you didn't request this, please ignore this email.
+    
+    For security, never share this OTP with anyone.
+    
+    © 2024 Boxy. All rights reserved.
+    """
+    
+    return send_email(to_email, subject, html_body, text_body)
+
+def send_registration_otp_email(to_email, otp, first_name=""):
+    """
+    Send registration email with 4-digit OTP
+    
+    Args:
+        to_email: Recipient email address
+        otp: 4-digit OTP code
+        first_name: Customer's first name (optional)
+    
+    Returns:
+        bool: True if email sent successfully, False otherwise
+    """
+    subject = "Verify Your Email - Boxy Registration"
+    greeting = f"Hello {first_name}," if first_name else "Hello,"
+    
+    html_body = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+            }}
+            .container {{
+                background-color: #f9f9f9;
+                border-radius: 10px;
+                padding: 30px;
+                border: 1px solid #e0e0e0;
+            }}
+            .header {{
+                text-align: center;
+                margin-bottom: 30px;
+            }}
+            .logo {{
+                font-size: 32px;
+                font-weight: bold;
+                color: #7c3aed;
+                margin-bottom: 10px;
+            }}
+            .content {{
+                background-color: white;
+                padding: 25px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+            }}
+            .otp-box {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 20px;
+                border-radius: 10px;
+                text-align: center;
+                margin: 30px 0;
+                font-size: 36px;
+                font-weight: bold;
+                letter-spacing: 10px;
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            }}
+            .footer {{
+                text-align: center;
+                color: #666;
+                font-size: 12px;
+                margin-top: 20px;
+            }}
+            .warning {{
+                background-color: #fff3cd;
+                border-left: 4px solid #ffc107;
+                padding: 15px;
+                margin: 20px 0;
+                border-radius: 4px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">📦 Boxy</div>
+            </div>
+            <div class="content">
+                <h2>Email Verification</h2>
+                <p>{greeting}</p>
+                <p>Thank you for registering with Boxy! To complete your registration, please verify your email address using the OTP below:</p>
+                <div class="otp-box">
+                    {otp}
+                </div>
+                <div class="warning">
+                    <strong>⚠️ Important:</strong>
+                    <ul>
+                        <li>If you didn't register, please ignore this email</li>
+                        <li>For security, never share this OTP with anyone</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer">
+                <p>This is an automated email. Please do not reply.</p>
+                <p>&copy; 2024 Boxy. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    text_body = f"""
+    Email Verification - Boxy Registration
+    
+    {greeting}
+    
+    Thank you for registering with Boxy! To complete your registration, please verify your email address using the OTP below:
+    
+    Your OTP is: {otp}
+    
+    If you didn't register, please ignore this email.
+    
+    For security, never share this OTP with anyone.
+    
+    © 2024 Boxy. All rights reserved.
+    """
+    
+    return send_email(to_email, subject, html_body, text_body)
+

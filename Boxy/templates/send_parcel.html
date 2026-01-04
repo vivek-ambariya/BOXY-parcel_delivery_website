@@ -67,10 +67,6 @@
                         </button>
                     </form>
                     
-                    <div class="toggle-auth animation">
-                        <p class="toggle-text">Don't have an account? <a href="#" id="showRegisterFormLink" class="toggle-link">Sign Up</a></p>
-                    </div>
-                    
                     <div id="loginError" class="error-message animation d-none"></div>
                 </div>
             </div>
@@ -91,46 +87,53 @@
             <div class="register-panel" id="registerPanel">
                 <div class="form-wrapper">
                     <h2 class="auth-title animation">Create Account</h2>
-                    <p class="auth-subtitle animation">Fill in your details to get started</p>
+                    <p class="auth-subtitle animation" id="regSubtitle">Fill in your details to get started</p>
                     
                     <form id="customerRegisterForm" class="auth-form">
-                        <div class="input-box animation">
-                            <i class="fas fa-user input-icon"></i>
-                            <input type="text" id="regFirstName" placeholder="First Name" required>
+                        <div id="regFormFields">
+                            <div class="input-box animation">
+                                <i class="fas fa-user input-icon"></i>
+                                <input type="text" id="regFirstName" placeholder="First Name" required>
+                            </div>
+                            
+                            <div class="input-box animation">
+                                <i class="fas fa-user input-icon"></i>
+                                <input type="text" id="regLastName" placeholder="Last Name" required>
+                            </div>
+                            
+                            <div class="input-box animation">
+                                <i class="fas fa-envelope input-icon"></i>
+                                <input type="email" id="regEmail" placeholder="Email" required>
+                            </div>
+                            
+                            <div class="input-box animation">
+                                <i class="fas fa-phone input-icon"></i>
+                                <input type="tel" id="regPhone" placeholder="Phone" required>
+                            </div>
+                            
+                            <div class="input-box animation">
+                                <i class="fas fa-map-marker-alt input-icon"></i>
+                                <input type="text" id="regAddress" placeholder="Pickup Address" required>
+                            </div>
+                            
+                            <div class="input-box animation">
+                                <i class="fas fa-lock input-icon"></i>
+                                <input type="password" id="regPassword" placeholder="Password" required>
+                            </div>
+                            
+                            <div class="input-box animation">
+                                <i class="fas fa-lock input-icon"></i>
+                                <input type="password" id="regConfirmPassword" placeholder="Confirm Password" required>
+                            </div>
                         </div>
                         
-                        <div class="input-box animation">
-                            <i class="fas fa-user input-icon"></i>
-                            <input type="text" id="regLastName" placeholder="Last Name" required>
+                        <div class="input-box animation d-none" id="regOtpBox">
+                            <i class="fas fa-key input-icon"></i>
+                            <input type="text" id="regOtp" placeholder="Enter 4-digit OTP" maxlength="4" pattern="[0-9]{4}" style="text-align: center; font-size: 24px; letter-spacing: 8px;">
                         </div>
                         
-                        <div class="input-box animation">
-                            <i class="fas fa-envelope input-icon"></i>
-                            <input type="email" id="regEmail" placeholder="Email" required>
-                        </div>
-                        
-                        <div class="input-box animation">
-                            <i class="fas fa-phone input-icon"></i>
-                            <input type="tel" id="regPhone" placeholder="Phone" required>
-                        </div>
-                        
-                        <div class="input-box animation">
-                            <i class="fas fa-map-marker-alt input-icon"></i>
-                            <input type="text" id="regAddress" placeholder="Pickup Address" required>
-                        </div>
-                        
-                        <div class="input-box animation">
-                            <i class="fas fa-lock input-icon"></i>
-                            <input type="password" id="regPassword" placeholder="Password" required>
-                        </div>
-                        
-                        <div class="input-box animation">
-                            <i class="fas fa-lock input-icon"></i>
-                            <input type="password" id="regConfirmPassword" placeholder="Confirm Password" required>
-                        </div>
-                        
-                        <button type="submit" class="btn-auth animation">
-                            <span>SIGN UP</span>
+                        <button type="submit" class="btn-auth animation" id="regSubmitBtn">
+                            <span id="regSubmitText">SEND OTP</span>
                         </button>
                     </form>
                     
@@ -154,6 +157,82 @@
                 </div>
             </div>
             
+        </div>
+    </div>
+</div>
+
+<!-- Password Reset Modal -->
+<div id="passwordResetModal" class="modal-overlay" style="display: none;">
+    <div class="auth-container">
+        <div class="auth-box">
+            <!-- Forgot Password Request Panel (Left) -->
+            <div class="sign-in-panel active" id="forgotPasswordPanel">
+                <div class="form-wrapper">
+                    <h2 class="auth-title animation">Forgot Password?</h2>
+                    <p class="auth-subtitle animation" id="forgotPasswordSubtitle">Enter your email address and we'll send you an OTP to reset your password</p>
+                    
+                    <form id="forgotPasswordForm" class="auth-form">
+                        <div class="input-box animation" id="emailInputBox">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="resetEmail" placeholder="Email Address" required>
+                        </div>
+                        
+                        <div class="input-box animation d-none" id="otpInputBox" style="margin-top: 15px;">
+                            <i class="fas fa-key input-icon"></i>
+                            <input type="text" id="resetOtp" placeholder="Enter 4-digit OTP" maxlength="4" pattern="[0-9]{4}" style="text-align: center; font-size: 24px; letter-spacing: 8px;">
+                        </div>
+                        
+                        <button type="submit" class="btn-auth animation" id="forgotPasswordSubmitBtn">
+                            <span id="forgotPasswordSubmitText">Send OTP</span>
+                        </button>
+                    </form>
+                    
+                    <div class="toggle-auth animation" style="margin-top: 20px;">
+                        <p class="toggle-text"><a href="#" id="backToLoginLink" class="toggle-link">Back to Sign In</a></p>
+                    </div>
+                    
+                    <div id="forgotPasswordError" class="error-message animation d-none"></div>
+                    <div id="forgotPasswordSuccess" class="success-message animation d-none"></div>
+                </div>
+            </div>
+            
+            <!-- Spline Animation Panel (Right) -->
+            <div class="sign-up-panel active" id="forgotPasswordSplinePanel">
+                <iframe src='https://my.spline.design/claritystream-sqQzu21j1ve3CnQEXT710zgv/' frameborder='0' width='100%' height='100%' class="spline-iframe"></iframe>
+                <div class="overlay-panel">
+                    <h2 class="overlay-title animation">Reset Your Password</h2>
+                    <p class="overlay-text animation">We'll help you get back into your account</p>
+                </div>
+            </div>
+            
+            <!-- Reset Password Panel (shown after OTP verification) -->
+            <div class="sign-in-panel" id="resetPasswordPanel" style="display: none;">
+                <div class="form-wrapper">
+                    <h2 class="auth-title animation">Reset Password</h2>
+                    <p class="auth-subtitle animation">Enter your new password</p>
+                    
+                    <form id="resetPasswordForm" class="auth-form">
+                        <input type="hidden" id="resetToken" value="">
+                        
+                        <div class="input-box animation">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="newPassword" placeholder="New Password" required minlength="6">
+                        </div>
+                        
+                        <div class="input-box animation">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="confirmNewPassword" placeholder="Confirm New Password" required minlength="6">
+                        </div>
+                        
+                        <button type="submit" class="btn-auth animation">
+                            <span>Reset Password</span>
+                        </button>
+                    </form>
+                    
+                    <div id="resetPasswordError" class="error-message animation d-none"></div>
+                    <div id="resetPasswordSuccess" class="success-message animation d-none"></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -477,13 +556,16 @@
 
 .spline-iframe {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: -5%;
+    left: -5%;
+    width: 110%;
+    height: 110%;
     border: none;
     z-index: 0;
     pointer-events: auto;
+    transform: scale(1.1);
+    transform-origin: center center;
+    overflow: hidden;
 }
 
 
@@ -724,6 +806,16 @@
     padding: 12px;
     border-radius: 8px;
     margin-top: 15px;
+    font-size: 0.9rem;
+}
+
+.success-message {
+    background: #efe;
+    color: #3c3;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 15px;
+    font-size: 0.9rem;
     font-size: 0.9rem;
     border-left: 4px solid #c33;
 }
@@ -1073,60 +1165,139 @@ document.getElementById('customerLoginForm').addEventListener('submit', async fu
 });
 
 // Handle registration form submission
+let registrationStep = 'form'; // 'form' or 'otp'
 document.getElementById('customerRegisterForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
-    const password = document.getElementById('regPassword').value;
-    const confirmPassword = document.getElementById('regConfirmPassword').value;
+    const errorDiv = document.getElementById('registerError');
+    errorDiv.classList.add('d-none');
     
-    if (password !== confirmPassword) {
-        const errorDiv = document.getElementById('registerError');
-        errorDiv.textContent = 'Passwords do not match';
+    // If OTP step, verify OTP and complete registration
+    if (registrationStep === 'otp') {
+        const otp = document.getElementById('regOtp').value;
+        
+        if (!otp || otp.length !== 4 || !/^\d{4}$/.test(otp)) {
+            errorDiv.textContent = 'Please enter a valid 4-digit OTP';
+            errorDiv.classList.remove('d-none');
+            return;
+        }
+        
+        const password = document.getElementById('regPassword').value;
+        const confirmPassword = document.getElementById('regConfirmPassword').value;
+        
+        if (password !== confirmPassword) {
+            errorDiv.textContent = 'Passwords do not match';
+            errorDiv.classList.remove('d-none');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/customer/verify-registration-otp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    firstName: document.getElementById('regFirstName').value,
+                    lastName: document.getElementById('regLastName').value,
+                    email: document.getElementById('regEmail').value,
+                    phone: document.getElementById('regPhone').value,
+                    address: document.getElementById('regAddress').value,
+                    password: password,
+                    otp: otp
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                customerInfo = {
+                    name: data.customer_name,
+                    email: document.getElementById('regEmail').value,
+                    phone: document.getElementById('regPhone').value,
+                    address: document.getElementById('regAddress').value
+                };
+                showParcelForm();
+                displayCustomerInfo();
+                errorDiv.classList.add('d-none');
+                document.getElementById('customerRegisterForm').reset();
+                registrationStep = 'form';
+                document.getElementById('regOtpBox').classList.add('d-none');
+                document.getElementById('regFormFields').style.display = 'block';
+                document.getElementById('regSubmitText').textContent = 'SEND OTP';
+                document.getElementById('regSubtitle').textContent = 'Fill in your details to get started';
+            } else {
+                errorDiv.textContent = data.message || 'Registration failed';
+                errorDiv.classList.remove('d-none');
+            }
+        } catch (error) {
+            console.error('Registration error:', error);
+            errorDiv.textContent = 'An error occurred. Please try again.';
+            errorDiv.classList.remove('d-none');
+        }
+        return;
+    }
+    
+    // Form step: Send OTP
+    const email = document.getElementById('regEmail').value;
+    const firstName = document.getElementById('regFirstName').value;
+    
+    if (!email) {
+        errorDiv.textContent = 'Email is required';
         errorDiv.classList.remove('d-none');
         return;
     }
     
     try {
-        const response = await fetch('/api/customer/register', {
+        const response = await fetch('/api/customer/send-registration-otp', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                firstName: document.getElementById('regFirstName').value,
-                lastName: document.getElementById('regLastName').value,
-                email: document.getElementById('regEmail').value,
-                phone: document.getElementById('regPhone').value,
-                address: document.getElementById('regAddress').value,
-                password: password
+                email: email,
+                firstName: firstName
             })
         });
         
         const data = await response.json();
         
         if (data.success) {
-            customerInfo = {
-                name: data.customer_name,
-                email: document.getElementById('regEmail').value,
-                phone: document.getElementById('regPhone').value,
-                address: document.getElementById('regAddress').value
-            };
-            showParcelForm();
-            displayCustomerInfo();
+            // Show OTP input field
+            registrationStep = 'otp';
+            document.getElementById('regOtpBox').classList.remove('d-none');
+            document.getElementById('regFormFields').style.display = 'none';
+            document.getElementById('regEmail').disabled = true;
+            document.getElementById('regSubmitText').textContent = 'VERIFY & SIGN UP';
+            document.getElementById('regSubtitle').textContent = 'Enter the 4-digit OTP sent to your email';
+            document.getElementById('regOtp').focus();
             errorDiv.classList.add('d-none');
-            document.getElementById('customerRegisterForm').reset();
         } else {
-            const errorDiv = document.getElementById('registerError');
-            errorDiv.textContent = data.message || 'Registration failed';
+            errorDiv.textContent = data.message || 'Failed to send OTP. Please try again.';
             errorDiv.classList.remove('d-none');
         }
     } catch (error) {
-        console.error('Registration error:', error);
-        const errorDiv = document.getElementById('registerError');
+        console.error('Send OTP error:', error);
         errorDiv.textContent = 'An error occurred. Please try again.';
         errorDiv.classList.remove('d-none');
     }
 });
+
+// Auto-focus OTP input and allow only numbers for registration
+const regOtpInput = document.getElementById('regOtp');
+if (regOtpInput) {
+    regOtpInput.addEventListener('input', function(e) {
+        // Only allow numbers
+        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+    });
+    
+    regOtpInput.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const paste = (e.clipboardData || window.clipboardData).getData('text');
+        const numbers = paste.replace(/[^0-9]/g, '').substring(0, 4);
+        e.target.value = numbers;
+    });
+}
 
 // Toggle between login and registration forms with slide animation
 document.getElementById('showRegisterFormBtn').addEventListener('click', function(e) {
@@ -1202,6 +1373,219 @@ document.addEventListener('DOMContentLoaded', function() {
 // Also check immediately if DOM is already loaded
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
     setTimeout(checkLoginStatus, 100);
+}
+
+// Password Reset Functionality
+let resetEmail = ''; // Store email for OTP verification
+
+function showPasswordResetModal() {
+    document.getElementById('passwordResetModal').style.display = 'flex';
+    document.getElementById('loginModal').style.display = 'none';
+    document.getElementById('forgotPasswordPanel').style.display = 'flex';
+    document.getElementById('resetPasswordPanel').style.display = 'none';
+    document.getElementById('forgotPasswordSplinePanel').style.display = 'flex';
+    document.getElementById('forgotPasswordError').classList.add('d-none');
+    document.getElementById('forgotPasswordSuccess').classList.add('d-none');
+    document.getElementById('resetPasswordError').classList.add('d-none');
+    document.getElementById('resetPasswordSuccess').classList.add('d-none');
+    
+    // Reset form state
+    document.getElementById('otpInputBox').classList.add('d-none');
+    document.getElementById('forgotPasswordSubmitText').textContent = 'Send OTP';
+    document.getElementById('forgotPasswordSubtitle').textContent = "Enter your email address and we'll send you an OTP to reset your password";
+    resetEmail = '';
+}
+
+function hidePasswordResetModal() {
+    document.getElementById('passwordResetModal').style.display = 'none';
+    document.getElementById('forgotPasswordForm').reset();
+    document.getElementById('resetPasswordForm').reset();
+    resetEmail = '';
+}
+
+// Handle "Forgot your password?" link
+const forgotLink = document.querySelector('.forgot-link');
+if (forgotLink) {
+    forgotLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        showPasswordResetModal();
+    });
+}
+
+// Handle "Back to Sign In" link
+const backToLoginLink = document.getElementById('backToLoginLink');
+if (backToLoginLink) {
+    backToLoginLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        hidePasswordResetModal();
+        document.getElementById('loginModal').style.display = 'flex';
+    });
+}
+
+// Handle forgot password form submission
+const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+if (forgotPasswordForm) {
+    forgotPasswordForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('resetEmail').value;
+        const otp = document.getElementById('resetOtp').value;
+        const errorDiv = document.getElementById('forgotPasswordError');
+        const successDiv = document.getElementById('forgotPasswordSuccess');
+        
+        errorDiv.classList.add('d-none');
+        successDiv.classList.add('d-none');
+        
+        // If OTP input is visible, verify OTP
+        if (!document.getElementById('otpInputBox').classList.contains('d-none')) {
+            if (!otp || otp.length !== 4 || !/^\d{4}$/.test(otp)) {
+                errorDiv.textContent = 'Please enter a valid 4-digit OTP';
+                errorDiv.classList.remove('d-none');
+                return;
+            }
+            
+            // Verify OTP
+            try {
+                const verifyResponse = await fetch('/api/customer/verify-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: resetEmail, otp: otp })
+                });
+                
+                const verifyData = await verifyResponse.json();
+                
+                if (verifyData.success) {
+                    // OTP verified, show password reset form
+                    document.getElementById('resetToken').value = verifyData.token;
+                    document.getElementById('forgotPasswordPanel').style.display = 'none';
+                    document.getElementById('resetPasswordPanel').style.display = 'flex';
+                } else {
+                    errorDiv.textContent = verifyData.message || 'Invalid OTP. Please try again.';
+                    errorDiv.classList.remove('d-none');
+                }
+            } catch (error) {
+                console.error('Verify OTP error:', error);
+                errorDiv.textContent = 'An error occurred. Please try again.';
+                errorDiv.classList.remove('d-none');
+            }
+            return;
+        }
+        
+        // Send OTP to email
+        try {
+            const response = await fetch('/api/customer/forgot-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email: email })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                resetEmail = email;
+                successDiv.textContent = 'OTP has been sent to your email! Please enter the 4-digit code.';
+                successDiv.classList.remove('d-none');
+                
+                // Show OTP input field
+                document.getElementById('otpInputBox').classList.remove('d-none');
+                document.getElementById('resetEmail').disabled = true;
+                document.getElementById('forgotPasswordSubmitText').textContent = 'Verify OTP';
+                document.getElementById('forgotPasswordSubtitle').textContent = 'Enter the 4-digit OTP sent to your email';
+                document.getElementById('resetOtp').focus();
+            } else {
+                errorDiv.textContent = data.message || 'Failed to send OTP. Please try again.';
+                errorDiv.classList.remove('d-none');
+            }
+        } catch (error) {
+            console.error('Forgot password error:', error);
+            errorDiv.textContent = 'An error occurred. Please try again.';
+            errorDiv.classList.remove('d-none');
+        }
+    });
+}
+
+// Handle reset password form submission
+const resetPasswordForm = document.getElementById('resetPasswordForm');
+if (resetPasswordForm) {
+    resetPasswordForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const token = document.getElementById('resetToken').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmNewPassword').value;
+        const errorDiv = document.getElementById('resetPasswordError');
+        const successDiv = document.getElementById('resetPasswordSuccess');
+        
+        errorDiv.classList.add('d-none');
+        successDiv.classList.add('d-none');
+        
+        if (newPassword !== confirmPassword) {
+            errorDiv.textContent = 'Passwords do not match';
+            errorDiv.classList.remove('d-none');
+            return;
+        }
+        
+        if (newPassword.length < 6) {
+            errorDiv.textContent = 'Password must be at least 6 characters long';
+            errorDiv.classList.remove('d-none');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/customer/reset-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    token: token,
+                    newPassword: newPassword,
+                    confirmPassword: confirmPassword
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                successDiv.textContent = data.message || 'Password reset successfully! You can now log in.';
+                successDiv.classList.remove('d-none');
+                document.getElementById('resetPasswordForm').reset();
+                
+                // Redirect to login after 3 seconds
+                setTimeout(() => {
+                    hidePasswordResetModal();
+                    document.getElementById('loginModal').style.display = 'flex';
+                }, 3000);
+            } else {
+                errorDiv.textContent = data.message || 'Failed to reset password. Please try again.';
+                errorDiv.classList.remove('d-none');
+            }
+        } catch (error) {
+            console.error('Reset password error:', error);
+            errorDiv.textContent = 'An error occurred. Please try again.';
+            errorDiv.classList.remove('d-none');
+        }
+    });
+}
+
+// Auto-focus OTP input and allow only numbers
+const resetOtpInput = document.getElementById('resetOtp');
+if (resetOtpInput) {
+    resetOtpInput.addEventListener('input', function(e) {
+        // Only allow numbers
+        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+    });
+    
+    resetOtpInput.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const paste = (e.clipboardData || window.clipboardData).getData('text');
+        const numbers = paste.replace(/[^0-9]/g, '').substring(0, 4);
+        e.target.value = numbers;
+    });
 }
 
 let stopCount = 1;

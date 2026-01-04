@@ -6,10 +6,10 @@ import hashlib
 import hmac
 import csv
 import io
-from datetime import datetime
+from datetime import datetime, timedelta
 from database import get_db_connection, init_database
 from config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET
-from email_service import send_confirmation_email, send_tracking_update, send_payment_receipt
+from email_service import send_confirmation_email, send_tracking_update, send_payment_receipt, send_password_reset_otp_email, send_registration_otp_email
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
@@ -907,6 +907,332 @@ def admin_login():
 def admin_logout():
     session.pop('admin_logged_in', None)
     return jsonify({'success': True})
+
+# Customer API Routes
+@app.route('/api/customer/send-registration-otp', methods=['POST'])
+def send_registration_otp():
+    """Send OTP for email verification during registration"""
+    try:
+        data = request.json
+        email = data.get('email', '').strip()
+        first_name = data.get('firstName', '').strip()
+
+        if not email:
+            return jsonify({'success': False, 'message': 'Email is required'}), 400
+
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            # Check if email already exists
+            cursor.execute("SELECT id FROM customers WHERE email = %s", (email,))
+            if cursor.fetchone():
+                return jsonify({'success': False, 'message': 'Email already registered'}), 400
+
+        # Generate 4-digit OTP
+        otp = f"{secrets.randbelow(10000):04d}"
+        
+        # Store OTP in session (no database, no expiration)
+        session[f'registration_otp_{email}'] = otp
+
+        # Send registration OTP email
+        try:
+            send_registration_otp_email(email, otp, first_name)
+        except Exception as e:
+            print(f"Failed to send registration OTP email: {e}")
+            return jsonify({'success': False, 'message': 'Failed to send OTP. Please try again.'}), 500
+
+        return jsonify({
+            'success': True,
+            'message': 'OTP has been sent to your email!'
+        })
+    except Exception as e:
+        print(f"Send registration OTP error: {e}")
+        return jsonify({'success': False, 'message': 'An error occurred. Please try again.'}), 500
+
+@app.route('/api/customer/verify-registration-otp', methods=['POST'])
+def verify_registration_otp():
+    """Verify OTP and complete registration"""
+    try:
+        data = request.json
+        first_name = data.get('firstName')
+        last_name = data.get('lastName')
+        email = data.get('email')
+        phone = data.get('phone')
+        address = data.get('address')
+        password = data.get('password')
+        otp = data.get('otp', '').strip()
+
+        # Basic validation
+        if not all([first_name, last_name, email, phone, address, password, otp]):
+            return jsonify({'success': False, 'message': 'All fields are required'}), 400
+
+        if len(otp) != 4 or not otp.isdigit():
+            return jsonify({'success': False, 'message': 'Invalid OTP format'}), 400
+
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Check if email or phone already exists
+            cursor.execute("SELECT id FROM customers WHERE email = %s OR phone = %s", (email, phone))
+            if cursor.fetchone():
+                return jsonify({'success': False, 'message': 'Email or phone already registered'}), 400
+
+            # Verify OTP from session (no database check, no expiration)
+            session_otp = session.get(f'registration_otp_{email}')
+            
+            if not session_otp or session_otp != otp:
+                return jsonify({
+                    'success': False,
+                    'message': 'Invalid OTP. Please request a new one.'
+                }), 400
+
+            # Clear OTP from session after verification
+            session.pop(f'registration_otp_{email}', None)
+
+            # Generate customer ID
+            cursor.execute("SELECT COUNT(*) FROM customers")
+            count = cursor.fetchone()[0]
+            customer_id = f"CUST{count + 1:04d}"
+
+            # Create customer account
+            cursor.execute("""
+                INSERT INTO customers (id, first_name, last_name, email, phone, address, password)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (customer_id, first_name, last_name, email, phone, address, password))
+            conn.commit()
+
+            # Log in the customer immediately after registration
+            session['customer_id'] = customer_id
+            session['customer_name'] = f"{first_name} {last_name}"
+
+            return jsonify({
+                'success': True,
+                'message': 'Registration successful!',
+                'customer_id': customer_id,
+                'customer_name': f"{first_name} {last_name}",
+                'customer': {
+                    'id': customer_id,
+                    'name': f"{first_name} {last_name}",
+                    'email': email,
+                    'phone': phone,
+                    'address': address
+                }
+            }), 201
+    except Exception as e:
+        print(f"Customer registration error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/customer/login', methods=['POST'])
+def customer_login():
+    try:
+        data = request.json
+        email_or_phone = data.get('emailOrPhone')
+        password = data.get('password')
+
+        if not email_or_phone or not password:
+            return jsonify({'success': False, 'message': 'Email/Phone and password are required'}), 400
+
+        with get_db_connection() as conn:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT id, first_name, last_name, email, phone, address
+                FROM customers
+                WHERE (email = %s OR phone = %s) AND password = %s
+            """, (email_or_phone, email_or_phone, password))
+
+            customer = cursor.fetchone()
+
+            if customer:
+                session['customer_id'] = customer['id']
+                session['customer_name'] = f"{customer['first_name']} {customer['last_name']}"
+                customer['name'] = f"{customer['first_name']} {customer['last_name']}"
+                return jsonify({
+                    'success': True,
+                    'customer': customer
+                })
+            else:
+                return jsonify({'success': False, 'message': 'Invalid email/phone or password'}), 401
+    except Exception as e:
+        print(f"Customer login error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/customer/logout', methods=['POST'])
+def customer_logout():
+    session.pop('customer_id', None)
+    session.pop('customer_name', None)
+    return jsonify({'success': True})
+
+@app.route('/api/customer/check', methods=['GET'])
+def customer_check():
+    """Check if customer is logged in"""
+    customer_id = session.get('customer_id')
+    if not customer_id:
+        return jsonify({'success': False, 'logged_in': False})
+
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT id, first_name, last_name, email, phone, address
+                FROM customers WHERE id = %s
+            """, (customer_id,))
+            customer = cursor.fetchone()
+            if customer:
+                customer['name'] = f"{customer['first_name']} {customer['last_name']}"
+                return jsonify({
+                    'success': True,
+                    'logged_in': True,
+                    'customer': customer
+                })
+            else:
+                session.pop('customer_id', None)
+                session.pop('customer_name', None)
+                return jsonify({'success': False, 'logged_in': False})
+    except Exception as e:
+        return jsonify({'success': False, 'logged_in': False, 'message': str(e)})
+
+@app.route('/api/customer/forgot-password', methods=['POST'])
+def customer_forgot_password():
+    """Request password reset - sends email with 4-digit OTP"""
+    try:
+        data = request.json
+        email = data.get('email', '').strip()
+
+        if not email:
+            return jsonify({'success': False, 'message': 'Email is required'}), 400
+
+        with get_db_connection() as conn:
+            cursor = conn.cursor(dictionary=True)
+            # Check if customer exists
+            cursor.execute("SELECT id, first_name, last_name FROM customers WHERE email = %s", (email,))
+            customer = cursor.fetchone()
+
+            if not customer:
+                # Don't reveal if email exists or not (security best practice)
+                return jsonify({
+                    'success': True,
+                    'message': 'If an account exists with this email, an OTP has been sent.'
+                })
+
+            # Generate 4-digit OTP
+            otp = f"{secrets.randbelow(10000):04d}"
+            reset_token = secrets.token_urlsafe(32)  # Keep token for verification
+
+            # Store OTP and token in session (no database, no expiration)
+            session[f'reset_otp_{email}'] = otp
+            session[f'reset_token_{email}'] = reset_token
+
+            # Send password reset email with OTP
+            try:
+                send_password_reset_otp_email(email, otp)
+            except Exception as e:
+                print(f"Failed to send password reset email: {e}")
+                # Still return success to not reveal if email exists
+
+            return jsonify({
+                'success': True,
+                'message': 'If an account exists with this email, an OTP has been sent.'
+            })
+    except Exception as e:
+        print(f"Forgot password error: {e}")
+        return jsonify({'success': False, 'message': 'An error occurred. Please try again.'}), 500
+
+@app.route('/api/customer/verify-otp', methods=['POST'])
+def customer_verify_otp():
+    """Verify OTP for password reset"""
+    try:
+        data = request.json
+        email = data.get('email', '').strip()
+        otp = data.get('otp', '').strip()
+
+        if not email or not otp:
+            return jsonify({'success': False, 'message': 'Email and OTP are required'}), 400
+
+        if len(otp) != 4 or not otp.isdigit():
+            return jsonify({'success': False, 'message': 'Invalid OTP format'}), 400
+
+        # Verify OTP from session (no database check, no expiration)
+        session_otp = session.get(f'reset_otp_{email}')
+        session_token = session.get(f'reset_token_{email}')
+        
+        if not session_otp or session_otp != otp:
+            return jsonify({
+                'success': False,
+                'message': 'Invalid OTP. Please request a new one.'
+            }), 400
+
+        if not session_token:
+            return jsonify({
+                'success': False,
+                'message': 'Reset token not found. Please request a new OTP.'
+            }), 400
+
+        # Return the token for password reset
+        return jsonify({
+            'success': True,
+            'message': 'OTP verified successfully',
+            'token': session_token
+        })
+    except Exception as e:
+        print(f"Verify OTP error: {e}")
+        return jsonify({'success': False, 'message': 'An error occurred. Please try again.'}), 500
+
+@app.route('/api/customer/reset-password', methods=['POST'])
+def customer_reset_password():
+    """Reset password using token (after OTP verification)"""
+    try:
+        data = request.json
+        token = data.get('token')
+        new_password = data.get('newPassword')
+        confirm_password = data.get('confirmPassword')
+
+        if not token or not new_password or not confirm_password:
+            return jsonify({'success': False, 'message': 'All fields are required'}), 400
+
+        if new_password != confirm_password:
+            return jsonify({'success': False, 'message': 'Passwords do not match'}), 400
+
+        if len(new_password) < 6:
+            return jsonify({'success': False, 'message': 'Password must be at least 6 characters long'}), 400
+
+        # Find email from session token (no database check, no expiration)
+        email = None
+        for key in session.keys():
+            if key.startswith('reset_token_') and session[key] == token:
+                email = key.replace('reset_token_', '')
+                break
+        
+        if not email:
+            return jsonify({
+                'success': False,
+                'message': 'Invalid reset token. Please request a new password reset.'
+            }), 400
+
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Update password
+            cursor.execute("""
+                UPDATE customers
+                SET password = %s
+                WHERE email = %s
+            """, (new_password, email))
+
+            if cursor.rowcount == 0:
+                return jsonify({'success': False, 'message': 'Customer not found'}), 404
+
+            conn.commit()
+
+        # Clear OTP and token from session after successful reset
+        session.pop(f'reset_otp_{email}', None)
+        session.pop(f'reset_token_{email}', None)
+
+        return jsonify({
+            'success': True,
+            'message': 'Password reset successfully! You can now log in with your new password.'
+        })
+    except Exception as e:
+        print(f"Reset password error: {e}")
+        return jsonify({'success': False, 'message': 'An error occurred. Please try again.'}), 500
 
 @app.route('/api/admin/stats', methods=['GET'])
 def admin_stats():
