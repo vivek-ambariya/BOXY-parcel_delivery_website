@@ -37,63 +37,55 @@
     </div>
 </nav>
 
-<!-- Admin Login Section -->
+<!-- Admin Login Modal Overlay with Animation -->
+<div id="adminLoginModal" class="modal-overlay">
+    <div class="auth-container">
+        <div class="auth-box" id="adminAuthBox">
+            <!-- Sign In Panel (Left) -->
+            <div class="sign-in-panel active" id="adminSignInPanel">
+                <div class="form-wrapper">
+                    <h2 class="auth-title animation">Admin Sign In</h2>
+                    <p class="auth-subtitle animation">Welcome back! Please login to continue</p>
+                    
+                    <form id="adminLoginForm" class="auth-form">
+                        <div class="input-box animation">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="adminEmail" placeholder="Email Address" required>
+                        </div>
+                        
+                        <div class="input-box animation">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="adminPassword" placeholder="Password" required>
+                        </div>
+                        
+                        <button type="submit" class="btn-auth animation">
+                            <span>SIGN IN</span>
+                        </button>
+                    </form>
+                    
+                    <div id="adminLoginError" class="error-message animation d-none"></div>
+                </div>
+            </div>
+            
+            <!-- Spline Animation Panel (Right) -->
+            <div class="sign-up-panel active" id="adminSplinePanel">
+                <iframe src='https://my.spline.design/particlesflow-VEQeaWBjSLyOqFb2tv23z8Lx/' frameborder='0' width='100%' height='100%' class="spline-iframe"></iframe>
+                <div class="overlay-panel">
+                    <h2 class="overlay-title animation">Admin Portal</h2>
+                    <p class="overlay-text animation">Access the admin dashboard to manage parcels and deliveries</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Section -->
 <section class="admin-section py-5">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-xl-10 col-lg-12">
-                <div class="text-center mb-5">
-                    <div class="admin-icon mb-3">
-                        <i class="fas fa-user-shield"></i>
-                    </div>
-                    <h1 class="section-title mb-3">Admin Login</h1>
-                    <p class="section-description">
-                        Access the admin dashboard to manage parcels, deliveries, and system settings.
-                    </p>
-                </div>
-
-                <!-- Login Form -->
-                <div class="admin-card card border-0 shadow-lg">
-                    <div class="card-body p-5">
-                        <form id="adminLoginForm">
-                            <div class="mb-4">
-                                <label for="adminEmail" class="form-label fw-bold">
-                                    <i class="fas fa-envelope me-2"></i>Email Address
-                                </label>
-                                <input type="email" class="form-control form-control-lg" id="adminEmail" 
-                                       name="adminEmail" placeholder="admin@boxy.com" required>
-                            </div>
-                            
-                            <div class="mb-4">
-                                <label for="adminPassword" class="form-label fw-bold">
-                                    <i class="fas fa-lock me-2"></i>Password
-                                </label>
-                                <input type="password" class="form-control form-control-lg" id="adminPassword" 
-                                       name="adminPassword" placeholder="Enter your password" required>
-                            </div>
-                            
-                            <div class="mb-4 form-check">
-                                <input type="checkbox" class="form-check-input" id="rememberMe">
-                                <label class="form-check-label" for="rememberMe">
-                                    Remember me
-                                </label>
-                            </div>
-                            
-                            <div class="d-grid mb-3">
-                                <button type="submit" class="btn btn-primary btn-lg btn-orange">
-                                    <i class="fas fa-sign-in-alt me-2"></i>Login
-                                </button>
-                            </div>
-                            
-                            <div class="text-center">
-                                <a href="#" class="text-decoration-none">Forgot Password?</a>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
                 <!-- Admin Dashboard (Hidden by default) -->
-                <div id="adminDashboard" class="admin-dashboard card border-0 shadow-lg mt-4 d-none">
+                <div id="adminDashboard" class="admin-dashboard card border-0 shadow-lg d-none">
                     <div class="card-body p-5">
                         <!-- Dashboard Header -->
                         <div class="admin-dashboard-header mb-5">
@@ -418,13 +410,307 @@
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+/* Admin Login Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.5s ease-in;
+    backdrop-filter: blur(3px);
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.auth-container {
+    background-color: #fff;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow: hidden;
+    position: relative;
+    animation: slideUp 0.5s ease-out;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-box {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    min-height: 550px;
+}
+
+/* Sign In Panel (Left) */
+.sign-in-panel {
+    width: 50%;
+    padding: 60px 50px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.6s ease-in-out;
+    z-index: 2;
+}
+
+.sign-in-panel.active {
+    transform: translateX(0);
+}
+
+/* Sign Up Panel (Right - Spline Animation) */
+.sign-up-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 50px;
+    transition: transform 0.6s ease-in-out, opacity 0.6s ease-in-out;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.spline-iframe {
+    position: absolute;
+    top: -5%;
+    left: -5%;
+    width: 110%;
+    height: 110%;
+    border: none;
+    z-index: 0;
+    pointer-events: auto;
+    transform: scale(1.1);
+    transform-origin: center center;
+    overflow: hidden;
+}
+
+.sign-up-panel.active {
+    transform: translateX(0) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+}
+
+.overlay-panel {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: white;
+}
+
+.overlay-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.overlay-text {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.form-wrapper {
+    width: 100%;
+    max-width: 100%;
+}
+
+.auth-title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.auth-subtitle {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.auth-form {
+    width: 100%;
+}
+
+.input-box {
+    position: relative;
+    margin-bottom: 20px;
+    background: #f5f5f5;
+    border-radius: 10px;
+    padding: 5px 15px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.input-box:focus-within {
+    background: #fff;
+    box-shadow: 0 0 0 2px #667eea;
+}
+
+.input-box input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 15px 10px;
+    background: transparent;
+    font-size: 1rem;
+    color: #333;
+}
+
+.input-icon {
+    color: #999;
+    margin-right: 10px;
+    font-size: 1.1rem;
+}
+
+.btn-auth {
+    width: 100%;
+    height: 50px;
+    background: #000;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.btn-auth:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+    background: #333;
+}
+
+.error-message {
+    background: #fee;
+    color: #c33;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+
+.animation {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .auth-container {
+        width: 95%;
+        min-height: auto;
+    }
+    
+    .sign-in-panel,
+    .sign-up-panel {
+        width: 100%;
+        padding: 40px 30px;
+    }
+    
+    .overlay-title {
+        font-size: 2rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <script>
 // Admin Dashboard JavaScript
 let statsRefreshInterval;
 
+// Check admin login status on page load
+async function checkAdminLoginStatus() {
+    try {
+        const response = await fetch('/api/admin/stats', {
+            method: 'GET',
+            credentials: 'include'
+        });
+        const data = await response.json();
+        
+        if (!data.success) {
+            // Not logged in, show modal
+            const modal = document.getElementById('adminLoginModal');
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+            document.getElementById('adminDashboard').classList.add('d-none');
+        } else {
+            // Logged in, hide modal and show dashboard
+            const modal = document.getElementById('adminLoginModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+            document.getElementById('adminDashboard').classList.remove('d-none');
+            loadDashboardData();
+            statsRefreshInterval = setInterval(loadDashboardData, 30000);
+        }
+    } catch (error) {
+        // Error checking status, show modal anyway
+        const modal = document.getElementById('adminLoginModal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+        document.getElementById('adminDashboard').classList.add('d-none');
+    }
+}
+
 // Set current date
 document.addEventListener('DOMContentLoaded', function() {
+    checkAdminLoginStatus();
+    
     const dateElement = document.getElementById('currentDate');
     if (dateElement) {
         const today = new Date();
@@ -442,6 +728,9 @@ document.getElementById('adminLoginForm').addEventListener('submit', async funct
     
     const email = document.getElementById('adminEmail').value;
     const password = document.getElementById('adminPassword').value;
+    const errorDiv = document.getElementById('adminLoginError');
+    
+    errorDiv.classList.add('d-none');
     
     try {
         const response = await fetch('/api/admin/login', {
@@ -456,8 +745,11 @@ document.getElementById('adminLoginForm').addEventListener('submit', async funct
         const data = await response.json();
         
         if (data.success) {
-            // Show dashboard
-            document.getElementById('adminLoginForm').closest('.admin-card').classList.add('d-none');
+            // Hide modal and show dashboard
+            const modal = document.getElementById('adminLoginModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
             document.getElementById('adminDashboard').classList.remove('d-none');
             
             // Load dashboard data
@@ -466,34 +758,42 @@ document.getElementById('adminLoginForm').addEventListener('submit', async funct
             // Refresh stats every 30 seconds
             statsRefreshInterval = setInterval(loadDashboardData, 30000);
         } else {
-            alert(data.message || 'Invalid credentials. Use: admin@boxy.com / admin123');
+            errorDiv.textContent = data.message || 'Invalid credentials. Use: admin@boxy.com / admin123';
+            errorDiv.classList.remove('d-none');
         }
     } catch (error) {
         console.error('Login error:', error);
-        alert('Login failed. Please try again.');
+        errorDiv.textContent = 'Login failed. Please try again.';
+        errorDiv.classList.remove('d-none');
     }
 });
 
-document.getElementById('logoutBtn').addEventListener('click', async function() {
-    try {
-        await fetch('/api/admin/logout', {
-            method: 'POST',
-            credentials: 'include'
-        });
-        
-        // Clear refresh interval
-        if (statsRefreshInterval) {
-            clearInterval(statsRefreshInterval);
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', async function() {
+        try {
+            await fetch('/api/admin/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+            
+            // Clear refresh interval
+            if (statsRefreshInterval) {
+                clearInterval(statsRefreshInterval);
+            }
+            
+            // Hide dashboard and show login modal
+            document.getElementById('adminDashboard').classList.add('d-none');
+            const modal = document.getElementById('adminLoginModal');
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+            document.getElementById('adminLoginForm').reset();
+        } catch (error) {
+            console.error('Logout error:', error);
         }
-        
-        // Hide dashboard and show login form
-        document.getElementById('adminDashboard').classList.add('d-none');
-        document.getElementById('adminLoginForm').closest('.admin-card').classList.remove('d-none');
-        document.getElementById('adminLoginForm').reset();
-    } catch (error) {
-        console.error('Logout error:', error);
-    }
-});
+    });
+}
 
 async function loadDashboardData() {
     try {

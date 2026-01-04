@@ -37,13 +37,137 @@
     </div>
 </nav>
 
+<!-- Partner Login Modal Overlay with Animation -->
+<div id="partnerLoginModal" class="modal-overlay">
+    <div class="auth-container">
+        <div class="auth-box" id="partnerAuthBox">
+            <!-- Sign In Panel (Left) -->
+            <div class="sign-in-panel active" id="partnerSignInPanel">
+                <div class="form-wrapper">
+                    <h2 class="auth-title animation">Partner Sign In</h2>
+                    <p class="auth-subtitle animation">Welcome back! Please login to continue</p>
+                    
+                    <form id="partnerLoginFormModal" class="auth-form">
+                        <div class="input-box animation">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="text" id="partnerLoginEmail" placeholder="Email or Phone" required>
+                        </div>
+                        
+                        <div class="input-box animation">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="partnerLoginPassword" placeholder="Password" required>
+                        </div>
+                        
+                        <button type="submit" class="btn-auth animation">
+                            <span>SIGN IN</span>
+                        </button>
+                    </form>
+                    
+                    <div id="partnerLoginError" class="error-message animation d-none"></div>
+                </div>
+            </div>
+            
+            <!-- Sign Up Panel (Right) -->
+            <div class="sign-up-panel active" id="partnerSignUpPanel">
+                <iframe src='https://my.spline.design/retrofuturismbganimation-MdCzov4NeMEKgneVrnkxbzMS/' frameborder='0' width='100%' height='100%' class="spline-iframe"></iframe>
+                <div class="overlay-panel">
+                    <h2 class="overlay-title animation">Hello, Partner!</h2>
+                    <p class="overlay-text animation">Enter your details and join our delivery team</p>
+                    <button type="button" class="ghost-btn animation" id="partnerShowRegisterBtn">
+                        <span>SIGN UP</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Registration Form Panel (Slides in from right) -->
+            <div class="register-panel" id="partnerRegisterPanel">
+                <div class="form-wrapper" style="overflow-y: auto; max-height: 550px;">
+                    <h2 class="auth-title animation">Create Partner Account</h2>
+                    <p class="auth-subtitle animation">Fill in your details to get started</p>
+                    
+                    <form id="partnerRegisterFormModal" class="auth-form">
+                        <div class="input-box animation">
+                            <i class="fas fa-user input-icon"></i>
+                            <input type="text" id="partnerRegFirstName" placeholder="First Name" required>
+                        </div>
+                        
+                        <div class="input-box animation">
+                            <i class="fas fa-user input-icon"></i>
+                            <input type="text" id="partnerRegLastName" placeholder="Last Name" required>
+                        </div>
+                        
+                        <div class="input-box animation">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="partnerRegEmail" placeholder="Email" required>
+                        </div>
+                        
+                        <div class="input-box animation">
+                            <i class="fas fa-phone input-icon"></i>
+                            <input type="tel" id="partnerRegPhone" placeholder="Phone" required>
+                        </div>
+                        
+                        <div class="input-box animation">
+                            <i class="fas fa-truck input-icon"></i>
+                            <select id="partnerRegVehicle" style="width: 100%; padding: 15px; border: none; outline: none; background: transparent; font-size: 1rem; color: #333;" required>
+                                <option value="">Vehicle Type</option>
+                                <option value="bike">Bike</option>
+                                <option value="scooter">Scooter</option>
+                                <option value="cycle">Cycle</option>
+                                <option value="car">Car</option>
+                            </select>
+                        </div>
+                        
+                        <div class="input-box animation">
+                            <i class="fas fa-car input-icon"></i>
+                            <input type="text" id="partnerRegVehicleNumber" placeholder="Vehicle Number" required>
+                        </div>
+                        
+                        <div class="input-box animation">
+                            <i class="fas fa-id-card input-icon"></i>
+                            <input type="text" id="partnerRegAadhar" placeholder="Aadhar Number" maxlength="12" required>
+                        </div>
+                        
+                        <div class="input-box animation">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="partnerRegPassword" placeholder="Password" required>
+                        </div>
+                        
+                        <button type="submit" class="btn-auth animation">
+                            <span>SIGN UP</span>
+                        </button>
+                    </form>
+                    
+                    <div class="toggle-auth animation">
+                        <p class="toggle-text">Already have an account? <a href="#" id="partnerShowLoginLink" class="toggle-link">Sign In</a></p>
+                    </div>
+                    
+                    <div id="partnerRegisterError" class="error-message animation d-none"></div>
+                </div>
+            </div>
+            
+            <!-- Welcome Back Panel (Slides in from left when switching to login) -->
+            <div class="welcome-panel" id="partnerWelcomePanel">
+                <iframe src='https://my.spline.design/retrofuturismbganimation-MdCzov4NeMEKgneVrnkxbzMS/' frameborder='0' width='100%' height='100%' class="spline-iframe"></iframe>
+                <div class="overlay-panel">
+                    <h2 class="overlay-title animation">Welcome Back!</h2>
+                    <p class="overlay-text animation">To keep connected with us please login with your personal info</p>
+                    <button type="button" class="ghost-btn animation" id="partnerShowLoginBtn">
+                        <span>SIGN IN</span>
+                    </button>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
 <!-- Partner Section -->
 <section class="partner-page-section py-5">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-10">
                 <!-- Header -->
-                <div class="text-center mb-5" id="pageHeader">
+                <div class="text-center mb-5 d-none" id="pageHeader">
                     <div class="partner-icon mb-3">
                         <i class="fas fa-truck"></i>
                     </div>
@@ -53,8 +177,8 @@
                     </p>
                 </div>
 
-                <!-- Login/Register Tabs (Hidden when logged in) -->
-                <div id="authSection">
+                <!-- Login/Register Tabs (Hidden - replaced by modal) -->
+                <div id="authSection" class="d-none">
                     <ul class="nav nav-tabs justify-content-center mb-4" id="partnerTabs" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" 
@@ -467,6 +591,550 @@
 </footer>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+/* Partner Login Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.5s ease-in;
+    backdrop-filter: blur(3px);
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.auth-container {
+    background-color: #fff;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow: hidden;
+    position: relative;
+    animation: slideUp 0.5s ease-out;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-box {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    min-height: 550px;
+}
+
+/* Sign In Panel (Left) */
+.sign-in-panel {
+    width: 50%;
+    padding: 60px 50px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.6s ease-in-out;
+    z-index: 2;
+}
+
+.sign-in-panel.active {
+    transform: translateX(0);
+}
+
+.sign-in-panel.inactive {
+    transform: translateX(-100%);
+}
+
+/* Sign Up Panel (Right - Welcome) */
+.sign-up-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 50px;
+    transition: transform 0.6s ease-in-out, opacity 0.6s ease-in-out;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.spline-iframe {
+    position: absolute;
+    top: -5%;
+    left: -5%;
+    width: 110%;
+    height: 110%;
+    border: none;
+    z-index: 0;
+    pointer-events: auto;
+    transform: scale(1.1);
+    transform-origin: center center;
+    overflow: hidden;
+}
+
+.sign-up-panel.active {
+    transform: translateX(0) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+}
+
+.sign-up-panel.inactive {
+    transform: translateX(100%);
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* Register Form Panel */
+.register-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    background: #fff;
+    padding: 40px 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    transform: translateX(100%);
+    transition: transform 0.6s ease-in-out;
+    z-index: 2;
+    overflow-y: auto;
+}
+
+.register-panel.active {
+    transform: translateX(0);
+}
+
+/* Welcome Panel */
+.welcome-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 50px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transition: transform 0.6s ease-in-out, opacity 0.6s ease-in-out;
+    z-index: 1;
+    overflow: hidden;
+    transform: translateX(-100%);
+}
+
+.welcome-panel.active {
+    transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+}
+
+.overlay-panel {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: white;
+}
+
+.overlay-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.overlay-text {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.form-wrapper {
+    width: 100%;
+    max-width: 100%;
+}
+
+.auth-title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.auth-subtitle {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.auth-form {
+    width: 100%;
+}
+
+.input-box {
+    position: relative;
+    margin-bottom: 20px;
+    background: #f5f5f5;
+    border-radius: 10px;
+    padding: 5px 15px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.input-box:focus-within {
+    background: #fff;
+    box-shadow: 0 0 0 2px #667eea;
+}
+
+.input-box input,
+.input-box select {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 15px 10px;
+    background: transparent;
+    font-size: 1rem;
+    color: #333;
+}
+
+.input-icon {
+    color: #999;
+    margin-right: 10px;
+    font-size: 1.1rem;
+}
+
+.btn-auth {
+    width: 100%;
+    height: 50px;
+    background: #000;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.btn-auth:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+    background: #333;
+}
+
+.ghost-btn {
+    background: transparent;
+    border: 2px solid white;
+    color: white;
+    padding: 12px 40px;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.ghost-btn:hover {
+    background: #000;
+    border-color: #000;
+}
+
+.toggle-auth {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.toggle-text {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.toggle-link {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.toggle-link:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
+.error-message {
+    background: #fee;
+    color: #c33;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+
+.animation {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .auth-container {
+        width: 95%;
+        min-height: auto;
+    }
+    
+    .sign-in-panel,
+    .sign-up-panel,
+    .register-panel,
+    .welcome-panel {
+        width: 100%;
+        padding: 40px 30px;
+    }
+    
+    .sign-in-panel.inactive,
+    .sign-up-panel.inactive,
+    .register-panel.active,
+    .welcome-panel.active {
+        transform: translateX(0);
+    }
+    
+    .overlay-title {
+        font-size: 2rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block extra_js %}
+<script>
+// Partner Modal JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Show modal on page load if not logged in
+    checkPartnerLoginStatus();
+    
+    // Toggle between login and registration forms
+    const partnerShowRegisterBtn = document.getElementById('partnerShowRegisterBtn');
+    const partnerShowLoginBtn = document.getElementById('partnerShowLoginBtn');
+    const partnerShowLoginLink = document.getElementById('partnerShowLoginLink');
+    
+    if (partnerShowRegisterBtn) {
+        partnerShowRegisterBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            showPartnerRegisterForm();
+        });
+    }
+    
+    if (partnerShowLoginBtn) {
+        partnerShowLoginBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            showPartnerLoginForm();
+        });
+    }
+    
+    if (partnerShowLoginLink) {
+        partnerShowLoginLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            showPartnerLoginForm();
+        });
+    }
+    
+    // Handle login form submission
+    const partnerLoginFormModal = document.getElementById('partnerLoginFormModal');
+    if (partnerLoginFormModal) {
+        partnerLoginFormModal.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('partnerLoginEmail').value;
+            const password = document.getElementById('partnerLoginPassword').value;
+            const errorDiv = document.getElementById('partnerLoginError');
+            
+            errorDiv.classList.add('d-none');
+            
+            try {
+                const response = await fetch('/api/partner/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Hide modal and show dashboard
+                    hidePartnerModal();
+                    // Reload page to show dashboard
+                    window.location.reload();
+                } else {
+                    errorDiv.textContent = data.message || 'Login failed';
+                    errorDiv.classList.remove('d-none');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorDiv.textContent = 'An error occurred. Please try again.';
+                errorDiv.classList.remove('d-none');
+            }
+        });
+    }
+    
+    // Handle registration form submission
+    const partnerRegisterFormModal = document.getElementById('partnerRegisterFormModal');
+    if (partnerRegisterFormModal) {
+        partnerRegisterFormModal.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('partnerRegPassword').value;
+            const errorDiv = document.getElementById('partnerRegisterError');
+            
+            errorDiv.classList.add('d-none');
+            
+            try {
+                const response = await fetch('/api/partner/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        firstName: document.getElementById('partnerRegFirstName').value,
+                        lastName: document.getElementById('partnerRegLastName').value,
+                        email: document.getElementById('partnerRegEmail').value,
+                        phone: document.getElementById('partnerRegPhone').value,
+                        vehicleType: document.getElementById('partnerRegVehicle').value,
+                        vehicleNumber: document.getElementById('partnerRegVehicleNumber').value,
+                        aadhar: document.getElementById('partnerRegAadhar').value,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Show success and switch to login
+                    errorDiv.textContent = 'Registration successful! Please login.';
+                    errorDiv.style.background = '#efe';
+                    errorDiv.style.color = '#3c3';
+                    errorDiv.classList.remove('d-none');
+                    document.getElementById('partnerRegisterFormModal').reset();
+                    
+                    setTimeout(() => {
+                        showPartnerLoginForm();
+                    }, 2000);
+                } else {
+                    errorDiv.textContent = data.message || 'Registration failed';
+                    errorDiv.classList.remove('d-none');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                errorDiv.textContent = 'An error occurred. Please try again.';
+                errorDiv.classList.remove('d-none');
+            }
+        });
+    }
+});
+
+function showPartnerRegisterForm() {
+    document.getElementById('partnerSignInPanel').classList.remove('active');
+    document.getElementById('partnerSignInPanel').classList.add('inactive');
+    document.getElementById('partnerSignUpPanel').classList.remove('active');
+    document.getElementById('partnerSignUpPanel').classList.add('inactive');
+    document.getElementById('partnerRegisterPanel').classList.add('active');
+    document.getElementById('partnerWelcomePanel').classList.add('active');
+}
+
+function showPartnerLoginForm() {
+    document.getElementById('partnerSignInPanel').classList.add('active');
+    document.getElementById('partnerSignInPanel').classList.remove('inactive');
+    document.getElementById('partnerSignUpPanel').classList.add('active');
+    document.getElementById('partnerSignUpPanel').classList.remove('inactive');
+    document.getElementById('partnerRegisterPanel').classList.remove('active');
+    document.getElementById('partnerWelcomePanel').classList.remove('active');
+}
+
+function hidePartnerModal() {
+    const modal = document.getElementById('partnerLoginModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+async function checkPartnerLoginStatus() {
+    try {
+        const response = await fetch('/api/partner/status', {
+            method: 'GET',
+            credentials: 'include'
+        });
+        const data = await response.json();
+        
+        if (!data.success) {
+            // Not logged in, show modal
+            const modal = document.getElementById('partnerLoginModal');
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+        } else {
+            // Logged in, hide modal
+            hidePartnerModal();
+        }
+    } catch (error) {
+        // Error checking status, show modal anyway
+        const modal = document.getElementById('partnerLoginModal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    }
+}
+</script>
 <script src="{{ url_for('static', filename='js/partner.js') }}"></script>
 {% endblock %}
