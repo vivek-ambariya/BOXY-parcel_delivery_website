@@ -10,14 +10,15 @@ except ImportError:
         pass
 
 from contextlib import contextmanager
+import os
 
 # Database configuration
 DB_CONFIG = {
-    'host': 'localhost',
-    'database': 'Boxy',
-    'user': 'root',
-    'password': '',  # Default XAMPP MySQL password is empty
-    'port': 3306
+    'host': os.getenv('DB_HOST', 'localhost'),
+    'database': os.getenv('DB_NAME', 'Boxy'),
+    'user': os.getenv('DB_USER', 'root'),
+    'password': os.getenv('DB_PASSWORD', ''),
+    'port': int(os.getenv('DB_PORT', '3306'))
 }
 
 @contextmanager

@@ -12,9 +12,10 @@ from config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET
 from email_service import send_confirmation_email, send_tracking_update, send_payment_receipt, send_password_reset_otp_email, send_registration_otp_email
 
 app = Flask(__name__)
-app.secret_key = secrets.token_hex(16)
+app.secret_key = os.getenv('SECRET_KEY', secrets.token_hex(16))
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_SECURE'] = os.getenv('ENVIRONMENT') == 'production'  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True
 
 # Initialize database on startup
 init_database()
@@ -1823,4 +1824,5 @@ def generate_csv(deliveries):
     return response
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8000)
+    port = int(os.getenv('PORT', 8000))
+    app.run(debug=False, host='0.0.0.0', port=port)
