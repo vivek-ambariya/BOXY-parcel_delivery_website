@@ -26,6 +26,9 @@ DB_CONFIG = {
 @contextmanager
 def get_db_connection():
     """Context manager for database connections"""
+    if not POSTGRES_AVAILABLE:
+        raise ImportError("psycopg2-binary is not installed. Please install it: pip install psycopg2-binary")
+    
     conn = None
     try:
         conn = psycopg2.connect(**DB_CONFIG)
@@ -39,6 +42,8 @@ def get_db_connection():
 
 def get_dict_cursor(conn):
     """Get a dictionary cursor for PostgreSQL"""
+    if not POSTGRES_AVAILABLE or RealDictCursor is None:
+        raise ImportError("psycopg2-binary is not installed. Please install it: pip install psycopg2-binary")
     return conn.cursor(cursor_factory=RealDictCursor)
 
 def init_database():
