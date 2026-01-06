@@ -17,8 +17,12 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_SECURE'] = os.getenv('ENVIRONMENT') == 'production'  # Set to True in production with HTTPS
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 
-# Initialize database on startup
-init_database()
+# Initialize database on startup (with error handling)
+try:
+    init_database()
+except Exception as e:
+    print(f"Warning: Database initialization failed: {e}")
+    print("App will continue, but database features may not work.")
 
 @app.route('/')
 def index():
