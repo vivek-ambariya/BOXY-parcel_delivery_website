@@ -927,44 +927,75 @@ def send_registration_otp():
     """Send OTP for email verification during registration"""
     try:
         data = request.json
+        if not data:
+            return jsonify({'success': False, 'message': 'Invalid request data'}), 400
+            
         email = data.get('email', '').strip()
         first_name = data.get('firstName', '').strip()
 
         if not email:
             return jsonify({'success': False, 'message': 'Email is required'}), 400
 
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            # Check if email already exists
-            cursor.execute("SELECT id FROM customers WHERE email = %s", (email,))
-            if cursor.fetchone():
-                return jsonify({'success': False, 'message': 'Email already registered'}), 400
+        # Check database connection first
+        try:
+            with get_db_connection() as conn:
+                cursor = conn.cursor()
+                # Check if email already exists
+                cursor.execute("SELECT id FROM customers WHERE email = %s", (email,))
+                if cursor.fetchone():
+                    return jsonify({'success': False, 'message': 'Email already registered'}), 400
+        except Exception as db_error:
+            print(f"Database error in send_registration_otp: {db_error}")
+            return jsonify({'success': False, 'message': 'Database connection error. Please try again.'}), 500
 
         # Generate 4-digit OTP
         otp = f"{secrets.randbelow(10000):04d}"
         
         # Store OTP in session (no database, no expiration)
         session[f'registration_otp_{email}'] = otp
+        print(f"✓ OTP generated and stored in session for {email}: {otp[:2]}**")
 
-        # Send registration OTP email
+        # Send registration OTP email (with better error handling)
+        email_sent = False
+        email_error = None
         try:
             email_sent = send_registration_otp_email(email, otp, first_name)
-            if not email_sent:
-                return jsonify({
-                    'success': False, 
-                    'message': 'Failed to send OTP email. Please check SMTP configuration or try again later.'
-                }), 500
+            if email_sent:
+                print(f"✓ Email sent successfully to {email}")
+            else:
+                print(f"⚠️ Email sending returned False for {email}")
+                email_error = "SMTP configuration issue"
         except Exception as e:
-            print(f"Failed to send registration OTP email: {e}")
-            return jsonify({'success': False, 'message': 'Failed to send OTP. Please try again.'}), 500
-
-        return jsonify({
-            'success': True,
-            'message': 'OTP has been sent to your email!'
-        })
+            error_msg = str(e)
+            email_error = error_msg
+            print(f"❌ Failed to send registration OTP email to {email}: {error_msg}")
+            import traceback
+            traceback.print_exc()
+        
+        # Return response - OTP is stored even if email fails (for testing)
+        if email_sent:
+            return jsonify({
+                'success': True,
+                'message': 'OTP has been sent to your email!'
+            })
+        else:
+            # For development: return OTP in response if email fails (remove in production)
+            # In production, you might want to return an error instead
+            return jsonify({
+                'success': False,
+                'message': f'Failed to send email. {email_error or "Please check SMTP configuration."}',
+                'debug_otp': otp  # Remove this in production - only for testing
+            }), 500
+            
     except Exception as e:
-        print(f"Send registration OTP error: {e}")
-        return jsonify({'success': False, 'message': 'An error occurred. Please try again.'}), 500
+        error_msg = str(e)
+        print(f"❌ Send registration OTP error: {error_msg}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False, 
+            'message': f'An error occurred: {error_msg}'
+        }), 500
 
 @app.route('/api/customer/verify-registration-otp', methods=['POST'])
 def verify_registration_otp():

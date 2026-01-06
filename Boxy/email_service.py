@@ -51,12 +51,12 @@ def send_email(to_email, subject, html_body, text_body=None):
         html_part = MIMEText(html_body, 'html')
         msg.attach(html_part)
         
-        # Connect to SMTP server and send
+        # Connect to SMTP server and send (with timeout)
         if SMTP_USE_TLS:
-            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=10)
             server.starttls()
         else:
-            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
+            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=10)
         
         server.login(SMTP_EMAIL, SMTP_PASSWORD)
         server.send_message(msg)
