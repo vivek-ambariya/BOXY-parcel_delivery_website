@@ -1,14 +1,14 @@
-# Render Deployment Guide - MySQL on Render
+# Render Deployment Guide - PostgreSQL on Render
 
-This guide will help you deploy your Boxy Flask application to Render with MySQL database.
+This guide will help you deploy your Boxy Flask application to Render with PostgreSQL database (FREE!).
 
 ## ✅ Code Changes Completed
 
-The following files have been updated for production deployment:
+The following files have been updated for production deployment with PostgreSQL:
 - ✅ `Procfile` - Created for Render deployment
-- ✅ `requirements.txt` - Added gunicorn
-- ✅ `database.py` - Updated to use environment variables
-- ✅ `app.py` - Updated for production settings
+- ✅ `requirements.txt` - Added gunicorn and psycopg2-binary (PostgreSQL adapter)
+- ✅ `database.py` - Converted from MySQL to PostgreSQL
+- ✅ `app.py` - Updated for PostgreSQL compatibility
 - ✅ `config.py` - Updated to use environment variables
 
 ## 📋 Deployment Steps
@@ -18,81 +18,50 @@ The following files have been updated for production deployment:
 1. Initialize git (if not already done):
 ```bash
 cd "/Users/ambariyavivek/vivek college/sem 3 project"
-git init
 git add .
-git commit -m "Prepare for Render deployment"
+git commit -m "Convert to PostgreSQL for Render deployment"
+git push
 ```
 
-2. Create a GitHub repository:
-   - Go to https://github.com/new
-   - Create a new repository (e.g., `boxy-app`)
-   - Don't initialize with README
-
-3. Push to GitHub:
-```bash
-git remote add origin <your-github-repo-url>
-git branch -M main
-git push -u origin main
-```
-
-### Step 2: Fork MySQL Template
-
-1. Go to: https://github.com/render-examples/mysql
-2. Click "Fork" button (top right)
-3. This creates a copy in your GitHub account
-
-### Step 3: Create MySQL Private Service on Render
+### Step 2: Create PostgreSQL Database on Render
 
 1. Go to https://render.com and sign up/login
-2. Click "New +" → "Private Service"
-3. Connect your forked MySQL repository
-4. Configure:
-   - **Name**: `boxy-mysql`
-   - **Environment**: `Docker`
+2. Click "New +" → "Postgres"
+3. Configure:
+   - **Name**: `boxy-db`
+   - **Database**: `boxy`
+   - **User**: `boxy_user` (or leave default)
    - **Region**: Choose closest to you
-5. Add Environment Variables:
-   ```
-   MYSQL_DATABASE=boxy
-   MYSQL_USER=boxy_user
-   MYSQL_PASSWORD=<generate-strong-password>
-   MYSQL_ROOT_PASSWORD=<generate-strong-password>
-   ```
-   **Tip**: Generate passwords using:
-   ```bash
-   python -c "import secrets; print(secrets.token_hex(16))"
-   ```
-6. Add Persistent Disk (in Advanced section):
-   - **Name**: `mysql-data`
-   - **Mount Path**: `/var/lib/mysql`
-   - **Size**: `10 GB`
-7. Click "Create Private Service"
-8. Wait 2-3 minutes for deployment
-9. **Note the service name** (should be `boxy-mysql`)
+   - **PostgreSQL Version**: Latest
+   - **Plan**: **Free** (this is free!)
+4. Click "Create Database"
+5. Wait 2-3 minutes for creation
+6. **Note the connection details** (you'll need them in Step 4)
 
-### Step 4: Create Web Service on Render
+### Step 3: Create Web Service on Render
 
 1. In Render Dashboard, click "New +" → "Web Service"
-2. Connect your GitHub repository (the one with your Flask app)
+2. Connect your GitHub repository: `vivek-ambariya/BOXY-parcel_delivery_website`
 3. Configure:
    - **Name**: `boxy-app`
    - **Environment**: `Python 3`
-   - **Region**: Same as MySQL service
+   - **Region**: Same as database
    - **Branch**: `main`
    - **Root Directory**: `Boxy` (if your repo root is the parent folder)
    - **Build Command**: `pip install -r requirements.txt`
    - **Start Command**: `gunicorn app:app --bind 0.0.0.0:$PORT`
 4. **Don't click "Create" yet!**
 
-### Step 5: Add Environment Variables
+### Step 4: Add Environment Variables
 
 In the web service setup page, scroll to "Environment Variables" and add:
 
 ```
-DB_HOST=boxy-mysql
+DB_HOST=<from-postgres-database-dashboard>
 DB_NAME=boxy
-DB_USER=boxy_user
-DB_PASSWORD=<same-password-from-mysql-service>
-DB_PORT=3306
+DB_USER=<from-postgres-database-dashboard>
+DB_PASSWORD=<from-postgres-database-dashboard>
+DB_PORT=5432
 RAZORPAY_KEY_ID=rzp_test_RwuSQ0jyjXIA9Y
 RAZORPAY_KEY_SECRET=zhpYi4nu8bddc6eXuvLIWmgQ
 SMTP_EMAIL=<your-gmail-address>
@@ -102,17 +71,34 @@ SECRET_KEY=<generate-random-string>
 ENVIRONMENT=production
 ```
 
-**Important Notes:**
-- `DB_HOST` must be exactly `boxy-mysql` (the name of your MySQL service)
-- `DB_PASSWORD` must match the `MYSQL_PASSWORD` you set in MySQL service
-- Generate `SECRET_KEY`:
-  ```bash
-  python -c "import secrets; print(secrets.token_hex(32))"
-  ```
-- For `SMTP_PASSWORD`, use Gmail App Password (not regular password):
-  - Go to https://myaccount.google.com/apppasswords
-  - Generate app password for "Mail"
-  - Use the 16-character password
+**How to get database values:**
+1. Go to your PostgreSQL database dashboard on Render
+2. Click on "Connections" tab
+3. Copy the values for:
+   - **Internal Database URL** (contains host, user, password, database)
+   - Or use individual values:
+     - Host (e.g., `dpg-xxxxx-a.singapore-postgres.render.com`)
+     - Port: `5432`
+     - Database: `boxy`
+     - User: (from connection string)
+     - Password: (from connection string)
+
+**Generate SECRET_KEY:**
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+**For SMTP_PASSWORD:**
+- Go to https://myaccount.google.com/apppasswords
+- Generate app password for "Mail"
+- Use the 16-character password (not your regular Gmail password)
+
+### Step 5: Link Database to Web Service (Optional but Recommended)
+
+1. In your web service environment variables section
+2. Click "Link Database" or "Add from Database"
+3. Select your `boxy-db` PostgreSQL database
+4. Render will automatically add `DATABASE_URL` or individual connection variables
 
 ### Step 6: Deploy
 
@@ -129,14 +115,15 @@ On first deployment, your app will automatically create database tables via `ini
 
 ### Database Connection Errors
 
-1. Verify `DB_HOST` matches your MySQL service name exactly
-2. Check that MySQL service is running (green status)
-3. Ensure passwords match between MySQL service and web service
-4. Check Render logs for connection errors
+1. Verify `DB_HOST` matches your PostgreSQL database hostname
+2. Check that PostgreSQL database is running (green status)
+3. Ensure passwords match
+4. Verify `DB_PORT` is `5432` (PostgreSQL default)
+5. Check Render logs for connection errors
 
 ### Build Failures
 
-1. Check that `requirements.txt` includes all dependencies
+1. Check that `requirements.txt` includes `psycopg2-binary`
 2. Verify Python version compatibility
 3. Check build logs for specific error messages
 
@@ -157,11 +144,11 @@ On first deployment, your app will automatically create database tables via `ini
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `DB_HOST` | MySQL service name | `boxy-mysql` |
+| `DB_HOST` | PostgreSQL hostname | `dpg-xxxxx-a.singapore-postgres.render.com` |
 | `DB_NAME` | Database name | `boxy` |
 | `DB_USER` | Database username | `boxy_user` |
-| `DB_PASSWORD` | Database password | `<your-password>` |
-| `DB_PORT` | Database port | `3306` |
+| `DB_PASSWORD` | Database password | `<from-render>` |
+| `DB_PORT` | Database port | `5432` |
 | `RAZORPAY_KEY_ID` | Razorpay API key | `rzp_test_...` |
 | `RAZORPAY_KEY_SECRET` | Razorpay secret | `<your-secret>` |
 | `SMTP_EMAIL` | Gmail address | `your@gmail.com` |
@@ -173,21 +160,26 @@ On first deployment, your app will automatically create database tables via `ini
 ## 🎯 Quick Checklist
 
 - [ ] Code pushed to GitHub
-- [ ] Forked MySQL template repository
-- [ ] Created MySQL Private Service on Render
-- [ ] Added persistent disk to MySQL service
+- [ ] Created PostgreSQL database on Render (FREE!)
 - [ ] Created Web Service on Render
 - [ ] Added all environment variables
-- [ ] Deployed both services
+- [ ] Linked database to web service (optional)
+- [ ] Deployed successfully
 - [ ] Tested the application
 - [ ] Verified database tables created
+
+## 💰 Cost
+
+- **PostgreSQL Database**: FREE (on Render's free tier)
+- **Web Service**: FREE (on Render's free tier)
+- **Total Cost**: $0/month! 🎉
 
 ## 🔗 Useful Links
 
 - Render Dashboard: https://dashboard.render.com
-- MySQL Template: https://github.com/render-examples/mysql
 - Render Docs: https://render.com/docs
 - Gmail App Passwords: https://myaccount.google.com/apppasswords
+- PostgreSQL Documentation: https://www.postgresql.org/docs/
 
 ## 📞 Need Help?
 
@@ -195,7 +187,6 @@ If you encounter issues:
 1. Check Render build logs
 2. Check Render runtime logs
 3. Verify all environment variables are set correctly
-4. Ensure MySQL service is running and accessible
+4. Ensure PostgreSQL database is running and accessible
 
 Good luck with your deployment! 🚀
-

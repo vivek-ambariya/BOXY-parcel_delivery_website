@@ -7,7 +7,7 @@ import hmac
 import csv
 import io
 from datetime import datetime, timedelta
-from database import get_db_connection, init_database
+from database import get_db_connection, init_database, get_dict_cursor
 from config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET
 from email_service import send_confirmation_email, send_tracking_update, send_payment_receipt, send_password_reset_otp_email, send_registration_otp_email
 
@@ -97,7 +97,7 @@ def partner_login():
         password = data.get('password')
         
         with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
+            cursor = get_dict_cursor(conn)
             cursor.execute("""
                 SELECT id, first_name, last_name, phone, email, vehicle_type, 
                        vehicle_number, aadhar, status, approved
@@ -130,7 +130,7 @@ def partner_status():
             return jsonify({'success': False, 'message': 'Not logged in'}), 401
         
         with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
+            cursor = get_dict_cursor(conn)
             
             if request.method == 'POST':
                 data = request.json
@@ -178,7 +178,7 @@ def get_partner_deliveries():
             return jsonify({'success': False, 'message': 'Not logged in'}), 401
         
         with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
+            cursor = get_dict_cursor(conn)
             
             # Get partner's deliveries
             cursor.execute("""
@@ -258,7 +258,7 @@ def accept_delivery():
             return jsonify({'success': False, 'message': 'Not logged in'}), 401
         
         with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
+            cursor = get_dict_cursor(conn)
             
             # Check if partner is online
             cursor.execute("SELECT status FROM partners WHERE id = %s", (partner_id,))
@@ -357,7 +357,7 @@ def update_delivery_status():
         new_status = data.get('status')
         
         with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
+            cursor = get_dict_cursor(conn)
             
             # Check if delivery belongs to this partner
             cursor.execute("""
@@ -467,7 +467,7 @@ def deliver_stop():
         stop_number = data.get('stop_number')
         
         with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
+            cursor = get_dict_cursor(conn)
             
             # Verify delivery belongs to partner
             cursor.execute("""
@@ -518,7 +518,7 @@ def deliver_stop():
 def track_delivery(tracking_id):
     try:
         with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
+            cursor = get_dict_cursor(conn)
             
             # Get delivery
             cursor.execute("""
@@ -594,11 +594,19 @@ def create_delivery():
                     return jsonify({'success': False, 'message': error}), 400
             
             # Check if total_amount column exists
-            cursor.execute("SHOW COLUMNS FROM deliveries LIKE 'total_amount'")
+            cursor.execute("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'deliveries' AND column_name = 'total_amount'
+            """)
             has_total_amount = cursor.fetchone() is not None
             
             # Check if sender_email column exists
-            cursor.execute("SHOW COLUMNS FROM deliveries LIKE 'sender_email'")
+            cursor.execute("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'deliveries' AND column_name = 'sender_email'
+            """)
             has_sender_email = cursor.fetchone() is not None
             
             # Insert new delivery
@@ -705,7 +713,7 @@ def create_delivery():
             conn.commit()
             
             # Get created delivery
-            cursor_dict = conn.cursor(dictionary=True)
+            cursor_dict = get_dict_cursor(conn)
             cursor_dict.execute("""
                 SELECT id, sender_name, sender_address, receiver_name, receiver_address,
                        receiver_phone, parcel_type, weight, status, partner_id, total_stops,
@@ -1033,7 +1041,7 @@ def customer_login():
             return jsonify({'success': False, 'message': 'Email/Phone and password are required'}), 400
 
         with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
+            cursor = get_dict_cursor(conn)
             cursor.execute("""
                 SELECT id, first_name, last_name, email, phone, address
                 FROM customers
@@ -1071,7 +1079,7 @@ def customer_check():
 
     try:
         with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
+            cursor = get_dict_cursor(conn)
             cursor.execute("""
                 SELECT id, first_name, last_name, email, phone, address
                 FROM customers WHERE id = %s
@@ -1102,7 +1110,7 @@ def customer_forgot_password():
             return jsonify({'success': False, 'message': 'Email is required'}), 400
 
         with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
+            cursor = get_dict_cursor(conn)
             # Check if customer exists
             cursor.execute("SELECT id, first_name, last_name FROM customers WHERE email = %s", (email,))
             customer = cursor.fetchone()
@@ -1242,7 +1250,7 @@ def admin_stats():
             return jsonify({'success': False, 'message': 'Not authenticated'}), 401
         
         with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
+            cursor = get_dict_cursor(conn)
             
             # Total parcels
             cursor.execute("SELECT COUNT(*) as total FROM deliveries")
@@ -1252,7 +1260,7 @@ def admin_stats():
             cursor.execute("""
                 SELECT COUNT(*) as delivered_today 
                 FROM deliveries 
-                WHERE DATE(delivered_at) = CURDATE() AND status = 'delivered'
+                WHERE DATE(delivered_at) = CURRENT_DATE AND status = 'delivered'
             """)
             delivered_today = cursor.fetchone()['delivered_today']
             
@@ -1307,7 +1315,7 @@ def admin_deliveries():
         limit = request.args.get('limit', 20, type=int)
         
         with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
+            cursor = get_dict_cursor(conn)
             cursor.execute("""
                 SELECT d.id, d.sender_name, d.receiver_name, d.status, 
                        d.created_at, d.delivered_at, d.total_stops,
@@ -1345,7 +1353,7 @@ def payment_page(tracking_id):
     """Show payment page for a delivery"""
     try:
         with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
+            cursor = get_dict_cursor(conn)
             cursor.execute("""
                 SELECT id, sender_name, sender_address, receiver_name, receiver_address,
                        total_amount, payment_status, payment_method, status, weight, 
@@ -1520,7 +1528,7 @@ def razorpay_success():
         
         # Update delivery payment status
         with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
+            cursor = get_dict_cursor(conn)
             
             # Get delivery info before updating
             cursor.execute("""
@@ -1574,7 +1582,7 @@ def payment_success_page(tracking_id):
     """Show payment success page"""
     try:
         with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
+            cursor = get_dict_cursor(conn)
             cursor.execute("""
                 SELECT id, sender_name, receiver_name, total_amount, payment_status, payment_method, status
                 FROM deliveries WHERE id = %s
@@ -1601,7 +1609,7 @@ def cash_payment_confirm(booking_id):
             return jsonify({'success': False, 'message': 'Not logged in'}), 401
         
         with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
+            cursor = get_dict_cursor(conn)
             
             # Verify delivery belongs to partner and is COD
             cursor.execute("""
@@ -1664,7 +1672,7 @@ def payment_status(tracking_id):
     """Get payment status for a delivery"""
     try:
         with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
+            cursor = get_dict_cursor(conn)
             cursor.execute("""
                 SELECT payment_status, payment_method, total_amount, status
                 FROM deliveries WHERE id = %s
@@ -1716,7 +1724,7 @@ def admin_partners():
             return jsonify({'success': False, 'message': 'Not authenticated'}), 401
         
         with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
+            cursor = get_dict_cursor(conn)
             cursor.execute("""
                 SELECT id, first_name, last_name, email, phone, vehicle_type, 
                        status, approved, created_at
@@ -1747,7 +1755,7 @@ def export_admin_data_csv():
         
         # Get all deliveries data
         with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
+            cursor = get_dict_cursor(conn)
             cursor.execute("""
                 SELECT d.id, d.sender_name, d.sender_address, d.receiver_name, 
                        d.receiver_address, d.receiver_phone, d.parcel_type, 
