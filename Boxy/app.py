@@ -948,7 +948,12 @@ def send_registration_otp():
 
         # Send registration OTP email
         try:
-            send_registration_otp_email(email, otp, first_name)
+            email_sent = send_registration_otp_email(email, otp, first_name)
+            if not email_sent:
+                return jsonify({
+                    'success': False, 
+                    'message': 'Failed to send OTP email. Please check SMTP configuration or try again later.'
+                }), 500
         except Exception as e:
             print(f"Failed to send registration OTP email: {e}")
             return jsonify({'success': False, 'message': 'Failed to send OTP. Please try again.'}), 500
