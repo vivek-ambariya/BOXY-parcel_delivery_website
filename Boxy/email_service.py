@@ -52,15 +52,33 @@ def send_email(to_email, subject, html_body, text_body=None):
         msg.attach(html_part)
         
         # Connect to SMTP server and send (with timeout)
-        if SMTP_USE_TLS:
-            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=10)
-            server.starttls()
-        else:
-            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=10)
-        
-        server.login(SMTP_EMAIL, SMTP_PASSWORD)
-        server.send_message(msg)
-        server.quit()
+        # Try SSL first (port 465), then TLS (port 587)
+        try:
+            if SMTP_PORT == 465:
+                # Use SSL for port 465
+                server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=15)
+            else:
+                # Use TLS for port 587
+                server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=15)
+                server.starttls()
+            
+            server.login(SMTP_EMAIL, SMTP_PASSWORD)
+            server.send_message(msg)
+            server.quit()
+        except Exception as smtp_error:
+            # If TLS fails, try SSL on port 465 as fallback
+            if SMTP_PORT != 465 and 'network' not in str(smtp_error).lower():
+                print(f"⚠️ TLS connection failed, trying SSL on port 465...")
+                try:
+                    server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=15)
+                    server.login(SMTP_EMAIL, SMTP_PASSWORD)
+                    server.send_message(msg)
+                    server.quit()
+                except Exception as ssl_error:
+                    print(f"❌ SSL fallback also failed: {ssl_error}")
+                    raise smtp_error  # Raise original error
+            else:
+                raise smtp_error
         
         logger.info(f"Email sent successfully to {to_email}")
         return True
