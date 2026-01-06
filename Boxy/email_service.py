@@ -66,7 +66,11 @@ def send_email(to_email, subject, html_body, text_body=None):
         return True
         
     except Exception as e:
-        logger.error(f"Failed to send email to {to_email}: {str(e)}")
+        error_msg = str(e)
+        logger.error(f"Failed to send email to {to_email}: {error_msg}")
+        print(f"❌ SMTP Error details: {error_msg}")
+        import traceback
+        traceback.print_exc()
         return False
 
 def send_confirmation_email(to_email, tracking_id, sender_name, receiver_name, 

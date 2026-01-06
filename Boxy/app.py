@@ -981,11 +981,13 @@ def send_registration_otp():
         else:
             # For development: return OTP in response if email fails (remove in production)
             # In production, you might want to return an error instead
+            error_message = email_error or "Please check SMTP configuration."
+            print(f"⚠️ Email failed but OTP stored. Error: {error_message}")
             return jsonify({
                 'success': False,
-                'message': f'Failed to send email. {email_error or "Please check SMTP configuration."}',
+                'message': f'Failed to send email. {error_message}',
                 'debug_otp': otp  # Remove this in production - only for testing
-            }), 500
+            }), 200  # Changed to 200 so frontend can handle it
             
     except Exception as e:
         error_msg = str(e)
