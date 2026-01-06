@@ -9,8 +9,8 @@ venv/
 *.db
 *.sqlite
 .env
-# Razorpay config (contains sensitive keys)
-Boxy/config.py
+# Razorpay config now uses environment variables, safe to commit
+# Boxy/config.py
 
 
 
