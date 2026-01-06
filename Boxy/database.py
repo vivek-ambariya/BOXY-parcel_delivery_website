@@ -13,15 +13,30 @@ except ImportError:
 
 from contextlib import contextmanager
 import os
+from urllib.parse import urlparse
 
 # Database configuration
-DB_CONFIG = {
-    'host': os.getenv('DB_HOST', 'localhost'),
-    'database': os.getenv('DB_NAME', 'Boxy'),
-    'user': os.getenv('DB_USER', 'postgres'),
-    'password': os.getenv('DB_PASSWORD', ''),
-    'port': int(os.getenv('DB_PORT', '5432'))
-}
+# Support both DATABASE_URL (from Render) and individual variables
+DATABASE_URL = os.getenv('DATABASE_URL')
+if DATABASE_URL:
+    # Parse DATABASE_URL: postgresql://user:password@host:port/database
+    parsed = urlparse(DATABASE_URL)
+    DB_CONFIG = {
+        'host': parsed.hostname,
+        'database': parsed.path.lstrip('/'),
+        'user': parsed.username,
+        'password': parsed.password,
+        'port': parsed.port or 5432
+    }
+else:
+    # Fallback to individual environment variables
+    DB_CONFIG = {
+        'host': os.getenv('DB_HOST', 'localhost'),
+        'database': os.getenv('DB_NAME', 'Boxy'),
+        'user': os.getenv('DB_USER', 'postgres'),
+        'password': os.getenv('DB_PASSWORD', ''),
+        'port': int(os.getenv('DB_PORT', '5432'))
+    }
 
 @contextmanager
 def get_db_connection():
