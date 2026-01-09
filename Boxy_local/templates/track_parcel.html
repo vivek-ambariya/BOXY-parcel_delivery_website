@@ -286,34 +286,36 @@
                     
                     <!-- Success Message (hidden by default) -->
                     <div id="paymentSuccessContent" class="d-none">
-                        <div class="success-content text-center">
-                            <div class="success-icon mb-4">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <h2 class="auth-title animation mb-3">Payment Successful ✅</h2>
-                            <p class="auth-subtitle animation mb-4">
-                                Your payment of <strong id="successAmount">₹0.00</strong> has been processed successfully.
-                            </p>
-                            <div class="payment-details mb-4">
-                                <div class="detail-item mb-3">
-                                    <strong>Tracking ID:</strong>
-                                    <span class="text-primary fw-bold" id="successTrackingId">-</span>
+                        <div class="form-wrapper">
+                            <div class="success-content text-center">
+                                <div class="success-icon mb-4">
+                                    <i class="fas fa-check-circle"></i>
                                 </div>
-                                <div class="detail-item mb-3">
-                                    <strong>Payment Method:</strong>
-                                    <span id="successPaymentMethod">-</span>
+                                <h2 class="auth-title animation mb-3">Payment Successful ✅</h2>
+                                <p class="auth-subtitle animation mb-4">
+                                    Your payment of <strong id="successAmount">₹0.00</strong> has been processed successfully.
+                                </p>
+                                <div class="payment-details mb-4">
+                                    <div class="detail-item mb-3">
+                                        <strong>Tracking ID:</strong>
+                                        <span class="text-primary fw-bold" id="successTrackingId">-</span>
+                                    </div>
+                                    <div class="detail-item mb-3">
+                                        <strong>Payment Method:</strong>
+                                        <span id="successPaymentMethod">-</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="payment-options-modal">
-                                <div class="payment-option-item mb-3">
-                                    <button type="button" class="btn-auth w-100" id="trackParcelBtn">
-                                        <span><i class="fas fa-search me-2"></i>Track Your Parcel</span>
-                                    </button>
-                                </div>
-                                <div class="payment-option-item">
-                                    <button type="button" class="btn-auth btn-auth-outline w-100" id="backToHomeBtn">
-                                        <span><i class="fas fa-home me-2"></i>Back to Home</span>
-                                    </button>
+                                <div class="payment-options-modal">
+                                    <div class="payment-option-item mb-3">
+                                        <button type="button" class="btn-auth w-100" id="trackParcelBtn">
+                                            <span><i class="fas fa-search me-2"></i>Track Your Parcel</span>
+                                        </button>
+                                    </div>
+                                    <div class="payment-option-item">
+                                        <button type="button" class="btn-auth btn-auth-outline w-100" id="backToHomeBtn">
+                                            <span><i class="fas fa-home me-2"></i>Back to Home</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
