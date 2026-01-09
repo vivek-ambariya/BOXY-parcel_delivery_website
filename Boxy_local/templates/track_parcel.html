@@ -245,50 +245,92 @@
             <!-- Payment Panel (Left) -->
             <div class="sign-in-panel active" id="paymentPanel">
                 <div class="form-wrapper">
-                    <h2 class="auth-title animation">Complete Payment</h2>
-                    <p class="auth-subtitle animation" id="paymentTrackingId">Tracking ID: -</p>
-                    
-                    <!-- Delivery Details -->
-                    <div class="payment-details mb-4">
-                        <div class="detail-item mb-3">
-                            <strong>Sender:</strong>
-                            <span id="paymentSenderName">-</span>
-                        </div>
-                        <div class="detail-item mb-3">
-                            <strong>Receiver:</strong>
-                            <span id="paymentReceiverName">-</span>
-                        </div>
-                        <div class="detail-item mb-3">
-                            <strong>Total Amount:</strong>
-                            <span class="text-orange fw-bold fs-5" id="paymentAmount">₹0.00</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Payment Options -->
-                    <div class="payment-options-modal">
-                        <div class="payment-option-item mb-3" id="onlinePaymentOption">
-                            <button type="button" class="btn-auth w-100" id="payOnlineBtnModal">
-                                <span><i class="fas fa-credit-card me-2"></i>Pay Online</span>
-                            </button>
+                    <!-- Payment Form (shown by default) -->
+                    <div id="paymentFormContent">
+                        <h2 class="auth-title animation">Complete Payment</h2>
+                        <p class="auth-subtitle animation" id="paymentTrackingId">Tracking ID: -</p>
+                        
+                        <!-- Delivery Details -->
+                        <div class="payment-details mb-4">
+                            <div class="detail-item mb-3">
+                                <strong>Sender:</strong>
+                                <span id="paymentSenderName">-</span>
+                            </div>
+                            <div class="detail-item mb-3">
+                                <strong>Receiver:</strong>
+                                <span id="paymentReceiverName">-</span>
+                            </div>
+                            <div class="detail-item mb-3">
+                                <strong>Total Amount:</strong>
+                                <span class="text-orange fw-bold fs-5" id="paymentAmount">₹0.00</span>
+                            </div>
                         </div>
                         
-                        <div class="payment-option-item">
-                            <button type="button" class="btn-auth btn-auth-outline w-100" id="codBtnModal">
-                                <span><i class="fas fa-money-bill-wave me-2"></i>Cash on Delivery</span>
-                            </button>
+                        <!-- Payment Options -->
+                        <div class="payment-options-modal">
+                            <div class="payment-option-item mb-3" id="onlinePaymentOption">
+                                <button type="button" class="btn-auth w-100" id="payOnlineBtnModal">
+                                    <span><i class="fas fa-credit-card me-2"></i>Pay Online</span>
+                                </button>
+                            </div>
+                            
+                            <div class="payment-option-item">
+                                <button type="button" class="btn-auth btn-auth-outline w-100" id="codBtnModal">
+                                    <span><i class="fas fa-money-bill-wave me-2"></i>Cash on Delivery</span>
+                                </button>
+                            </div>
                         </div>
+                        
+                        <div id="paymentError" class="error-message animation d-none"></div>
                     </div>
                     
-                    <div id="paymentError" class="error-message animation d-none"></div>
+                    <!-- Success Message (hidden by default) -->
+                    <div id="paymentSuccessContent" class="d-none">
+                        <div class="success-content text-center">
+                            <div class="success-icon mb-4">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <h2 class="auth-title animation mb-3">Payment Successful ✅</h2>
+                            <p class="auth-subtitle animation mb-4">
+                                Your payment of <strong id="successAmount">₹0.00</strong> has been processed successfully.
+                            </p>
+                            <div class="payment-details mb-4">
+                                <div class="detail-item mb-3">
+                                    <strong>Tracking ID:</strong>
+                                    <span class="text-primary fw-bold" id="successTrackingId">-</span>
+                                </div>
+                                <div class="detail-item mb-3">
+                                    <strong>Payment Method:</strong>
+                                    <span id="successPaymentMethod">-</span>
+                                </div>
+                            </div>
+                            <div class="payment-options-modal">
+                                <div class="payment-option-item mb-3">
+                                    <button type="button" class="btn-auth w-100" id="trackParcelBtn">
+                                        <span><i class="fas fa-search me-2"></i>Track Your Parcel</span>
+                                    </button>
+                                </div>
+                                <div class="payment-option-item">
+                                    <button type="button" class="btn-auth btn-auth-outline w-100" id="backToHomeBtn">
+                                        <span><i class="fas fa-home me-2"></i>Back to Home</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
             <!-- Spline Animation Panel (Right) -->
             <div class="sign-up-panel active" id="paymentSplinePanel">
                 <iframe src='https://my.spline.design/retrofuturisticcircuitloop-swXmPDxQbH5Q5VRPxTyUTb80/' frameborder='0' width='100%' height='100%' class="spline-iframe"></iframe>
-                <div class="overlay-panel">
+                <div class="overlay-panel" id="paymentOverlayPanel">
                     <h2 class="overlay-title animation">Secure Payment</h2>
                     <p class="overlay-text animation">Complete your payment securely and track your delivery</p>
+                </div>
+                <div class="overlay-panel d-none" id="successOverlayPanel">
+                    <h2 class="overlay-title animation">Payment Complete!</h2>
+                    <p class="overlay-text animation">Thank you for your payment. Your delivery is confirmed.</p>
                 </div>
             </div>
         </div>
@@ -536,6 +578,33 @@
     }
 }
 
+.success-icon {
+    font-size: 5rem;
+    color: #28a745;
+    margin-bottom: 20px;
+}
+
+.success-icon i {
+    animation: scaleIn 0.5s ease-out;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+.success-content {
+    width: 100%;
+}
+
+.text-primary {
+    color: #007bff !important;
+}
+
 @media (max-width: 768px) {
     .auth-container {
         width: 95%;
@@ -550,6 +619,10 @@
     
     .overlay-title {
         font-size: 2rem;
+    }
+    
+    .success-icon {
+        font-size: 4rem;
     }
 }
 </style>
@@ -778,11 +851,20 @@ document.getElementById('trackParcelForm').addEventListener('submit', async func
 
 // Function to show payment modal
 function showPaymentModal(trackingId, amount, senderName, receiverName) {
+    // Reset modal to payment form (hide success if shown)
+    document.getElementById('paymentFormContent').classList.remove('d-none');
+    document.getElementById('paymentSuccessContent').classList.add('d-none');
+    document.getElementById('paymentOverlayPanel').classList.remove('d-none');
+    document.getElementById('successOverlayPanel').classList.add('d-none');
+    
     // Populate modal with data
     document.getElementById('paymentTrackingId').textContent = `Tracking ID: ${trackingId}`;
     document.getElementById('paymentSenderName').textContent = senderName || '-';
     document.getElementById('paymentReceiverName').textContent = receiverName || '-';
     document.getElementById('paymentAmount').textContent = `₹${parseFloat(amount).toFixed(2)}`;
+    
+    // Clear any errors
+    document.getElementById('paymentError').classList.add('d-none');
     
     // Show modal
     const modal = document.getElementById('paymentModal');
@@ -881,6 +963,9 @@ document.getElementById('payOnlineBtnModal').addEventListener('click', async fun
 });
 
 function handlePaymentSuccess(response, trackingId) {
+    const modal = document.getElementById('paymentModal');
+    const amount = parseFloat(modal.dataset.amount);
+    
     fetch('/api/payment/razorpay-success', {
         method: 'POST',
         headers: {
@@ -896,8 +981,8 @@ function handlePaymentSuccess(response, trackingId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            closePaymentModal();
-            window.location.href = '/payment-success/' + trackingId;
+            // Show success message in modal
+            showPaymentSuccess(trackingId, amount, 'Online');
         } else {
             const errorDiv = document.getElementById('paymentError');
             errorDiv.textContent = 'Payment failed: ' + data.message;
@@ -912,10 +997,47 @@ function handlePaymentSuccess(response, trackingId) {
     });
 }
 
+// Function to show payment success in modal
+function showPaymentSuccess(trackingId, amount, paymentMethod) {
+    // Hide payment form, show success content
+    document.getElementById('paymentFormContent').classList.add('d-none');
+    document.getElementById('paymentSuccessContent').classList.remove('d-none');
+    
+    // Update success content
+    document.getElementById('successAmount').textContent = `₹${parseFloat(amount).toFixed(2)}`;
+    document.getElementById('successTrackingId').textContent = trackingId;
+    document.getElementById('successPaymentMethod').textContent = paymentMethod;
+    
+    // Update overlay panel
+    document.getElementById('paymentOverlayPanel').classList.add('d-none');
+    document.getElementById('successOverlayPanel').classList.remove('d-none');
+    
+    // Store tracking ID for buttons
+    const modal = document.getElementById('paymentModal');
+    modal.dataset.trackingId = trackingId;
+}
+
+// Track Parcel Button Handler
+document.getElementById('trackParcelBtn').addEventListener('click', function() {
+    const modal = document.getElementById('paymentModal');
+    const trackingId = modal.dataset.trackingId;
+    closePaymentModal();
+    // Track the parcel
+    document.getElementById('trackingNumber').value = trackingId;
+    trackParcel(trackingId);
+});
+
+// Back to Home Button Handler
+document.getElementById('backToHomeBtn').addEventListener('click', function() {
+    closePaymentModal();
+    window.location.href = '/';
+});
+
 // Cash on Delivery Handler
 document.getElementById('codBtnModal').addEventListener('click', function() {
     const modal = document.getElementById('paymentModal');
     const trackingId = modal.dataset.trackingId;
+    const amount = parseFloat(modal.dataset.amount);
     
     if (confirm('Select Cash on Delivery? Payment will be collected when you receive the parcel.')) {
         fetch('/api/payment/select-cod/' + trackingId, {
@@ -927,9 +1049,8 @@ document.getElementById('codBtnModal').addEventListener('click', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                closePaymentModal();
-                // Refresh tracking info
-                trackParcel(trackingId);
+                // Show success message in modal
+                showPaymentSuccess(trackingId, amount, 'Cash on Delivery');
             } else {
                 const errorDiv = document.getElementById('paymentError');
                 errorDiv.textContent = 'Error: ' + data.message;
