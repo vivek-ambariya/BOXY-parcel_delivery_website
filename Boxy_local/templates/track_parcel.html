@@ -237,9 +237,327 @@
         </div>
     </div>
 </footer>
+
+<!-- Payment Modal Overlay with Animation -->
+<div id="paymentModal" class="modal-overlay d-none">
+    <div class="auth-container">
+        <div class="auth-box" id="paymentAuthBox">
+            <!-- Payment Panel (Left) -->
+            <div class="sign-in-panel active" id="paymentPanel">
+                <div class="form-wrapper">
+                    <h2 class="auth-title animation">Complete Payment</h2>
+                    <p class="auth-subtitle animation" id="paymentTrackingId">Tracking ID: -</p>
+                    
+                    <!-- Delivery Details -->
+                    <div class="payment-details mb-4">
+                        <div class="detail-item mb-3">
+                            <strong>Sender:</strong>
+                            <span id="paymentSenderName">-</span>
+                        </div>
+                        <div class="detail-item mb-3">
+                            <strong>Receiver:</strong>
+                            <span id="paymentReceiverName">-</span>
+                        </div>
+                        <div class="detail-item mb-3">
+                            <strong>Total Amount:</strong>
+                            <span class="text-orange fw-bold fs-5" id="paymentAmount">₹0.00</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Options -->
+                    <div class="payment-options-modal">
+                        <div class="payment-option-item mb-3" id="onlinePaymentOption">
+                            <button type="button" class="btn-auth w-100" id="payOnlineBtnModal">
+                                <span><i class="fas fa-credit-card me-2"></i>Pay Online</span>
+                            </button>
+                        </div>
+                        
+                        <div class="payment-option-item">
+                            <button type="button" class="btn-auth btn-auth-outline w-100" id="codBtnModal">
+                                <span><i class="fas fa-money-bill-wave me-2"></i>Cash on Delivery</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="paymentError" class="error-message animation d-none"></div>
+                </div>
+            </div>
+            
+            <!-- Spline Animation Panel (Right) -->
+            <div class="sign-up-panel active" id="paymentSplinePanel">
+                <iframe src='https://my.spline.design/particlesflow-VEQeaWBjSLyOqFb2tv23z8Lx/' frameborder='0' width='100%' height='100%' class="spline-iframe"></iframe>
+                <div class="overlay-panel">
+                    <h2 class="overlay-title animation">Secure Payment</h2>
+                    <p class="overlay-text animation">Complete your payment securely and track your delivery</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Payment Modal - Same styles as admin modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.5s ease-in;
+    backdrop-filter: blur(3px);
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.auth-container {
+    background-color: #fff;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow: hidden;
+    position: relative;
+    animation: slideUp 0.5s ease-out;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-box {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    min-height: 550px;
+}
+
+.sign-in-panel {
+    width: 50%;
+    padding: 60px 50px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.6s ease-in-out;
+    z-index: 2;
+}
+
+.sign-in-panel.active {
+    transform: translateX(0);
+}
+
+.sign-up-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 50px;
+    transition: transform 0.6s ease-in-out, opacity 0.6s ease-in-out;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.spline-iframe {
+    position: absolute;
+    top: -5%;
+    left: -5%;
+    width: 110%;
+    height: 110%;
+    border: none;
+    z-index: 0;
+    pointer-events: auto;
+    transform: scale(1.1);
+    transform-origin: center center;
+    overflow: hidden;
+}
+
+.sign-up-panel.active {
+    transform: translateX(0) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+}
+
+.overlay-panel {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: white;
+}
+
+.overlay-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.overlay-text {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.form-wrapper {
+    width: 100%;
+    max-width: 100%;
+}
+
+.auth-title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.auth-subtitle {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.payment-details {
+    background: #f5f5f5;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.text-orange {
+    color: #FF6B35;
+}
+
+.payment-options-modal {
+    margin-top: 20px;
+}
+
+.payment-option-item {
+    margin-bottom: 15px;
+}
+
+.btn-auth {
+    width: 100%;
+    height: 50px;
+    background: #000;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.btn-auth:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+    background: #333;
+}
+
+.btn-auth-outline {
+    background: transparent;
+    border: 2px solid #000;
+    color: #000;
+}
+
+.btn-auth-outline:hover {
+    background: #000;
+    color: white;
+}
+
+.error-message {
+    background: #fee;
+    color: #c33;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+
+.animation {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .auth-container {
+        width: 95%;
+        min-height: auto;
+    }
+    
+    .sign-in-panel,
+    .sign-up-panel {
+        width: 100%;
+        padding: 40px 30px;
+    }
+    
+    .overlay-title {
+        font-size: 2rem;
+    }
+}
+</style>
 {% endblock %}
 
 {% block extra_js %}
+<!-- Razorpay Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
 // Function to handle tracking
 async function trackParcel(trackingNumber) {
@@ -257,11 +575,11 @@ async function trackParcel(trackingNumber) {
         if (data.success && data.delivery) {
             const delivery = data.delivery;
             
-            // Auto-redirect to payment if delivery is completed and payment is pending
+            // Show payment modal if delivery is completed and payment is pending
             if (delivery.status === 'delivered' && delivery.payment_status === 'pending') {
-                // Small delay to show the tracking info first, then redirect
+                // Small delay to show the tracking info first, then show modal
                 setTimeout(() => {
-                    window.location.href = `/payment/${trackingNum}`;
+                    showPaymentModal(trackingNum, delivery.total_amount || 0, delivery.sender_name, delivery.receiver_name);
                 }, 2000);
             }
             
@@ -376,24 +694,24 @@ async function trackParcel(trackingNumber) {
                         </div>
                     `;
                 } else if (paymentStatus === 'pending') {
-                    // Auto-redirect to payment page after 2 seconds
+                    // Show payment modal instead of redirecting
                     paymentHtml = `
                         <div class="alert alert-warning">
                             <i class="fas fa-exclamation-triangle me-2"></i>
                             <strong>Payment Pending</strong><br>
                             Amount: ₹${parseFloat(totalAmount).toFixed(2)}<br>
-                            <p class="mb-2">Your delivery is complete! Redirecting to payment page...</p>
+                            <p class="mb-2">Your delivery is complete! Please complete the payment.</p>
                             <div class="mt-3">
-                                <a href="/payment/${trackingNum}" class="btn btn-primary" id="paymentRedirectBtn">
+                                <button class="btn btn-primary" onclick="showPaymentModal('${trackingNum}', ${totalAmount}, '${delivery.sender_name || ''}', '${delivery.receiver_name || ''}')">
                                     <i class="fas fa-credit-card me-2"></i>Complete Payment Now
-                                </a>
+                                </button>
                             </div>
                         </div>
                     `;
-                    // Auto-redirect after 3 seconds
+                    // Auto-show modal after 1 second
                     setTimeout(() => {
-                        window.location.href = `/payment/${trackingNum}`;
-                    }, 3000);
+                        showPaymentModal(trackingNum, totalAmount, delivery.sender_name || '', delivery.receiver_name || '');
+                    }, 1000);
                 } else if (paymentStatus === 'pending_cash') {
                     paymentHtml = `
                         <div class="alert alert-info">
@@ -456,6 +774,175 @@ document.getElementById('trackParcelForm').addEventListener('submit', async func
     e.preventDefault();
     const trackingNumber = document.getElementById('trackingNumber').value;
     trackParcel(trackingNumber);
+});
+
+// Function to show payment modal
+function showPaymentModal(trackingId, amount, senderName, receiverName) {
+    // Populate modal with data
+    document.getElementById('paymentTrackingId').textContent = `Tracking ID: ${trackingId}`;
+    document.getElementById('paymentSenderName').textContent = senderName || '-';
+    document.getElementById('paymentReceiverName').textContent = receiverName || '-';
+    document.getElementById('paymentAmount').textContent = `₹${parseFloat(amount).toFixed(2)}`;
+    
+    // Show modal
+    const modal = document.getElementById('paymentModal');
+    modal.classList.remove('d-none');
+    modal.style.display = 'flex';
+    
+    // Store tracking ID and amount for payment processing
+    modal.dataset.trackingId = trackingId;
+    modal.dataset.amount = amount;
+}
+
+// Close modal function
+function closePaymentModal() {
+    const modal = document.getElementById('paymentModal');
+    modal.classList.add('d-none');
+    modal.style.display = 'none';
+}
+
+// Close modal on overlay click
+document.getElementById('paymentModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closePaymentModal();
+    }
+});
+
+// Online Payment Handler
+document.getElementById('payOnlineBtnModal').addEventListener('click', async function() {
+    const btn = this;
+    const originalText = btn.innerHTML;
+    const errorDiv = document.getElementById('paymentError');
+    const modal = document.getElementById('paymentModal');
+    const trackingId = modal.dataset.trackingId;
+    const amount = parseFloat(modal.dataset.amount);
+    
+    errorDiv.classList.add('d-none');
+    btn.disabled = true;
+    btn.innerHTML = '<span><i class="fas fa-spinner fa-spin me-2"></i>Processing...</span>';
+    
+    try {
+        const orderResponse = await fetch('/api/payment/create-order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                tracking_id: trackingId,
+                amount: amount
+            })
+        });
+        
+        const orderData = await orderResponse.json();
+        
+        if (!orderData.success) {
+            throw new Error(orderData.message || 'Failed to create payment order');
+        }
+        
+        const options = {
+            key: orderData.key_id,
+            amount: orderData.amount,
+            currency: orderData.currency,
+            order_id: orderData.order_id,
+            name: 'Boxy Parcel Delivery',
+            description: 'Payment for Delivery ' + trackingId,
+            handler: function(response) {
+                handlePaymentSuccess(response, trackingId);
+            },
+            prefill: {
+                name: document.getElementById('paymentSenderName').textContent,
+                email: 'customer@example.com',
+                contact: '9999999999'
+            },
+            theme: {
+                color: '#FF6B35'
+            },
+            modal: {
+                ondismiss: function() {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            }
+        };
+        
+        const razorpay = new Razorpay(options);
+        razorpay.open();
+        
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        
+    } catch (error) {
+        console.error('Payment error:', error);
+        errorDiv.textContent = 'Error: ' + error.message;
+        errorDiv.classList.remove('d-none');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+});
+
+function handlePaymentSuccess(response, trackingId) {
+    fetch('/api/payment/razorpay-success', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            tracking_id: trackingId,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closePaymentModal();
+            window.location.href = '/payment-success/' + trackingId;
+        } else {
+            const errorDiv = document.getElementById('paymentError');
+            errorDiv.textContent = 'Payment failed: ' + data.message;
+            errorDiv.classList.remove('d-none');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        const errorDiv = document.getElementById('paymentError');
+        errorDiv.textContent = 'Payment processing error. Please try again.';
+        errorDiv.classList.remove('d-none');
+    });
+}
+
+// Cash on Delivery Handler
+document.getElementById('codBtnModal').addEventListener('click', function() {
+    const modal = document.getElementById('paymentModal');
+    const trackingId = modal.dataset.trackingId;
+    
+    if (confirm('Select Cash on Delivery? Payment will be collected when you receive the parcel.')) {
+        fetch('/api/payment/select-cod/' + trackingId, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                closePaymentModal();
+                // Refresh tracking info
+                trackParcel(trackingId);
+            } else {
+                const errorDiv = document.getElementById('paymentError');
+                errorDiv.textContent = 'Error: ' + data.message;
+                errorDiv.classList.remove('d-none');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            const errorDiv = document.getElementById('paymentError');
+            errorDiv.textContent = 'Error processing request. Please try again.';
+            errorDiv.classList.remove('d-none');
+        });
+    }
 });
 </script>
 {% endblock %}
