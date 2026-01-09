@@ -1384,7 +1384,9 @@ def payment_page(tracking_id):
                 return render_template('error.html', message='Delivery not yet completed'), 400
             
             if delivery['payment_status'] == 'paid':
-                return render_template('payment_success.html', delivery=delivery)
+                # Redirect to track parcel page with tracking ID
+                from flask import redirect, url_for
+                return redirect(url_for('track_parcel') + f'?tracking={tracking_id}')
             
             # If total_amount is NULL or 0, calculate it
             if not delivery['total_amount'] or delivery['total_amount'] == 0:
@@ -1593,26 +1595,9 @@ def razorpay_success():
 
 @app.route('/payment-success/<tracking_id>')
 def payment_success_page(tracking_id):
-    """Show payment success page"""
-    try:
-        with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
-            cursor.execute("""
-                SELECT id, sender_name, receiver_name, total_amount, payment_status, payment_method, status
-                FROM deliveries WHERE id = %s
-            """, (tracking_id,))
-            delivery = cursor.fetchone()
-            
-            if not delivery:
-                return render_template('error.html', message='Delivery not found'), 404
-            
-            # Only show success if payment is actually paid
-            if delivery['payment_status'] != 'paid':
-                return render_template('error.html', message='Payment not completed'), 400
-            
-            return render_template('payment_success.html', delivery=delivery)
-    except Exception as e:
-        return render_template('error.html', message=str(e)), 500
+    """Redirect to track parcel page after payment success"""
+    from flask import redirect, url_for
+    return redirect(url_for('track_parcel') + f'?tracking={tracking_id}')
 
 @app.route('/api/payment/cash-confirm/<booking_id>', methods=['POST'])
 def cash_payment_confirm(booking_id):

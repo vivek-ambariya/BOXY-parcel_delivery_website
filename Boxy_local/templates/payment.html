@@ -210,7 +210,7 @@ function handlePaymentSuccess(response) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            window.location.href = '/payment-success/' + trackingId;
+            window.location.href = '/track-parcel?tracking=' + trackingId;
         } else {
             showMessage('Payment failed: ' + data.message, 'danger');
         }
