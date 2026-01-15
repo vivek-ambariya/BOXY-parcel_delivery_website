@@ -76,18 +76,39 @@ body {
     background-color: var(--bg-white);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    position: relative;
 }
 
-/* Spline Navigation Overlay - Buttons on Spline Background */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Spline Navigation Overlay - Buttons on Spline Background - Fixed at Top */
 .spline-nav-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    z-index: 1000;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 1000 !important;
     padding: 1.5rem 2rem;
     pointer-events: none;
+    margin: 0 !important;
+    border: none !important;
+    /* Ensure it stays fixed relative to viewport */
+    transform: none !important;
+    will-change: auto;
+    /* Smooth transition for style changes */
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+    box-shadow: none;
+}
+
+/* White Navbar Style - After Scrolling Past Spline */
+.spline-nav-overlay.scrolled {
+    background: var(--bg-white) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .spline-nav-container {
@@ -110,7 +131,7 @@ body {
     text-shadow: 
         0 0 10px rgba(255, 255, 255, 0.5),
         0 2px 8px rgba(0, 0, 0, 0.5);
-    transition: var(--transition);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .spline-nav-brand:hover {
@@ -119,6 +140,17 @@ body {
         0 0 20px rgba(255, 255, 255, 0.8),
         0 4px 12px rgba(0, 0, 0, 0.6);
     transform: scale(1.05);
+}
+
+/* White style when scrolled */
+.spline-nav-overlay.scrolled .spline-nav-brand {
+    color: var(--text-dark) !important;
+    text-shadow: none;
+}
+
+.spline-nav-overlay.scrolled .spline-nav-brand:hover {
+    color: var(--primary-orange) !important;
+    text-shadow: none;
 }
 
 .spline-brand-icon {
@@ -133,12 +165,20 @@ body {
     color: #FFFFFF;
     font-size: 1.2rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: var(--transition);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .spline-nav-brand:hover .spline-brand-icon {
     background: rgba(255, 255, 255, 0.3);
     transform: scale(1.1);
+}
+
+/* White style when scrolled */
+.spline-nav-overlay.scrolled .spline-brand-icon {
+    background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-dark) 100%) !important;
+    backdrop-filter: none;
+    color: white !important;
+    box-shadow: var(--shadow-orange);
 }
 
 .spline-nav-links {
@@ -157,7 +197,7 @@ body {
     text-shadow: 
         0 0 10px rgba(255, 255, 255, 0.4),
         0 2px 6px rgba(0, 0, 0, 0.4);
-    transition: var(--transition);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     padding: 0.5rem 0;
 }
@@ -179,6 +219,24 @@ body {
     height: 2px;
     background: #FFFFFF;
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* White style when scrolled */
+.spline-nav-overlay.scrolled .spline-nav-link {
+    color: var(--text-dark) !important;
+    text-shadow: none;
+}
+
+.spline-nav-overlay.scrolled .spline-nav-link:hover,
+.spline-nav-overlay.scrolled .spline-nav-link.active {
+    color: var(--primary-orange) !important;
+    text-shadow: none;
+}
+
+.spline-nav-overlay.scrolled .spline-nav-link.active::after {
+    background: var(--primary-orange);
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
 }
 
 .spline-nav-btn {
@@ -197,7 +255,7 @@ body {
     box-shadow: 
         0 4px 12px rgba(0, 0, 0, 0.2),
         inset 0 0 20px rgba(255, 255, 255, 0.1);
-    transition: var(--transition);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .spline-nav-btn:hover {
@@ -208,6 +266,23 @@ body {
     box-shadow: 
         0 6px 20px rgba(0, 0, 0, 0.3),
         inset 0 0 30px rgba(255, 255, 255, 0.2);
+}
+
+/* Orange button style when scrolled */
+.spline-nav-overlay.scrolled .spline-nav-btn {
+    background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-dark) 100%) !important;
+    border: none !important;
+    color: white !important;
+    text-shadow: none;
+    backdrop-filter: none;
+    box-shadow: var(--shadow-orange);
+}
+
+.spline-nav-overlay.scrolled .spline-nav-btn:hover {
+    background: linear-gradient(135deg, var(--primary-orange-dark) 0%, #B83A15 100%) !important;
+    color: white !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
 }
 
 /* Responsive Navigation */

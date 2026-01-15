@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Hero scroll indicator
     initHeroScrollIndicator();
+    
+    // Spline navbar style transition
+    initSplineNavbarTransition();
 });
 
 /**
@@ -209,3 +212,34 @@ document.addEventListener('DOMContentLoaded', function() {
     initScrollAnimations();
 });
 
+
+/**
+ * Spline Navbar Transition - Change style when scrolling past hero section
+ */
+function initSplineNavbarTransition() {
+    const navbar = document.querySelector('.spline-nav-overlay');
+    const heroSection = document.querySelector('.hero-section-modern');
+    
+    if (!navbar || !heroSection) return;
+    
+    function updateNavbarStyle() {
+        const heroBottom = heroSection.offsetTop + heroSection.offsetHeight;
+        const scrollPosition = window.pageYOffset || window.scrollY;
+        
+        // Add 'scrolled' class when past hero section
+        if (scrollPosition > heroBottom - 100) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    }
+    
+    // Check on scroll
+    window.addEventListener('scroll', updateNavbarStyle);
+    
+    // Check on page load
+    updateNavbarStyle();
+    
+    // Check on resize (in case hero height changes)
+    window.addEventListener('resize', updateNavbarStyle);
+}
