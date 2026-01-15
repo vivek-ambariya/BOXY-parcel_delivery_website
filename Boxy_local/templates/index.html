@@ -1,39 +1,22 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
-    <div class="container">
-        <a class="navbar-brand d-flex align-items-center" href="#">
-            <div class="brand-icon me-2">
+<!-- Navigation Overlay on Spline Background -->
+<nav class="spline-nav-overlay">
+    <div class="spline-nav-container">
+        <a href="{{ url_for('index') }}" class="spline-nav-brand">
+            <div class="spline-brand-icon">
                 <i class="fas fa-box"></i>
             </div>
-            <span class="fw-bold">Boxy</span>
+            <span>Boxy</span>
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto align-items-center">
-                <li class="nav-item">
-                    <a class="nav-link active" href="{{ url_for('index') }}">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('about') }}">About Us</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('send_parcel') }}">Send Parcel</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('track_parcel') }}">Track Parcel</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('admin') }}">Admin</a>
-                </li>
-                <li class="nav-item ms-3">
-                    <a class="btn btn-primary btn-partner" href="{{ url_for('partner') }}">Become a Partner</a>
-                </li>
-            </ul>
+        <div class="spline-nav-links">
+            <a href="{{ url_for('index') }}" class="spline-nav-link active">Home</a>
+            <a href="{{ url_for('about') }}" class="spline-nav-link">About Us</a>
+            <a href="{{ url_for('send_parcel') }}" class="spline-nav-link">Send Parcel</a>
+            <a href="{{ url_for('track_parcel') }}" class="spline-nav-link">Track Parcel</a>
+            <a href="{{ url_for('admin') }}" class="spline-nav-link">Admin</a>
+            <a href="{{ url_for('partner') }}" class="spline-nav-btn">Become a Partner</a>
         </div>
     </div>
 </nav>
