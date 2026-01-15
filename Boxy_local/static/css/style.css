@@ -153,14 +153,18 @@ body {
     --hero-text-primary: #FFFFFF;
     --hero-text-secondary: #FFFFFF;
     
-    /* Hero Background Gradient Colors - Warm Browns/Oranges */
-    --hero-gradient-start: #1a0f0a; /* Deep dark brown */
-    --hero-gradient-mid: #2d1810; /* Medium dark brown */
-    --hero-gradient-end: #8b4513; /* Warm brown/orange */
+    /* Hero Background Gradient Colors - Warm Reddish-Brown to Orange-Yellow */
+    /* Matching Spline design reference: dark brown-red to bright orange-yellow */
+    --hero-gradient-start: #2d1810; /* Dark reddish-brown (left) */
+    --hero-gradient-mid: #8b4513; /* Saddle brown */
+    --hero-gradient-end: #ffa500; /* Bright orange-yellow (right) - more vibrant */
     
-    /* Alternative: Deep brown to orange gradient */
-    --hero-alt-start: #0f0805;
-    --hero-alt-end: #d2691e;
+    /* Alternative gradient stops for smoother transition */
+    --hero-gradient-stop-1: #2d1810;
+    --hero-gradient-stop-2: #5a2e1f;
+    --hero-gradient-stop-3: #8b4513;
+    --hero-gradient-stop-4: #cc6b2e;
+    --hero-gradient-stop-5: #ffa500;
     
     /* Hero Animation Timing */
     --hero-fade-duration: 1.2s;
@@ -180,7 +184,7 @@ body {
     isolation: isolate;
 }
 
-/* Hero Background with Gradient and Texture */
+/* Hero Background with Spline 3D Scene */
 .hero-background {
     position: absolute;
     top: 0;
@@ -188,28 +192,55 @@ body {
     width: 100%;
     height: 100%;
     z-index: 0;
+    overflow: hidden;
 }
 
+/* Spline Background Container - Full Screen */
+.spline-background-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.spline-background-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    pointer-events: auto;
+    z-index: 1;
+}
+
+/* Gradient Overlay (fallback while Spline loads) */
 .hero-gradient {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    /* Warm gradient: dark to light (top-left to bottom-right) */
+    /* Warm gradient: dark reddish-brown (left) to bright orange-yellow (right) */
     background: linear-gradient(
-        135deg,
-        var(--hero-gradient-start) 0%,
-        var(--hero-gradient-mid) 50%,
-        var(--hero-gradient-end) 100%
-    );
-    /* Alternative: Left to right gradient */
-    /* background: linear-gradient(
         90deg,
         var(--hero-gradient-start) 0%,
-        var(--hero-gradient-mid) 50%,
+        var(--hero-gradient-stop-2) 20%,
+        var(--hero-gradient-mid) 40%,
+        var(--hero-gradient-stop-4) 70%,
         var(--hero-gradient-end) 100%
-    ); */
+    );
+    z-index: 0;
+    opacity: 0.3; /* Subtle overlay on top of Spline */
+    transition: opacity 0.5s ease;
+}
+
+/* Hide gradient when Spline is loaded */
+.spline-background-container iframe[src]:not([src=""]) ~ .hero-gradient {
+    opacity: 0;
 }
 
 /* Subtle Noise/Texture Overlay for Depth */
@@ -220,20 +251,21 @@ body {
     width: 100%;
     height: 100%;
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)" opacity="0.15"/></svg>');
-    opacity: 0.4;
+    opacity: 0.2;
     mix-blend-mode: overlay;
     pointer-events: none;
+    z-index: 2;
 }
 
-/* Hero Content Container */
+/* Hero Content Container - Overlay on top of Spline */
 .hero-content {
     position: relative;
-    z-index: 1;
+    z-index: 10;
     width: 100%;
     height: 100%;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     padding: 2rem 0;
 }
 
@@ -241,6 +273,8 @@ body {
     width: 100%;
     text-align: left;
     animation: fadeInUp var(--hero-fade-duration) ease-out;
+    position: relative;
+    z-index: 11;
 }
 
 /* Legacy wrapper for backward compatibility */
@@ -366,62 +400,35 @@ body {
     letter-spacing: 0.1em;
 }
 
-/* Spline 3D Container */
-.hero-spline-wrapper {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    min-height: 500px;
-    padding: 1rem;
-    animation: fadeInUp var(--hero-fade-duration) ease-out 1s both;
-}
-
-.spline-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    min-height: 500px;
-    border-radius: 20px;
-    overflow: hidden;
-    background: rgba(0, 0, 0, 0.2);
-    box-shadow: 
-        0 20px 60px rgba(0, 0, 0, 0.4),
-        inset 0 0 100px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(10px);
-}
-
-.spline-container iframe {
-    width: 100%;
-    height: 100%;
-    min-height: 500px;
-    border: none;
-    display: block;
-}
-
-/* Spline Placeholder (shown while loading) */
-.spline-placeholder {
+/* Spline Placeholder (shown while loading) - Background Version */
+.spline-background-container .spline-placeholder {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     text-align: center;
     color: rgba(255, 255, 255, 0.6);
-    z-index: 0;
+    z-index: 3;
     pointer-events: none;
 }
 
-.spline-placeholder i {
+.spline-background-container .spline-placeholder i {
     font-size: 4rem;
     margin-bottom: 1rem;
     opacity: 0.5;
     animation: pulse 2s infinite;
 }
 
-.spline-placeholder p {
+.spline-background-container .spline-placeholder p {
     font-size: 1rem;
     font-weight: 300;
     letter-spacing: 0.2em;
     text-transform: uppercase;
+}
+
+/* Hide placeholder when Spline loads */
+.spline-background-container iframe[src]:not([src=""]) ~ .spline-placeholder {
+    display: none;
 }
 
 @keyframes pulse {
@@ -548,18 +555,7 @@ body {
         word-spacing: 0.4em;
     }
     
-    .hero-spline-wrapper {
-        min-height: 400px;
-        margin-top: 2rem;
-    }
-    
-    .spline-container {
-        min-height: 400px;
-    }
-    
-    .spline-container iframe {
-        min-height: 400px;
-    }
+    /* Spline background is full screen, no changes needed */
 }
 
 @media (max-width: 768px) {
@@ -589,33 +585,18 @@ body {
         font-size: 1.25rem;
     }
     
-    .hero-spline-wrapper {
-        min-height: 350px;
-        margin-top: 2rem;
-    }
-    
-    .spline-container {
-        min-height: 350px;
-    }
-    
-    .spline-container iframe {
-        min-height: 350px;
-    }
+    /* Spline background is full screen, no changes needed */
     
     .hero-text-wrapper-left {
-        text-align: center;
+        text-align: left;
     }
     
     .hero-headline-primary {
-        justify-content: center;
+        align-items: flex-start;
     }
     
     .hero-subtitle-secondary {
-        justify-content: center;
-    }
-    
-    .hero-cta-wrapper {
-        text-align: center;
+        justify-content: flex-start;
     }
 }
 
@@ -639,17 +620,7 @@ body {
         padding: 1rem 0;
     }
     
-    .hero-spline-wrapper {
-        min-height: 300px;
-    }
-    
-    .spline-container {
-        min-height: 300px;
-    }
-    
-    .spline-container iframe {
-        min-height: 300px;
-    }
+    /* Spline background is full screen, no changes needed */
 }
 
 /* Accessibility: Ensure WCAG AA Contrast Ratios */

@@ -38,17 +38,34 @@
     </div>
 </nav>
 
-<!-- Hero Section - Bold Modern Design with Spline -->
+<!-- Hero Section - Bold Modern Design with Spline Background -->
 <section id="home" class="hero-section-modern">
     <div class="hero-background">
-        <div class="hero-gradient"></div>
-        <div class="hero-noise"></div>
+        <!-- Spline 3D Scene as Full Screen Background -->
+        <div class="spline-background-container" id="spline-container">
+            <iframe 
+                id="spline-embed" 
+                src="https://my.spline.design/rotatinginteractiveherosection-D0KWkUoHGRa8mcqVDfaWxgOg/" 
+                title="Spline 3D Scene Background"
+                frameborder="0"
+                allow="fullscreen"
+                loading="lazy">
+            </iframe>
+            <!-- Fallback gradient overlay (shown while Spline loads) -->
+            <div class="hero-gradient"></div>
+            <div class="hero-noise"></div>
+            <!-- Fallback placeholder (hidden when Spline loads) -->
+            <div class="spline-placeholder">
+                <i class="fas fa-cube"></i>
+                <p>3D Scene Loading...</p>
+            </div>
+        </div>
     </div>
     <div class="hero-content">
         <div class="container">
             <div class="row align-items-center">
-                <!-- Left Column: Text Content -->
-                <div class="col-lg-6 mb-5 mb-lg-0">
+                <!-- Full Width Text Content Overlay -->
+                <div class="col-lg-6">
                     <div class="hero-text-wrapper-left">
                         <h1 class="hero-headline-primary">
                             <span class="hero-word-1">FAST</span>
@@ -79,36 +96,6 @@
                             <div class="col-4">
                                 <div class="stat-number">24/7</div>
                                 <div class="stat-label">Support</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Right Column: Spline 3D Scene -->
-                <div class="col-lg-6">
-                    <div class="hero-spline-wrapper">
-                        <div class="spline-container" id="spline-container">
-                            <!-- 
-                                TO ADD YOUR SPLINE SCENE:
-                                1. Export your scene from Spline (spline.design)
-                                2. Get the embed URL or use Spline's runtime
-                                3. Update the src attribute below with your Spline scene URL
-                                4. Or update splineSceneUrl in main.js (line 229)
-                                
-                                Example: src="https://myapp.spline.design/scene.splinecode"
-                            -->
-                            <iframe 
-                                id="spline-embed" 
-                                src="https://my.spline.design/rotatinginteractiveherosection-D0KWkUoHGRa8mcqVDfaWxgOg/" 
-                                title="Spline 3D Scene"
-                                style="border: none; width: 100%; height: 100%;"
-                                frameborder="0"
-                                allow="fullscreen"
-                                loading="lazy">
-                            </iframe>
-                            <!-- Fallback placeholder (hidden when Spline loads) -->
-                            <div class="spline-placeholder">
-                                <i class="fas fa-cube"></i>
-                                <p>3D Scene Loading...</p>
                             </div>
                         </div>
                     </div>
