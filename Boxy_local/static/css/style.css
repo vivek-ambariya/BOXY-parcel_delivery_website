@@ -557,6 +557,9 @@ html {
     border: none;
     pointer-events: auto;
     z-index: 1;
+    /* Zoom in to avoid "Built with Spline" button */
+    transform: scale(1.15);
+    transform-origin: center center;
 }
 
 /* Gradient Overlay (fallback while Spline loads) */
