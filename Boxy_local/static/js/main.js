@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Navbar scroll effect
     initNavbarScroll();
+    
+    // Hero scroll indicator
+    initHeroScrollIndicator();
 });
 
 /**
@@ -126,6 +129,51 @@ function initNavbarScroll() {
         
         lastScroll = currentScroll;
     });
+}
+
+/**
+ * Hero scroll indicator - smooth scroll to next section
+ */
+function initHeroScrollIndicator() {
+    const scrollIndicator = document.querySelector('.hero-scroll-indicator');
+    
+    if (scrollIndicator) {
+        scrollIndicator.addEventListener('click', function() {
+            // Find the next section after hero
+            const heroSection = document.querySelector('.hero-section-modern');
+            if (heroSection) {
+                const nextSection = heroSection.nextElementSibling;
+                if (nextSection) {
+                    const offsetTop = nextSection.offsetTop - 80; // Account for sticky navbar
+                    window.scrollTo({
+                        top: offsetTop,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // If no next section, scroll to top of page
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+        });
+        
+        // Hide scroll indicator when scrolled past hero section
+        window.addEventListener('scroll', function() {
+            const heroSection = document.querySelector('.hero-section-modern');
+            if (heroSection) {
+                const heroBottom = heroSection.offsetTop + heroSection.offsetHeight;
+                if (window.pageYOffset > heroBottom - 100) {
+                    scrollIndicator.style.opacity = '0';
+                    scrollIndicator.style.pointerEvents = 'none';
+                } else {
+                    scrollIndicator.style.opacity = '1';
+                    scrollIndicator.style.pointerEvents = 'auto';
+                }
+            }
+        });
+    }
 }
 
 /**
