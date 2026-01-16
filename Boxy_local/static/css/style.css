@@ -558,7 +558,7 @@ html {
     pointer-events: auto;
     z-index: 1;
     /* Zoom in to avoid "Built with Spline" button */
-    transform: scale(1.15);
+    transform: scale(1.2);
     transform-origin: center center;
 }
 
