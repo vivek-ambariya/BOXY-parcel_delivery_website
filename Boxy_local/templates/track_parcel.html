@@ -75,12 +75,6 @@
                 <!-- Tracking Results (Hidden by default) -->
                 <div id="trackingResults" class="tracking-results-card card border-0 shadow-lg d-none">
                     <div class="card-body p-5">
-                        <!-- Back to Payment Button (shown when payment is pending) -->
-                        <div id="backToPaymentBtn" class="mb-3 d-none">
-                            <a href="#" id="backToPaymentLink" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>Back to Payment
-                            </a>
-                        </div>
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h4 class="mb-0">
                                 <i class="fas fa-box me-2"></i>Tracking Information
@@ -649,12 +643,6 @@ async function trackParcel(trackingNumber) {
     document.getElementById('notFoundMessage').classList.add('d-none');
     document.getElementById('multiStopProgress').classList.add('d-none');
     
-    // Hide back to payment button initially
-    const backBtn = document.getElementById('backToPaymentBtn');
-    if (backBtn) {
-        backBtn.classList.add('d-none');
-    }
-    
     try {
         const response = await fetch(`/api/deliveries/track/${trackingNum}`);
         const data = await response.json();
@@ -772,12 +760,6 @@ async function trackParcel(trackingNumber) {
                 
                 let paymentHtml = '';
                 if (paymentStatus === 'paid') {
-                    // Hide back button when payment is completed
-                    const backBtn = document.getElementById('backToPaymentBtn');
-                    if (backBtn) {
-                        backBtn.classList.add('d-none');
-                    }
-                    
                     paymentHtml = `
                         <div class="alert alert-success">
                             <i class="fas fa-check-circle me-2"></i>
@@ -787,13 +769,6 @@ async function trackParcel(trackingNumber) {
                         </div>
                     `;
                 } else if (paymentStatus === 'pending') {
-                    // Show back to payment button at top
-                    const backBtn = document.getElementById('backToPaymentBtn');
-                    const backLink = document.getElementById('backToPaymentLink');
-                    if (backBtn && backLink) {
-                        backBtn.classList.remove('d-none');
-                        backLink.href = `/payment/${trackingNum}`;
-                    }
                     // Show payment modal instead of redirecting
                     paymentHtml = `
                         <div class="alert alert-warning">

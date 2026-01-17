@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Hero scroll indicator
     initHeroScrollIndicator();
+    
+    // Spline navbar style transition
+    initSplineNavbarTransition();
 });
 
 /**
@@ -207,61 +210,36 @@ function initScrollAnimations() {
 // Initialize scroll animations
 document.addEventListener('DOMContentLoaded', function() {
     initScrollAnimations();
-    initSplineScene();
 });
 
+
 /**
- * Initialize Spline 3D Scene
- * Replace the placeholder with your Spline embed URL
+ * Spline Navbar Transition - Change style when scrolling past hero section
  */
-function initSplineScene() {
-    const splineContainer = document.getElementById('spline-container');
-    const splineIframe = document.getElementById('spline-embed');
-    const splinePlaceholder = splineContainer?.querySelector('.spline-placeholder');
+function initSplineNavbarTransition() {
+    const navbar = document.querySelector('.spline-nav-overlay');
+    const heroSection = document.querySelector('.hero-section-modern');
     
-    if (!splineContainer || !splineIframe) return;
+    if (!navbar || !heroSection) return;
     
-    // TODO: Replace this URL with your Spline scene URL
-    // You can get this from Spline by:
-    // 1. Export your scene from Spline
-    // 2. Get the embed URL or use Spline's runtime
-    // 3. Replace the src below with your Spline scene URL
-    const splineSceneUrl = ''; // Add your Spline scene URL here
-    
-    // If you're using Spline's runtime library instead of iframe:
-    // Uncomment and use the code below
-    
-    /*
-    // Load Spline runtime
-    const script = document.createElement('script');
-    script.type = 'module';
-    script.src = 'https://unpkg.com/@splinetool/runtime@1.0.0/build/runtime.js';
-    document.head.appendChild(script);
-    
-    script.onload = function() {
-        // Import and load your Spline scene
-        import('https://unpkg.com/@splinetool/runtime@1.0.0/build/runtime.js').then((SplineRuntime) => {
-            const app = new SplineRuntime.Application();
-            app.load('YOUR_SPLINE_SCENE_URL.splinecode').then(() => {
-                splineContainer.appendChild(app.canvas);
-                if (splinePlaceholder) {
-                    splinePlaceholder.style.display = 'none';
-                }
-            });
-        });
-    };
-    */
-    
-    // Iframe method (simpler, recommended)
-    if (splineSceneUrl) {
-        splineIframe.src = splineSceneUrl;
-        splineIframe.onload = function() {
-            if (splinePlaceholder) {
-                splinePlaceholder.style.display = 'none';
-            }
-        };
-    } else {
-        // Show placeholder if no URL is provided
-        console.log('Spline scene URL not configured. Please add your Spline scene URL in main.js');
+    function updateNavbarStyle() {
+        const heroBottom = heroSection.offsetTop + heroSection.offsetHeight;
+        const scrollPosition = window.pageYOffset || window.scrollY;
+        
+        // Add 'scrolled' class when past hero section
+        if (scrollPosition > heroBottom - 100) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
     }
+    
+    // Check on scroll
+    window.addEventListener('scroll', updateNavbarStyle);
+    
+    // Check on page load
+    updateNavbarStyle();
+    
+    // Check on resize (in case hero height changes)
+    window.addEventListener('resize', updateNavbarStyle);
 }
