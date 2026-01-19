@@ -40,6 +40,10 @@
 <!-- Partner Login Modal Overlay with Animation -->
 <div id="partnerLoginModal" class="modal-overlay" style="display: none;">
     <div class="auth-container">
+        <!-- Cancel/Close Button -->
+        <button type="button" class="modal-close-btn" id="closePartnerLoginModal" title="Close and return to home">
+            <i class="fas fa-times"></i>
+        </button>
         <div class="auth-box" id="partnerAuthBox">
             <!-- Sign In Panel (Left) -->
             <div class="sign-in-panel active" id="partnerSignInPanel">
@@ -427,6 +431,36 @@
     animation: slideUp 0.5s ease-out;
     display: flex;
     flex-direction: column;
+}
+
+/* Modal Close Button */
+.modal-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 0, 0, 0.1);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10000;
+    transition: all 0.3s ease;
+    color: #333;
+    font-size: 1.2rem;
+}
+
+.modal-close-btn:hover {
+    background: rgba(0, 0, 0, 0.2);
+    transform: scale(1.1);
+    color: #000;
+}
+
+.modal-close-btn:active {
+    transform: scale(0.95);
 }
 
 .auth-box {
@@ -887,6 +921,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 errorDiv.textContent = 'An error occurred. Please try again.';
                 errorDiv.classList.remove('d-none');
             }
+        });
+    }
+    
+    // Set up close modal button - redirect to home page
+    const closePartnerModalBtn = document.getElementById('closePartnerLoginModal');
+    if (closePartnerModalBtn) {
+        closePartnerModalBtn.addEventListener('click', function() {
+            window.location.href = '{{ url_for("index") }}';
         });
     }
 });
