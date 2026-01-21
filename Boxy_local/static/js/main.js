@@ -86,7 +86,8 @@ function initNavbarActiveLinks() {
  * Update active nav link
  */
 function updateActiveNavLink(hash) {
-    const navLinks = document.querySelectorAll('.nav-link');
+    // Handle both regular nav-link and spline-nav-link
+    const navLinks = document.querySelectorAll('.nav-link, .spline-nav-link');
     
     navLinks.forEach(link => {
         link.classList.remove('active');
@@ -119,6 +120,8 @@ function initButtonHoverEffects() {
  */
 function initNavbarScroll() {
     const navbar = document.querySelector('.navbar');
+    if (!navbar) return; // Exit if navbar doesn't exist (e.g., on index page with spline-nav-overlay)
+    
     let lastScroll = 0;
     
     window.addEventListener('scroll', function() {

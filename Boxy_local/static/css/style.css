@@ -331,33 +331,6 @@ html {
 }
 
 /* Navbar Overlay - Transparent to Match Spline Background */
-.navbar-overlay {
-    position: sticky !important;
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    padding: 1rem 0;
-    transition: var(--transition);
-    /* Very transparent to let Spline background show through */
-    background: rgba(0, 0, 0, 0.05) !important;
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    z-index: 1000;
-    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-}
-
-.navbar-overlay .navbar-brand {
-    font-size: 1.5rem;
-    color: #FFFFFF !important;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.navbar-overlay .navbar-brand:hover {
-    color: rgba(255, 255, 255, 0.9) !important;
-}
-
 .navbar-brand {
     font-size: 1.5rem;
     color: var(--text-dark) !important;
@@ -389,37 +362,6 @@ html {
     color: var(--primary-orange) !important;
 }
 
-/* Navbar Overlay Link Styles */
-.navbar-overlay .nav-link {
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.9) !important;
-    margin: 0 0.5rem;
-    transition: var(--transition);
-    position: relative;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-.navbar-overlay .nav-link:hover {
-    color: #FFFFFF !important;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.navbar-overlay .nav-link.active {
-    color: #FFFFFF !important;
-    font-weight: 600;
-}
-
-.navbar-overlay .nav-link.active::after {
-    content: '';
-    position: absolute;
-    bottom: -5px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: #FFFFFF;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-}
-
 .nav-link.active::after {
     content: '';
     position: absolute;
@@ -444,45 +386,6 @@ html {
 .btn-partner:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
-}
-
-/* Navbar Overlay Button Styles */
-.navbar-overlay .btn-partner {
-    background: rgba(255, 255, 255, 0.2) !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
-    color: #FFFFFF !important;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.navbar-overlay .btn-partner:hover {
-    background: rgba(255, 255, 255, 0.3) !important;
-    border-color: rgba(255, 255, 255, 0.5) !important;
-    color: #FFFFFF !important;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-}
-
-/* Navbar Toggler for Overlay */
-.navbar-overlay .navbar-toggler {
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-}
-
-.navbar-overlay .navbar-toggler-icon {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 0.9)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
-}
-
-.navbar-overlay .navbar-toggler:focus {
-    box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.25);
-}
-
-/* Brand Icon Overlay Style */
-.navbar-overlay .brand-icon {
-    background: rgba(255, 255, 255, 0.2) !important;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* ============================================
