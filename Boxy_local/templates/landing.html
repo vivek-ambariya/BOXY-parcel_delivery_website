@@ -71,101 +71,100 @@
         font-size: 0.9rem;
     }
 
-    /* Hero Content - Centered */
+    /* Hero Content - Centered, positioned lower */
     .hero-content {
         position: relative;
         z-index: 10;
         width: 100%;
         height: 100%;
         display: flex;
-        flex-direction: column;
-        align-items: center;
+        align-items: flex-end;
         justify-content: center;
-        padding: 2rem;
-        text-align: center;
-    }
-
-    /* Main Headline */
-    .hero-headline {
-        font-size: clamp(2.5rem, 8vw, 5.5rem);
-        font-weight: 900;
-        line-height: 1.1;
-        margin-bottom: 1.5rem;
-        color: #FFFFFF;
-        text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
-        animation: fadeInUp 1s ease-out 0.3s both;
-        letter-spacing: -0.02em;
-    }
-
-    .hero-headline .gradient-text {
-        background: linear-gradient(135deg, #FFFFFF 0%, #E2E8F0 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    /* Subheading */
-    .hero-subheading {
-        font-size: clamp(1rem, 2vw, 1.25rem);
-        font-weight: 300;
-        color: rgba(255, 255, 255, 0.8);
-        margin-bottom: 3rem;
-        line-height: 1.6;
-        letter-spacing: 0.02em;
-        max-width: 600px;
-        animation: fadeInUp 1s ease-out 0.6s both;
+        padding: 2rem 0;
+        padding-bottom: 15vh;
     }
 
     /* Button Wrapper - Centered */
     .hero-cta-wrapper {
-        animation: fadeInUp 1s ease-out 0.9s both;
+        animation: fadeInUp 1s ease-out 1.4s both;
         text-align: center;
+        position: relative;
     }
 
-    /* Decorative Elements */
-    .decorative-elements {
+    /* Top Decorative Elements */
+    .top-decoration {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
-        height: 100%;
         z-index: 5;
         pointer-events: none;
-        overflow: hidden;
+        padding: 3rem 2rem;
     }
 
-    .floating-particle {
-        position: absolute;
-        width: 4px;
-        height: 4px;
-        background: rgba(255, 255, 255, 0.3);
+    .top-decoration-line {
+        width: 200px;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        margin: 0 auto;
+        animation: fadeInDown 1s ease-out 0.5s both;
+    }
+
+    .top-decoration-circle {
+        width: 8px;
+        height: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
         border-radius: 50%;
-        animation: float 20s infinite ease-in-out;
+        margin: 1.5rem auto;
+        animation: fadeInDown 1s ease-out 0.7s both;
     }
 
-    .particle-1 { top: 20%; left: 10%; animation-delay: 0s; }
-    .particle-2 { top: 60%; left: 80%; animation-delay: 5s; }
-    .particle-3 { top: 40%; left: 20%; animation-delay: 10s; }
-    .particle-4 { top: 80%; left: 70%; animation-delay: 15s; }
+    /* Button Decorative Elements */
+    .button-decoration {
+        position: absolute;
+        bottom: -3rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 150px;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        animation: fadeInUp 1s ease-out 1.6s both;
+    }
 
-    @keyframes float {
+    .button-glow {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 120%;
+        height: 150%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: -1;
+        animation: pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes pulse {
         0%, 100% {
-            transform: translate(0, 0) scale(1);
             opacity: 0.3;
+            transform: translate(-50%, -50%) scale(1);
         }
         50% {
-            transform: translate(30px, -30px) scale(1.5);
             opacity: 0.6;
+            transform: translate(-50%, -50%) scale(1.1);
         }
-    }
-
-    /* Elegant divider line */
-    .elegant-divider {
-        width: 100px;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-        margin: 2rem auto;
-        animation: fadeInUp 1s ease-out 0.75s both;
     }
 
     /* Let's Start Button - Grey/Neutral to match new Spline design */
@@ -269,27 +268,19 @@
             </iframe>
         </div>
     </div>
-    <!-- Decorative Elements -->
-    <div class="decorative-elements">
-        <div class="floating-particle particle-1"></div>
-        <div class="floating-particle particle-2"></div>
-        <div class="floating-particle particle-3"></div>
-        <div class="floating-particle particle-4"></div>
+    <!-- Top Decorative Elements -->
+    <div class="top-decoration">
+        <div class="top-decoration-line"></div>
+        <div class="top-decoration-circle"></div>
     </div>
 
     <div class="hero-content">
-        <h1 class="hero-headline">
-            One Ride.<br>
-            <span class="gradient-text">Many Destinations.</span>
-        </h1>
-        <p class="hero-subheading">
-            Smart multi-stop parcel delivery that saves time, money, and effort.
-        </p>
-        <div class="elegant-divider"></div>
         <div class="hero-cta-wrapper">
+            <div class="button-glow"></div>
             <a href="{{ url_for('index') }}" class="lets-start-button">
                 Let's Start <i class="fas fa-arrow-right"></i>
             </a>
+            <div class="button-decoration"></div>
         </div>
     </div>
 </section>
