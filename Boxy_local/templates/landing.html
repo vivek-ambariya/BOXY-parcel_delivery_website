@@ -91,6 +91,67 @@
         position: relative;
     }
 
+    /* Logo - Top Left */
+    .landing-logo {
+        position: fixed;
+        top: 2rem;
+        left: 2rem;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-decoration: none;
+        animation: fadeInDown 1s ease-out 0.3s both;
+    }
+
+    .landing-logo-icon {
+        width: 40px;
+        height: 40px;
+        background: rgba(74, 85, 104, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+        box-shadow: 
+            0 2px 10px rgba(0, 0, 0, 0.2),
+            0 0 20px rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .landing-logo-icon i {
+        font-size: 1.5rem;
+        color: #FFFFFF;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+
+    .landing-logo-text {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #FFFFFF;
+        text-shadow: 
+            0 0 10px rgba(255, 255, 255, 0.3),
+            0 2px 4px rgba(0, 0, 0, 0.3);
+        letter-spacing: 0.05em;
+        transition: all 0.3s ease;
+    }
+
+    .landing-logo:hover .landing-logo-icon {
+        background: rgba(74, 85, 104, 0.8);
+        border-color: rgba(255, 255, 255, 0.4);
+        box-shadow: 
+            0 4px 15px rgba(0, 0, 0, 0.3),
+            0 0 30px rgba(255, 255, 255, 0.2);
+        transform: scale(1.05);
+    }
+
+    .landing-logo:hover .landing-logo-text {
+        text-shadow: 
+            0 0 15px rgba(255, 255, 255, 0.5),
+            0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
     /* Top Right Buttons Container */
     .top-right-buttons {
         position: fixed;
@@ -312,6 +373,14 @@
             </iframe>
         </div>
     </div>
+    <!-- Logo - Top Left -->
+    <a href="{{ url_for('landing') }}" class="landing-logo">
+        <div class="landing-logo-icon">
+            <i class="fas fa-box"></i>
+        </div>
+        <span class="landing-logo-text">Boxy</span>
+    </a>
+
     <!-- Top Right Buttons -->
     <div class="top-right-buttons">
         <a href="{{ url_for('send_parcel') }}" class="signup-button">
