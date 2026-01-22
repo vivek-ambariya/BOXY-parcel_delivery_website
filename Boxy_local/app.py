@@ -20,6 +20,10 @@ app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HT
 init_database()
 
 @app.route('/')
+def landing():
+    return render_template('landing.html')
+
+@app.route('/home')
 def index():
     return render_template('index.html')
 

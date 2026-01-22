@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Boxy - Landing{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Reset and Full Screen */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body, html {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000000;
+    }
+
+    /* Spline Background Container - Full Screen */
+    .spline-background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        background: #000000;
+    }
+
+    .spline-background iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Spline Background Only -->
+<div class="spline-background">
+    <!-- Replace this URL with your Spline login embed link -->
+    <iframe 
+        src="https://my.spline.design/motiontrails-ZcKY6Zf0ypy7G2nEMy9gRHpl/" 
+        frameborder="0" 
+        width="100%" 
+        height="100%">
+    </iframe>
+</div>
+{% endblock %}
