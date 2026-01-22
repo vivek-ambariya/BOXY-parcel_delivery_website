@@ -91,12 +91,20 @@
         position: relative;
     }
 
-    /* Sign Up Button - Top Right */
-    .signup-button {
+    /* Top Right Buttons Container */
+    .top-right-buttons {
         position: fixed;
         top: 2rem;
         right: 2rem;
         z-index: 1000;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    /* Sign Up Button - Top Right */
+    .signup-button,
+    .partner-button {
         padding: 0.75rem 1.5rem;
         font-size: 0.95rem;
         font-weight: 500;
@@ -109,9 +117,11 @@
         backdrop-filter: blur(10px);
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         animation: fadeInDown 1s ease-out 0.3s both;
+        white-space: nowrap;
     }
 
-    .signup-button:hover {
+    .signup-button:hover,
+    .partner-button:hover {
         background: rgba(74, 85, 104, 0.8);
         border-color: rgba(255, 255, 255, 0.4);
         transform: translateY(-2px);
@@ -295,10 +305,15 @@
             </iframe>
         </div>
     </div>
-    <!-- Sign Up Button - Top Right -->
-    <a href="{{ url_for('send_parcel') }}" class="signup-button">
-        Sign Up
-    </a>
+    <!-- Top Right Buttons -->
+    <div class="top-right-buttons">
+        <a href="{{ url_for('send_parcel') }}" class="signup-button">
+            Sign Up
+        </a>
+        <a href="{{ url_for('partner') }}" class="partner-button">
+            Become a Partner
+        </a>
+    </div>
 
     <!-- Top Decorative Elements -->
     <div class="top-decoration">
