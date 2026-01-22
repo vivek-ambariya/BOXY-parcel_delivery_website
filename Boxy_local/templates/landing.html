@@ -91,6 +91,33 @@
         position: relative;
     }
 
+    /* Sign Up Button - Top Right */
+    .signup-button {
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        z-index: 1000;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #FFFFFF;
+        background: rgba(74, 85, 104, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        animation: fadeInDown 1s ease-out 0.3s both;
+    }
+
+    .signup-button:hover {
+        background: rgba(74, 85, 104, 0.8);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
     /* Top Decorative Elements */
     .top-decoration {
         position: absolute;
@@ -268,6 +295,11 @@
             </iframe>
         </div>
     </div>
+    <!-- Sign Up Button - Top Right -->
+    <a href="{{ url_for('send_parcel') }}" class="signup-button">
+        Sign Up
+    </a>
+
     <!-- Top Decorative Elements -->
     <div class="top-decoration">
         <div class="top-decoration-line"></div>
