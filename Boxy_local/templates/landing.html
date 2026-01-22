@@ -4,126 +4,178 @@
 
 {% block extra_css %}
 <style>
-    /* Reset and Full Screen */
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
-    body, html {
+    /* Match index.html hero section structure */
+    .hero-section-modern {
+        position: relative;
         width: 100%;
-        height: 100%;
+        height: 100vh;
+        min-height: 600px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         overflow: hidden;
-        background: #000000;
+        isolation: isolate;
     }
 
-    /* Spline Background Container - Full Screen */
-    .spline-background {
-        position: fixed;
+    /* Hero Background with Spline 3D Scene */
+    .hero-background {
+        position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
         z-index: 0;
-        background: #000000;
+        overflow: hidden;
     }
 
-    .spline-background iframe {
+    /* Spline Background Container - Full Screen */
+    .spline-background-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        overflow: hidden;
+    }
+
+    .spline-background-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
         width: 100%;
         height: 100%;
         border: none;
-        display: block;
-        /* Zoom in to hide "Built with Spline" button */
+        pointer-events: auto;
+        z-index: 1;
+        /* Zoom in to avoid "Built with Spline" button */
         transform: scale(1.15);
         transform-origin: center center;
     }
 
-    /* Let's Start Button - Overlaying Spline Background */
+    /* Hero Content - Match index.html positioning */
+    .hero-content {
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 2rem 0;
+    }
+
+    /* Button Wrapper - Match index.html hero-cta-wrapper position */
+    .hero-cta-wrapper {
+        animation: fadeInUp 1s ease-out 1.4s both;
+        text-align: left;
+    }
+
+    /* Let's Start Button - Dark Blue with Glow (like image) */
     .lets-start-button {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 1000;
-        padding: 1.2rem 3rem;
-        font-size: 1.3rem;
-        font-weight: 600;
-        color: #FFFFFF;
-        background: linear-gradient(135deg, #00F0FF 0%, #0066FF 100%);
-        border: none;
-        border-radius: 50px;
-        cursor: pointer;
-        text-decoration: none;
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        justify-content: center;
+        padding: clamp(1rem, 2vw, 1.5rem) clamp(2rem, 4vw, 3rem);
+        font-size: clamp(1rem, 1.5vw, 1.25rem);
+        font-weight: 600;
+        color: #FFFFFF;
+        background: #0066FF;
+        border: 2px solid #0066FF;
+        border-radius: 12px;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 
-            0 4px 20px rgba(0, 240, 255, 0.4),
-            0 0 40px rgba(0, 102, 255, 0.2),
-            inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        animation: fadeInUp 1s ease 0.5s forwards;
-        opacity: 0;
+            0 4px 20px rgba(0, 102, 255, 0.4),
+            0 0 30px rgba(0, 240, 255, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
 
     .lets-start-button:hover {
-        transform: translate(-50%, -50%) translateY(-2px);
+        background: #0052CC;
+        border-color: #0052CC;
+        transform: translateY(-2px);
         box-shadow: 
-            0 6px 30px rgba(0, 240, 255, 0.6),
-            0 0 60px rgba(0, 102, 255, 0.3),
-            inset 0 1px 0 rgba(255, 255, 255, 0.3);
-        filter: brightness(1.2);
+            0 6px 30px rgba(0, 102, 255, 0.6),
+            0 0 40px rgba(0, 240, 255, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.15);
     }
 
-    .lets-start-button::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.3);
-        transform: translate(-50%, -50%);
-        transition: width 0.6s, height 0.6s;
+    .lets-start-button i {
+        transition: transform 0.3s ease;
+        margin-left: 0.5rem;
     }
 
-    .lets-start-button:hover::before {
-        width: 300px;
-        height: 300px;
+    .lets-start-button:hover i {
+        transform: translateX(6px);
     }
 
     @keyframes fadeInUp {
         from {
             opacity: 0;
-            transform: translate(-50%, -30%);
+            transform: translateY(30px);
         }
         to {
             opacity: 1;
-            transform: translate(-50%, -50%);
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive - Match index.html breakpoints */
+    @media (max-width: 768px) {
+        .hero-section-modern {
+            min-height: auto;
+            padding: 4rem 0;
+        }
+        
+        .lets-start-button {
+            padding: 0.875rem 1.75rem;
+            font-size: 0.9rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .hero-section-modern {
+            min-height: auto;
+            padding: 3rem 0;
+        }
+        
+        .hero-content {
+            padding: 1rem 0;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Spline Background Only -->
-<div class="spline-background">
-    <!-- Replace this URL with your Spline login embed link -->
-    <iframe 
-        src="https://my.spline.design/motiontrails-ZcKY6Zf0ypy7G2nEMy9gRHpl/" 
-        frameborder="0" 
-        width="100%" 
-        height="100%">
-    </iframe>
-</div>
-
-<!-- Let's Start Button - Overlaying Spline Background -->
-<a href="{{ url_for('index') }}" class="lets-start-button">
-    <i class="fas fa-arrow-right"></i>
-    Let's Start
-</a>
+<!-- Hero Section - Match index.html structure -->
+<section id="home" class="hero-section-modern">
+    <div class="hero-background">
+        <!-- Spline 3D Scene as Full Screen Background -->
+        <div class="spline-background-container" id="spline-container">
+            <iframe 
+                id="spline-embed" 
+                src="https://my.spline.design/motiontrails-ZcKY6Zf0ypy7G2nEMy9gRHpl/" 
+                title="Spline 3D Scene Background"
+                frameborder="0"
+                allow="fullscreen"
+                loading="lazy">
+            </iframe>
+        </div>
+    </div>
+    <div class="hero-content">
+        <div class="container">
+            <div class="row align-items-center">
+                <!-- Left side content area - Match index.html col-lg-6 position -->
+                <div class="col-lg-6">
+                    <div class="hero-cta-wrapper">
+                        <a href="{{ url_for('index') }}" class="lets-start-button">
+                            Let's Start <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 {% endblock %}
