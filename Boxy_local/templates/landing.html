@@ -38,6 +38,74 @@
         transform: scale(1.15);
         transform-origin: center center;
     }
+
+    /* Let's Start Button - Overlaying Spline Background */
+    .lets-start-button {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+        padding: 1.2rem 3rem;
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #FFFFFF;
+        background: linear-gradient(135deg, #00F0FF 0%, #0066FF 100%);
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        box-shadow: 
+            0 4px 20px rgba(0, 240, 255, 0.4),
+            0 0 40px rgba(0, 102, 255, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: fadeInUp 1s ease 0.5s forwards;
+        opacity: 0;
+    }
+
+    .lets-start-button:hover {
+        transform: translate(-50%, -50%) translateY(-2px);
+        box-shadow: 
+            0 6px 30px rgba(0, 240, 255, 0.6),
+            0 0 60px rgba(0, 102, 255, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        filter: brightness(1.2);
+    }
+
+    .lets-start-button::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .lets-start-button:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -30%);
+        }
+        to {
+            opacity: 1;
+            transform: translate(-50%, -50%);
+        }
+    }
 </style>
 {% endblock %}
 
@@ -52,4 +120,10 @@
         height="100%">
     </iframe>
 </div>
+
+<!-- Let's Start Button - Overlaying Spline Background -->
+<a href="{{ url_for('index') }}" class="lets-start-button">
+    <i class="fas fa-arrow-right"></i>
+    Let's Start
+</a>
 {% endblock %}
