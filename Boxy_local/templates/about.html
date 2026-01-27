@@ -112,9 +112,13 @@
                 <div class="col-lg-6">
                     <div class="university-photo-wrapper">
                         <div class="university-photo-placeholder">
-                            <i class="fas fa-university"></i>
-                            <p>LJ University</p>
-                            <span class="photo-label">Add University Photo</span>
+                            <div class="university-photo">
+                                <img src="{{ url_for('static', filename='images/College.jpeg') }}" alt="LJ University Campus" class="university-image">
+                                
+                                <div class="university-overlay">
+                                    <p>LJ University</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
