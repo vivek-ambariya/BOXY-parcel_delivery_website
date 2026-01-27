@@ -8,7 +8,7 @@ import csv
 import io
 from datetime import datetime, timedelta
 from database import get_db_connection, init_database
-from config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, GOOGLE_MAPS_API_KEY
+from config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET
 from email_service import send_confirmation_email, send_tracking_update, send_payment_receipt, send_password_reset_otp_email, send_registration_otp_email
 
 app = Flask(__name__)
@@ -18,11 +18,6 @@ app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HT
 
 # Initialize database on startup
 init_database()
-
-# Make Google Maps API key available to all templates
-@app.context_processor
-def inject_google_maps_key():
-    return {'GOOGLE_MAPS_API_KEY': GOOGLE_MAPS_API_KEY}
 
 @app.route('/')
 def landing():
@@ -786,8 +781,8 @@ PRICE_PER_KM = 8
 PRICE_PER_KG = 5
 EXTRA_STOP_CHARGE = 15
 
-# Google Distance Matrix API Key - Use the same key as Maps JavaScript API
-# Already imported from config as GOOGLE_MAPS_API_KEY
+# Google Distance Matrix API Key (set in environment variable or config)
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY', '')
 
 def calculate_distance(origin, destination, api_key=None):
     """
@@ -832,8 +827,8 @@ def calculate_total_distance(pickup_address, stops):
         return 0
     
     # Calculate pickup to first stop
-    if GOOGLE_MAPS_API_KEY:
-        distance = calculate_distance(pickup_address, stops[0]['drop_address'], GOOGLE_MAPS_API_KEY)
+    if GOOGLE_API_KEY:
+        distance = calculate_distance(pickup_address, stops[0]['drop_address'], GOOGLE_API_KEY)
         if distance:
             total_distance += distance
         else:
@@ -845,11 +840,11 @@ def calculate_total_distance(pickup_address, stops):
     
     # Calculate distances between stops
     for i in range(len(stops) - 1):
-        if GOOGLE_MAPS_API_KEY:
+        if GOOGLE_API_KEY:
             distance = calculate_distance(
                 stops[i]['drop_address'], 
                 stops[i + 1]['drop_address'], 
-                GOOGLE_MAPS_API_KEY
+                GOOGLE_API_KEY
             )
             if distance:
                 total_distance += distance

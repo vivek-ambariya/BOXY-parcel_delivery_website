@@ -301,18 +301,6 @@
                                     </div>
                                 </div>
                                 <div class="tab-pane fade" id="active-deliveries">
-                                    <!-- Navigation Map (shown when delivery is active) -->
-                                    {% if GOOGLE_MAPS_API_KEY %}
-                                    <div id="partnerMapSection" class="mb-4 d-none">
-                                        <h5 class="mb-3"><i class="fas fa-map me-2"></i>Navigation Route</h5>
-                                        <div id="partnerNavigationMap" style="width: 100%; height: 400px; border-radius: 8px; overflow: hidden; border: 1px solid #dee2e6;"></div>
-                                        <div class="mt-3">
-                                            <button class="btn btn-primary btn-sm" onclick="openInGoogleMaps()">
-                                                <i class="fas fa-external-link-alt me-2"></i>Open in Google Maps
-                                            </button>
-                                        </div>
-                                    </div>
-                                    {% endif %}
                                     <div id="activeDeliveriesList">
                                         <p class="text-muted text-center">No active deliveries.</p>
                                     </div>
@@ -996,44 +984,6 @@ async function checkPartnerLoginStatus() {
         }
     }
 }
-
-// Initialize Google Maps for partner navigation
-{% if GOOGLE_MAPS_API_KEY %}
-window.addEventListener('load', function() {
-    if (typeof initPartnerNavigationMap === 'function') {
-        if (googleMapsLoaded) {
-            initPartnerNavigationMap();
-        } else {
-            const checkGoogleMaps = setInterval(() => {
-                if (googleMapsLoaded && typeof initPartnerNavigationMap === 'function') {
-                    initPartnerNavigationMap();
-                    clearInterval(checkGoogleMaps);
-                }
-            }, 500);
-            setTimeout(() => clearInterval(checkGoogleMaps), 10000);
-        }
-    }
-});
-
-// Open route in Google Maps app
-function openInGoogleMaps() {
-    const activeContainer = document.getElementById('activeDeliveriesList');
-    const firstDeliveryCard = activeContainer.querySelector('.delivery-card');
-    if (!firstDeliveryCard) return;
-    
-    // Get addresses from the delivery card (this would need to be stored when displaying)
-    // For now, just open Google Maps
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            window.open(`https://www.google.com/maps/dir/?api=1&origin=${lat},${lng}`, '_blank');
-        });
-    } else {
-        window.open('https://www.google.com/maps', '_blank');
-    }
-}
-{% endif %}
 </script>
 <script src="{{ url_for('static', filename='js/partner.js') }}"></script>
 {% endblock %}

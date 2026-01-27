@@ -541,30 +541,8 @@ function displayMyDeliveries(deliveries) {
     // Active deliveries
     if (active.length === 0) {
         activeContainer.innerHTML = '<p class="text-muted text-center">No active deliveries.</p>';
-        // Hide map if no active deliveries
-        const mapSection = document.getElementById('partnerMapSection');
-        if (mapSection) mapSection.classList.add('d-none');
     } else {
         activeContainer.innerHTML = active.map(delivery => createDeliveryCard(delivery)).join('');
-        
-        // Show map for first active delivery
-        if (active.length > 0 && typeof displayPartnerRoute === 'function' && googleMapsLoaded) {
-            const firstDelivery = active[0];
-            const mapSection = document.getElementById('partnerMapSection');
-            if (mapSection) {
-                mapSection.classList.remove('d-none');
-                
-                // Wait a bit for map to initialize
-                setTimeout(() => {
-                    if (firstDelivery.total_stops > 1 && firstDelivery.stops) {
-                        const deliveryAddresses = firstDelivery.stops.map(stop => stop.drop_address);
-                        displayPartnerRoute(firstDelivery.sender_address, deliveryAddresses);
-                    } else {
-                        displayPartnerRoute(firstDelivery.sender_address, [firstDelivery.receiver_address]);
-                    }
-                }, 500);
-            }
-        }
     }
     
     // Completed deliveries
