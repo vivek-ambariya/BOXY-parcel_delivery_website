@@ -7,24 +7,23 @@ import hmac
 import csv
 import io
 from datetime import datetime, timedelta
-from database import get_db_connection, init_database, get_dict_cursor
+from database import get_db_connection, init_database
 from config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET
 from email_service import send_confirmation_email, send_tracking_update, send_payment_receipt, send_password_reset_otp_email, send_registration_otp_email
 
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY', secrets.token_hex(16))
+app.secret_key = secrets.token_hex(16)
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['SESSION_COOKIE_SECURE'] = os.getenv('ENVIRONMENT') == 'production'  # Set to True in production with HTTPS
-app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
 
-# Initialize database on startup (with error handling)
-try:
-    init_database()
-except Exception as e:
-    print(f"Warning: Database initialization failed: {e}")
-    print("App will continue, but database features may not work.")
+# Initialize database on startup
+init_database()
 
 @app.route('/')
+def landing():
+    return render_template('landing.html')
+
+@app.route('/home')
 def index():
     return render_template('index.html')
 
@@ -101,7 +100,7 @@ def partner_login():
         password = data.get('password')
         
         with get_db_connection() as conn:
-            cursor = get_dict_cursor(conn)
+            cursor = conn.cursor(dictionary=True)
             cursor.execute("""
                 SELECT id, first_name, last_name, phone, email, vehicle_type, 
                        vehicle_number, aadhar, status, approved
@@ -134,7 +133,7 @@ def partner_status():
             return jsonify({'success': False, 'message': 'Not logged in'}), 401
         
         with get_db_connection() as conn:
-            cursor = get_dict_cursor(conn)
+            cursor = conn.cursor(dictionary=True)
             
             if request.method == 'POST':
                 data = request.json
@@ -182,7 +181,7 @@ def get_partner_deliveries():
             return jsonify({'success': False, 'message': 'Not logged in'}), 401
         
         with get_db_connection() as conn:
-            cursor = get_dict_cursor(conn)
+            cursor = conn.cursor(dictionary=True)
             
             # Get partner's deliveries
             cursor.execute("""
@@ -262,7 +261,7 @@ def accept_delivery():
             return jsonify({'success': False, 'message': 'Not logged in'}), 401
         
         with get_db_connection() as conn:
-            cursor = get_dict_cursor(conn)
+            cursor = conn.cursor(dictionary=True)
             
             # Check if partner is online
             cursor.execute("SELECT status FROM partners WHERE id = %s", (partner_id,))
@@ -316,7 +315,6 @@ def accept_delivery():
             cursor.execute("""
                 SELECT stop_number, drop_address, receiver_name, receiver_phone, status, delivered_at
                 FROM delivery_stops
-                           
                 WHERE booking_id = %s
                 ORDER BY stop_number
             """, (delivery_id,))
@@ -362,7 +360,7 @@ def update_delivery_status():
         new_status = data.get('status')
         
         with get_db_connection() as conn:
-            cursor = get_dict_cursor(conn)
+            cursor = conn.cursor(dictionary=True)
             
             # Check if delivery belongs to this partner
             cursor.execute("""
@@ -472,7 +470,7 @@ def deliver_stop():
         stop_number = data.get('stop_number')
         
         with get_db_connection() as conn:
-            cursor = get_dict_cursor(conn)
+            cursor = conn.cursor(dictionary=True)
             
             # Verify delivery belongs to partner
             cursor.execute("""
@@ -523,7 +521,7 @@ def deliver_stop():
 def track_delivery(tracking_id):
     try:
         with get_db_connection() as conn:
-            cursor = get_dict_cursor(conn)
+            cursor = conn.cursor(dictionary=True)
             
             # Get delivery
             cursor.execute("""
@@ -565,6 +563,11 @@ def track_delivery(tracking_id):
 @app.route('/api/deliveries/create', methods=['POST'])
 def create_delivery():
     try:
+        # Check if customer is logged in
+        customer_id = session.get('customer_id')
+        if not customer_id:
+            return jsonify({'success': False, 'message': 'Please login to send a parcel'}), 401
+        
         data = request.json
         stops = data.get('stops', [])
         total_stops = len(stops)
@@ -572,10 +575,36 @@ def create_delivery():
         if total_stops == 0:
             return jsonify({'success': False, 'message': 'At least one stop is required'}), 400
         
-        # Use first stop as primary receiver (for backward compatibility)
-        first_stop = stops[0]
-        
         with get_db_connection() as conn:
+            # Get customer information from database
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT first_name, last_name, address, email
+                FROM customers WHERE id = %s
+            """, (customer_id,))
+            customer = cursor.fetchone()
+            
+            if not customer:
+                return jsonify({'success': False, 'message': 'Customer not found. Please login again'}), 401
+            
+            # Use customer's information as sender details
+            sender_name = f"{customer['first_name']} {customer['last_name']}"
+            sender_address = customer['address']
+            sender_email = customer.get('email', '')  # Use customer's email from database
+        
+            # Use first stop as primary receiver (for backward compatibility)
+            first_stop = stops[0]
+            
+            # Validate all stops required fields
+            for i, stop in enumerate(stops):
+                if not stop.get('receiver_name', '').strip():
+                    return jsonify({'success': False, 'message': f'Receiver name is required for stop {i+1}'}), 400
+                if not stop.get('drop_address', '').strip():
+                    return jsonify({'success': False, 'message': f'Receiver address is required for stop {i+1}'}), 400
+                if not stop.get('receiver_phone', '').strip():
+                    return jsonify({'success': False, 'message': f'Receiver phone is required for stop {i+1}'}), 400
+            
+            cursor.close()
             cursor = conn.cursor()
             
             # Generate delivery ID
@@ -584,34 +613,18 @@ def create_delivery():
             delivery_id = f"QP{count + 1:09d}"
             
             # Calculate total amount
-            pickup_address = data.get('senderAddress')
+            pickup_address = sender_address
             weight = float(data.get('parcelWeight', 0))
             total_distance = calculate_total_distance(pickup_address, stops)
             price_breakdown = calculate_price(total_distance, weight, total_stops)
             total_amount = price_breakdown['total']
             
-            # Validate sender email if provided
-            sender_email = data.get('senderEmail', '').strip()
-            if sender_email:
-                from validation import validate_email
-                is_valid, error = validate_email(sender_email)
-                if not is_valid:
-                    return jsonify({'success': False, 'message': error}), 400
-            
             # Check if total_amount column exists
-            cursor.execute("""
-                SELECT column_name 
-                FROM information_schema.columns 
-                WHERE table_name = 'deliveries' AND column_name = 'total_amount'
-            """)
+            cursor.execute("SHOW COLUMNS FROM deliveries LIKE 'total_amount'")
             has_total_amount = cursor.fetchone() is not None
             
             # Check if sender_email column exists
-            cursor.execute("""
-                SELECT column_name 
-                FROM information_schema.columns 
-                WHERE table_name = 'deliveries' AND column_name = 'sender_email'
-            """)
+            cursor.execute("SHOW COLUMNS FROM deliveries LIKE 'sender_email'")
             has_sender_email = cursor.fetchone() is not None
             
             # Insert new delivery
@@ -622,8 +635,8 @@ def create_delivery():
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'available', %s, %s)
                 """, (
                     delivery_id,
-                    data.get('senderName'),
-                    data.get('senderAddress'),
+                    sender_name,
+                    sender_address,
                     sender_email if sender_email else None,
                     first_stop.get('receiver_name'),
                     first_stop.get('drop_address'),
@@ -641,8 +654,8 @@ def create_delivery():
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'available', %s, %s)
                 """, (
                     delivery_id,
-                    data.get('senderName'),
-                    data.get('senderAddress'),
+                    sender_name,
+                    sender_address,
                     first_stop.get('receiver_name'),
                     first_stop.get('drop_address'),
                     first_stop.get('receiver_phone'),
@@ -659,8 +672,8 @@ def create_delivery():
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'available', %s)
                 """, (
                     delivery_id,
-                    data.get('senderName'),
-                    data.get('senderAddress'),
+                    sender_name,
+                    sender_address,
                     sender_email if sender_email else None,
                     first_stop.get('receiver_name'),
                     first_stop.get('drop_address'),
@@ -682,8 +695,8 @@ def create_delivery():
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'available', %s)
                 """, (
                     delivery_id,
-                    data.get('senderName'),
-                    data.get('senderAddress'),
+                    sender_name,
+                    sender_address,
                     first_stop.get('receiver_name'),
                     first_stop.get('drop_address'),
                     first_stop.get('receiver_phone'),
@@ -718,7 +731,7 @@ def create_delivery():
             conn.commit()
             
             # Get created delivery
-            cursor_dict = get_dict_cursor(conn)
+            cursor_dict = conn.cursor(dictionary=True)
             cursor_dict.execute("""
                 SELECT id, sender_name, sender_address, receiver_name, receiver_address,
                        receiver_phone, parcel_type, weight, status, partner_id, total_stops,
@@ -740,9 +753,9 @@ def create_delivery():
                     send_confirmation_email(
                         to_email=sender_email,
                         tracking_id=delivery_id,
-                        sender_name=data.get('senderName', ''),
+                        sender_name=sender_name,
                         receiver_name=first_stop.get('receiver_name', ''),
-                        sender_address=data.get('senderAddress', ''),
+                        sender_address=sender_address,
                         receiver_address=first_stop.get('drop_address', ''),
                         parcel_type=data.get('parcelType', ''),
                         weight=weight,
@@ -928,77 +941,39 @@ def send_registration_otp():
     """Send OTP for email verification during registration"""
     try:
         data = request.json
-        if not data:
-            return jsonify({'success': False, 'message': 'Invalid request data'}), 400
-            
         email = data.get('email', '').strip()
         first_name = data.get('firstName', '').strip()
 
         if not email:
             return jsonify({'success': False, 'message': 'Email is required'}), 400
 
-        # Check database connection first
-        try:
-            with get_db_connection() as conn:
-                cursor = conn.cursor()
-                # Check if email already exists
-                cursor.execute("SELECT id FROM customers WHERE email = %s", (email,))
-                if cursor.fetchone():
-                    return jsonify({'success': False, 'message': 'Email already registered'}), 400
-        except Exception as db_error:
-            print(f"Database error in send_registration_otp: {db_error}")
-            return jsonify({'success': False, 'message': 'Database connection error. Please try again.'}), 500
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            # Check if email already exists
+            cursor.execute("SELECT id FROM customers WHERE email = %s", (email,))
+            if cursor.fetchone():
+                return jsonify({'success': False, 'message': 'Email already registered'}), 400
 
         # Generate 4-digit OTP
         otp = f"{secrets.randbelow(10000):04d}"
         
         # Store OTP in session (no database, no expiration)
         session[f'registration_otp_{email}'] = otp
-        print(f"✓ OTP generated and stored in session for {email}: {otp[:2]}**")
 
-        # Send registration OTP email (with better error handling)
-        email_sent = False
-        email_error = None
+        # Send registration OTP email
         try:
-            email_sent = send_registration_otp_email(email, otp, first_name)
-            if email_sent:
-                print(f"✓ Email sent successfully to {email}")
-            else:
-                print(f"⚠️ Email sending returned False for {email}")
-                email_error = "SMTP configuration issue"
+            send_registration_otp_email(email, otp, first_name)
         except Exception as e:
-            error_msg = str(e)
-            email_error = error_msg
-            print(f"❌ Failed to send registration OTP email to {email}: {error_msg}")
-            import traceback
-            traceback.print_exc()
-        
-        # Return response - OTP is stored even if email fails (for testing)
-        if email_sent:
-            return jsonify({
-                'success': True,
-                'message': 'OTP has been sent to your email!'
-            })
-        else:
-            # For development: return OTP in response if email fails (remove in production)
-            # In production, you might want to return an error instead
-            error_message = email_error or "Please check SMTP configuration."
-            print(f"⚠️ Email failed but OTP stored. Error: {error_message}")
-            return jsonify({
-                'success': False,
-                'message': f'Failed to send email. {error_message}',
-                'debug_otp': otp  # Remove this in production - only for testing
-            }), 200  # Changed to 200 so frontend can handle it
-            
-    except Exception as e:
-        error_msg = str(e)
-        print(f"❌ Send registration OTP error: {error_msg}")
-        import traceback
-        traceback.print_exc()
+            print(f"Failed to send registration OTP email: {e}")
+            return jsonify({'success': False, 'message': 'Failed to send OTP. Please try again.'}), 500
+
         return jsonify({
-            'success': False, 
-            'message': f'An error occurred: {error_msg}'
-        }), 500
+            'success': True,
+            'message': 'OTP has been sent to your email!'
+        })
+    except Exception as e:
+        print(f"Send registration OTP error: {e}")
+        return jsonify({'success': False, 'message': 'An error occurred. Please try again.'}), 500
 
 @app.route('/api/customer/verify-registration-otp', methods=['POST'])
 def verify_registration_otp():
@@ -1084,7 +1059,7 @@ def customer_login():
             return jsonify({'success': False, 'message': 'Email/Phone and password are required'}), 400
 
         with get_db_connection() as conn:
-            cursor = get_dict_cursor(conn)
+            cursor = conn.cursor(dictionary=True)
             cursor.execute("""
                 SELECT id, first_name, last_name, email, phone, address
                 FROM customers
@@ -1122,7 +1097,7 @@ def customer_check():
 
     try:
         with get_db_connection() as conn:
-            cursor = get_dict_cursor(conn)
+            cursor = conn.cursor(dictionary=True)
             cursor.execute("""
                 SELECT id, first_name, last_name, email, phone, address
                 FROM customers WHERE id = %s
@@ -1153,7 +1128,7 @@ def customer_forgot_password():
             return jsonify({'success': False, 'message': 'Email is required'}), 400
 
         with get_db_connection() as conn:
-            cursor = get_dict_cursor(conn)
+            cursor = conn.cursor(dictionary=True)
             # Check if customer exists
             cursor.execute("SELECT id, first_name, last_name FROM customers WHERE email = %s", (email,))
             customer = cursor.fetchone()
@@ -1293,7 +1268,7 @@ def admin_stats():
             return jsonify({'success': False, 'message': 'Not authenticated'}), 401
         
         with get_db_connection() as conn:
-            cursor = get_dict_cursor(conn)
+            cursor = conn.cursor(dictionary=True)
             
             # Total parcels
             cursor.execute("SELECT COUNT(*) as total FROM deliveries")
@@ -1303,7 +1278,7 @@ def admin_stats():
             cursor.execute("""
                 SELECT COUNT(*) as delivered_today 
                 FROM deliveries 
-                WHERE DATE(delivered_at) = CURRENT_DATE AND status = 'delivered'
+                WHERE DATE(delivered_at) = CURDATE() AND status = 'delivered'
             """)
             delivered_today = cursor.fetchone()['delivered_today']
             
@@ -1358,7 +1333,7 @@ def admin_deliveries():
         limit = request.args.get('limit', 20, type=int)
         
         with get_db_connection() as conn:
-            cursor = get_dict_cursor(conn)
+            cursor = conn.cursor(dictionary=True)
             cursor.execute("""
                 SELECT d.id, d.sender_name, d.receiver_name, d.status, 
                        d.created_at, d.delivered_at, d.total_stops,
@@ -1396,7 +1371,7 @@ def payment_page(tracking_id):
     """Show payment page for a delivery"""
     try:
         with get_db_connection() as conn:
-            cursor = get_dict_cursor(conn)
+            cursor = conn.cursor(dictionary=True)
             cursor.execute("""
                 SELECT id, sender_name, sender_address, receiver_name, receiver_address,
                        total_amount, payment_status, payment_method, status, weight, 
@@ -1413,7 +1388,9 @@ def payment_page(tracking_id):
                 return render_template('error.html', message='Delivery not yet completed'), 400
             
             if delivery['payment_status'] == 'paid':
-                return render_template('payment_success.html', delivery=delivery)
+                # Redirect to track parcel page with tracking ID
+                from flask import redirect, url_for
+                return redirect(url_for('track_parcel') + f'?tracking={tracking_id}')
             
             # If total_amount is NULL or 0, calculate it
             if not delivery['total_amount'] or delivery['total_amount'] == 0:
@@ -1571,7 +1548,7 @@ def razorpay_success():
         
         # Update delivery payment status
         with get_db_connection() as conn:
-            cursor = get_dict_cursor(conn)
+            cursor = conn.cursor(dictionary=True)
             
             # Get delivery info before updating
             cursor.execute("""
@@ -1622,26 +1599,9 @@ def razorpay_success():
 
 @app.route('/payment-success/<tracking_id>')
 def payment_success_page(tracking_id):
-    """Show payment success page"""
-    try:
-        with get_db_connection() as conn:
-            cursor = get_dict_cursor(conn)
-            cursor.execute("""
-                SELECT id, sender_name, receiver_name, total_amount, payment_status, payment_method, status
-                FROM deliveries WHERE id = %s
-            """, (tracking_id,))
-            delivery = cursor.fetchone()
-            
-            if not delivery:
-                return render_template('error.html', message='Delivery not found'), 404
-            
-            # Only show success if payment is actually paid
-            if delivery['payment_status'] != 'paid':
-                return render_template('error.html', message='Payment not completed'), 400
-            
-            return render_template('payment_success.html', delivery=delivery)
-    except Exception as e:
-        return render_template('error.html', message=str(e)), 500
+    """Redirect to track parcel page after payment success"""
+    from flask import redirect, url_for
+    return redirect(url_for('track_parcel') + f'?tracking={tracking_id}')
 
 @app.route('/api/payment/cash-confirm/<booking_id>', methods=['POST'])
 def cash_payment_confirm(booking_id):
@@ -1652,7 +1612,7 @@ def cash_payment_confirm(booking_id):
             return jsonify({'success': False, 'message': 'Not logged in'}), 401
         
         with get_db_connection() as conn:
-            cursor = get_dict_cursor(conn)
+            cursor = conn.cursor(dictionary=True)
             
             # Verify delivery belongs to partner and is COD
             cursor.execute("""
@@ -1715,7 +1675,7 @@ def payment_status(tracking_id):
     """Get payment status for a delivery"""
     try:
         with get_db_connection() as conn:
-            cursor = get_dict_cursor(conn)
+            cursor = conn.cursor(dictionary=True)
             cursor.execute("""
                 SELECT payment_status, payment_method, total_amount, status
                 FROM deliveries WHERE id = %s
@@ -1767,7 +1727,7 @@ def admin_partners():
             return jsonify({'success': False, 'message': 'Not authenticated'}), 401
         
         with get_db_connection() as conn:
-            cursor = get_dict_cursor(conn)
+            cursor = conn.cursor(dictionary=True)
             cursor.execute("""
                 SELECT id, first_name, last_name, email, phone, vehicle_type, 
                        status, approved, created_at
@@ -1798,7 +1758,7 @@ def export_admin_data_csv():
         
         # Get all deliveries data
         with get_db_connection() as conn:
-            cursor = get_dict_cursor(conn)
+            cursor = conn.cursor(dictionary=True)
             cursor.execute("""
                 SELECT d.id, d.sender_name, d.sender_address, d.receiver_name, 
                        d.receiver_address, d.receiver_phone, d.parcel_type, 
@@ -1875,5 +1835,4 @@ def generate_csv(deliveries):
     return response
 
 if __name__ == '__main__':
-    port = int(os.getenv('PORT', 8000))
-    app.run(debug=False, host='0.0.0.0', port=port)
+    app.run(debug=True, host='0.0.0.0', port=8000)

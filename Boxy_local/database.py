@@ -1,65 +1,38 @@
 try:
-    import psycopg2
-    from psycopg2 import Error
-    from psycopg2.extras import RealDictCursor
-    POSTGRES_AVAILABLE = True
+    import mysql.connector
+    from mysql.connector import Error
+    MYSQL_AVAILABLE = True
 except ImportError:
-    POSTGRES_AVAILABLE = False
-    print("WARNING: psycopg2-binary not installed. Please run: pip install psycopg2-binary")
+    MYSQL_AVAILABLE = False
+    print("WARNING: mysql-connector-python not installed. Please run: pip install mysql-connector-python")
     # Create dummy Error class for type hints
     class Error(Exception):
         pass
-    RealDictCursor = None
 
 from contextlib import contextmanager
-import os
-from urllib.parse import urlparse
 
 # Database configuration
-# Support both DATABASE_URL (from Render) and individual variables
-DATABASE_URL = os.getenv('DATABASE_URL')
-if DATABASE_URL:
-    # Parse DATABASE_URL: postgresql://user:password@host:port/database
-    parsed = urlparse(DATABASE_URL)
-    DB_CONFIG = {
-        'host': parsed.hostname,
-        'database': parsed.path.lstrip('/'),
-        'user': parsed.username,
-        'password': parsed.password,
-        'port': parsed.port or 5432
-    }
-else:
-    # Fallback to individual environment variables
-    DB_CONFIG = {
-        'host': os.getenv('DB_HOST', 'localhost'),
-        'database': os.getenv('DB_NAME', 'Boxy'),
-        'user': os.getenv('DB_USER', 'postgres'),
-        'password': os.getenv('DB_PASSWORD', ''),
-        'port': int(os.getenv('DB_PORT', '5432'))
-    }
+DB_CONFIG = {
+    'host': 'localhost',
+    'database': 'Boxy',
+    'user': 'root',
+    'password': '',  # Default XAMPP MySQL password is empty
+    'port': 3306
+}
 
 @contextmanager
 def get_db_connection():
     """Context manager for database connections"""
-    if not POSTGRES_AVAILABLE:
-        raise ImportError("psycopg2-binary is not installed. Please install it: pip install psycopg2-binary")
-    
     conn = None
     try:
-        conn = psycopg2.connect(**DB_CONFIG)
+        conn = mysql.connector.connect(**DB_CONFIG)
         yield conn
     except Error as e:
         print(f"Database connection error: {e}")
         raise
     finally:
-        if conn:
+        if conn and conn.is_connected():
             conn.close()
-
-def get_dict_cursor(conn):
-    """Get a dictionary cursor for PostgreSQL"""
-    if not POSTGRES_AVAILABLE or RealDictCursor is None:
-        raise ImportError("psycopg2-binary is not installed. Please install it: pip install psycopg2-binary")
-    return conn.cursor(cursor_factory=RealDictCursor)
 
 def init_database():
     """Initialize database tables if they don't exist"""
@@ -79,15 +52,13 @@ def init_database():
                     vehicle_number VARCHAR(50) NOT NULL,
                     aadhar VARCHAR(20) NOT NULL,
                     password VARCHAR(255) NOT NULL,
-                    status VARCHAR(20) DEFAULT 'offline' CHECK (status IN ('online', 'offline')),
+                    status ENUM('online', 'offline') DEFAULT 'offline',
                     approved BOOLEAN DEFAULT TRUE,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_email (email),
+                    INDEX idx_status (status)
                 )
             """)
-            
-            # Create indexes for partners
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_email ON partners(email)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_status ON partners(status)")
             
             # Create deliveries table
             cursor.execute("""
@@ -95,118 +66,108 @@ def init_database():
                     id VARCHAR(20) PRIMARY KEY,
                     sender_name VARCHAR(100) NOT NULL,
                     sender_address TEXT NOT NULL,
-                    sender_email VARCHAR(255),
                     receiver_name VARCHAR(100) NOT NULL,
                     receiver_address TEXT NOT NULL,
                     receiver_phone VARCHAR(20) NOT NULL,
                     parcel_type VARCHAR(50) NOT NULL,
                     weight DECIMAL(5,2) NOT NULL,
-                    status VARCHAR(20) DEFAULT 'available' CHECK (status IN ('available', 'accepted', 'picked', 'on_the_way', 'delivered', 'completed')),
-                    partner_id VARCHAR(20),
+                    status ENUM('available', 'accepted', 'picked', 'on_the_way', 'delivered', 'completed') DEFAULT 'available',
+                    partner_id VARCHAR(20) NULL,
                     total_stops INT DEFAULT 1,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     accepted_at TIMESTAMP NULL,
                     updated_at TIMESTAMP NULL,
                     delivered_at TIMESTAMP NULL,
                     total_amount DECIMAL(10,2) DEFAULT 0.00,
-                    payment_status VARCHAR(20) DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'pending_cash')),
-                    payment_method VARCHAR(20) CHECK (payment_method IN ('online', 'cash')),
-                    FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE SET NULL
+                    payment_status ENUM('pending', 'paid', 'pending_cash') DEFAULT 'pending',
+                    payment_method ENUM('online', 'cash') NULL,
+                    FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE SET NULL,
+                    INDEX idx_status (status),
+                    INDEX idx_partner (partner_id),
+                    INDEX idx_payment_status (payment_status)
                 )
             """)
-            
-            # Create indexes for deliveries
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_status ON deliveries(status)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_partner ON deliveries(partner_id)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_payment_status ON deliveries(payment_status)")
             
             # Create delivery_stops table (Multi-Stop Feature)
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS delivery_stops (
-                    id SERIAL PRIMARY KEY,
+                    id INT AUTO_INCREMENT PRIMARY KEY,
                     booking_id VARCHAR(20) NOT NULL,
                     stop_number INT NOT NULL,
                     drop_address TEXT NOT NULL,
                     receiver_name VARCHAR(100) NOT NULL,
                     receiver_phone VARCHAR(20) NOT NULL,
-                    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'delivered')),
+                    status ENUM('pending', 'delivered') DEFAULT 'pending',
                     delivered_at TIMESTAMP NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (booking_id) REFERENCES deliveries(id) ON DELETE CASCADE,
-                    UNIQUE (booking_id, stop_number)
+                    INDEX idx_booking (booking_id),
+                    INDEX idx_status (status),
+                    UNIQUE KEY unique_stop (booking_id, stop_number)
                 )
             """)
-            
-            # Create indexes for delivery_stops
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_booking ON delivery_stops(booking_id)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_status ON delivery_stops(status)")
             
             # Check and add missing columns to existing tables (migrations)
             # Add total_stops column if it doesn't exist
             try:
-                cursor.execute("""
-                    SELECT column_name 
-                    FROM information_schema.columns 
-                    WHERE table_name = 'deliveries' AND column_name = 'total_stops'
-                """)
+                cursor.execute("SHOW COLUMNS FROM deliveries LIKE 'total_stops'")
                 if not cursor.fetchone():
-                    cursor.execute("ALTER TABLE deliveries ADD COLUMN total_stops INT DEFAULT 1")
+                    cursor.execute("ALTER TABLE deliveries ADD COLUMN total_stops INT DEFAULT 1 AFTER partner_id")
                     conn.commit()
-                    print("✓ Added 'total_stops' column to deliveries table")
+                    print(" Added 'total_stops' column to deliveries table")
                 else:
-                    print("✓ Column 'total_stops' already exists in deliveries table")
+                    print(" Column 'total_stops' already exists in deliveries table")
             except Error as e:
-                if "does not exist" not in str(e).lower():
+                # If table doesn't exist yet, that's okay - it will be created above
+                if "doesn't exist" not in str(e).lower():
                     print(f"Note: Could not check/add total_stops column: {e}")
             
             # Add payment columns if they don't exist
             try:
-                cursor.execute("""
-                    SELECT column_name 
-                    FROM information_schema.columns 
-                    WHERE table_name = 'deliveries' AND column_name = 'payment_status'
-                """)
+                cursor.execute("SHOW COLUMNS FROM deliveries LIKE 'payment_status'")
                 if not cursor.fetchone():
                     # Add columns one by one to avoid issues
                     try:
-                        cursor.execute("ALTER TABLE deliveries ADD COLUMN total_amount DECIMAL(10,2) DEFAULT 0.00")
+                        cursor.execute("ALTER TABLE deliveries ADD COLUMN total_amount DECIMAL(10,2) DEFAULT 0.00 AFTER delivered_at")
                         conn.commit()
                         print("✓ Added 'total_amount' column")
                     except Error as e:
-                        if "already exists" not in str(e).lower():
+                        if "Duplicate column name" not in str(e):
                             print(f"Note adding total_amount: {e}")
                     
                     try:
-                        cursor.execute("ALTER TABLE deliveries ADD COLUMN payment_status VARCHAR(20) DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'pending_cash'))")
+                        cursor.execute("ALTER TABLE deliveries ADD COLUMN payment_status ENUM('pending', 'paid', 'pending_cash') DEFAULT 'pending' AFTER total_amount")
                         conn.commit()
                         print("✓ Added 'payment_status' column")
                     except Error as e:
-                        if "already exists" not in str(e).lower():
+                        if "Duplicate column name" not in str(e):
                             print(f"Note adding payment_status: {e}")
                     
                     try:
-                        cursor.execute("ALTER TABLE deliveries ADD COLUMN payment_method VARCHAR(20) CHECK (payment_method IN ('online', 'cash'))")
+                        cursor.execute("ALTER TABLE deliveries ADD COLUMN payment_method ENUM('online', 'cash') NULL DEFAULT NULL AFTER payment_status")
                         conn.commit()
                         print("✓ Added 'payment_method' column")
                     except Error as e:
-                        if "already exists" not in str(e).lower():
+                        if "Duplicate column name" not in str(e):
                             print(f"Note adding payment_method: {e}")
                     
-                    print(" Added payment columns to deliveries table")
+                    print("✓ Added payment columns to deliveries table")
                 else:
-                    print(" Payment columns already exist in deliveries table")
+                    print("✓ Payment columns already exist in deliveries table")
             except Error as e:
-                if "does not exist" not in str(e).lower():
+                if "doesn't exist" not in str(e).lower():
                     print(f"Note: Could not check/add payment columns: {e}")
             
-            # Add sender_email column if it doesn't exist
+            # Check and update status ENUM to include 'completed' if it doesn't
             try:
+                # Use information_schema to check current ENUM values
                 cursor.execute("""
-                    SELECT column_name 
-                    FROM information_schema.columns 
-                    WHERE table_name = 'deliveries' AND column_name = 'sender_email'
+                    SELECT COLUMN_TYPE 
+                    FROM information_schema.COLUMNS 
+                    WHERE TABLE_SCHEMA = DATABASE() 
+                    AND TABLE_NAME = 'deliveries' 
+                    AND COLUMN_NAME = 'status'
                 """)
-<<<<<<< HEAD
                 result = cursor.fetchone()
                 if result:
                     enum_type = result[0] if isinstance(result, tuple) else result.get('COLUMN_TYPE', '')
@@ -218,18 +179,12 @@ def init_database():
                             DEFAULT 'available'
                         """)
                         conn.commit()
-                        print(" Updated status ENUM to include 'completed'")
+                        print("✓ Updated status ENUM to include 'completed'")
                     else:
-                        print(" Status ENUM already includes 'completed'")
-=======
-                if not cursor.fetchone():
-                    cursor.execute("ALTER TABLE deliveries ADD COLUMN sender_email VARCHAR(255)")
-                    conn.commit()
-                    print("✓ Added 'sender_email' column")
->>>>>>> 936c1ff8d6421e96832eb0705a0a840c45480312
+                        print("✓ Status ENUM already includes 'completed'")
             except Error as e:
-                if "does not exist" not in str(e).lower():
-                    print(f"Note: Could not check/add sender_email column: {e}")
+                if "doesn't exist" not in str(e).lower():
+                    print(f"Note: Could not check/update status ENUM: {e}")
             
             # Create customers table
             cursor.execute("""
@@ -241,11 +196,12 @@ def init_database():
                     phone VARCHAR(20) UNIQUE NOT NULL,
                     address TEXT NOT NULL,
                     password VARCHAR(255) NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_customer_email (email),
+                    INDEX idx_customer_phone (phone)
                 )
             """)
             
-<<<<<<< HEAD
             # Check and fix id column type if it's integer (migration)
             try:
                 cursor.execute("""
@@ -308,7 +264,7 @@ def init_database():
                             # Drop old table and rename new one
                             cursor.execute("DROP TABLE customers")
                             cursor.execute("RENAME TABLE customers_temp TO customers")
-                            print(f" Successfully migrated {row_count} customer records to VARCHAR IDs")
+                            print(f"✓ Successfully migrated {row_count} customer records to VARCHAR IDs")
                         else:
                             # No data, just alter the column
                             try:
@@ -319,73 +275,61 @@ def init_database():
                             
                             cursor.execute("ALTER TABLE customers MODIFY COLUMN id VARCHAR(20) NOT NULL")
                             cursor.execute("ALTER TABLE customers ADD PRIMARY KEY (id)")
-                            print(" Successfully migrated customers.id to VARCHAR(20)")
+                            print("✓ Successfully migrated customers.id to VARCHAR(20)")
                         
                         conn.commit()
                     else:
-                        print(" customers.id column type is correct (VARCHAR)")
+                        print("✓ customers.id column type is correct (VARCHAR)")
             except Error as e:
                 if "doesn't exist" not in str(e).lower():
                     print(f"Note: Could not check/fix customers.id column type: {e}")
-=======
-            # Create indexes for customers
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_customer_email ON customers(email)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_customer_phone ON customers(phone)")
->>>>>>> 936c1ff8d6421e96832eb0705a0a840c45480312
             
             # Create password_reset_tokens table (stores OTP)
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS password_reset_tokens (
-                    id SERIAL PRIMARY KEY,
+                    id INT AUTO_INCREMENT PRIMARY KEY,
                     email VARCHAR(100) NOT NULL,
                     token VARCHAR(255) NOT NULL,
-                    otp VARCHAR(4),
+                    otp VARCHAR(4) NULL,
                     expires_at TIMESTAMP NOT NULL,
                     used BOOLEAN DEFAULT FALSE,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_email (email),
+                    INDEX idx_token (token),
+                    INDEX idx_otp (otp),
+                    INDEX idx_expires (expires_at)
                 )
             """)
-            
-            # Create indexes for password_reset_tokens
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_email ON password_reset_tokens(email)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_token ON password_reset_tokens(token)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_otp ON password_reset_tokens(otp)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_expires ON password_reset_tokens(expires_at)")
             
             # Create email_verification table (stores registration OTP)
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS email_verification (
-                    id SERIAL PRIMARY KEY,
+                    id INT AUTO_INCREMENT PRIMARY KEY,
                     email VARCHAR(100) NOT NULL,
                     otp VARCHAR(4) NOT NULL,
                     expires_at TIMESTAMP NOT NULL,
                     used BOOLEAN DEFAULT FALSE,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_email (email),
+                    INDEX idx_otp (otp),
+                    INDEX idx_expires (expires_at)
                 )
             """)
             
-            # Create indexes for email_verification
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_email ON email_verification(email)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_otp ON email_verification(otp)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_expires ON email_verification(expires_at)")
-            
             # Add OTP column if table exists but column doesn't
             try:
-                cursor.execute("""
-                    SELECT column_name 
-                    FROM information_schema.columns 
-                    WHERE table_name = 'password_reset_tokens' AND column_name = 'otp'
-                """)
+                cursor.execute("SHOW COLUMNS FROM password_reset_tokens LIKE 'otp'")
                 if not cursor.fetchone():
-                    cursor.execute("ALTER TABLE password_reset_tokens ADD COLUMN otp VARCHAR(4)")
+                    cursor.execute("ALTER TABLE password_reset_tokens ADD COLUMN otp VARCHAR(4) NULL AFTER token")
                     conn.commit()
-                    print(" Added 'otp' column to password_reset_tokens table")
+                    print("✓ Added 'otp' column to password_reset_tokens table")
             except Error as e:
-                if "does not exist" not in str(e).lower():
+                if "doesn't exist" not in str(e).lower():
                     print(f"Note: Could not check/add otp column: {e}")
             
             conn.commit()
-            print(" Database tables initialized successfully!")
+            print("✓ Database tables initialized successfully!")
             
     except Error as e:
         print(f"Error initializing database: {e}")
+

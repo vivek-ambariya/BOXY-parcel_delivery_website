@@ -1,0 +1,1072 @@
+{% extends "base.html" %}
+
+{% block title %}Track Parcel - Boxy{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+            <div class="brand-icon me-2">
+                <i class="fas fa-box"></i>
+            </div>
+            <span class="fw-bold">Boxy</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('send_parcel') }}">Send Parcel</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="{{ url_for('track_parcel') }}">Track Parcel</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('admin') }}">Admin</a>
+                </li>
+                <li class="nav-item ms-3">
+                    <a class="btn btn-primary btn-partner" href="{{ url_for('partner') }}">Become a Partner</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Track Parcel Section -->
+<section class="track-parcel-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="text-center mb-5">
+                    <h1 class="section-title mb-3">Track Your Parcel</h1>
+                    <p class="section-description">
+                        Enter your tracking number to get real-time updates on your parcel delivery status.
+                    </p>
+                </div>
+
+                <!-- Tracking Form -->
+                <div class="track-form-card card border-0 shadow-lg mb-4">
+                    <div class="card-body p-5">
+                        <form id="trackParcelForm">
+                            <div class="mb-4">
+                                <label for="trackingNumber" class="form-label fw-bold">
+                                    <i class="fas fa-barcode me-2"></i>Tracking Number
+                                </label>
+                                <div class="input-group input-group-lg">
+                                    <input type="text" class="form-control" id="trackingNumber" name="trackingNumber" 
+                                           placeholder="Enter your tracking number (e.g., QP123456789)" required>
+                                    <button class="btn btn-primary btn-orange" type="submit">
+                                        <i class="fas fa-search me-2"></i>Track
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted mt-2">
+                                    <i class="fas fa-info-circle me-1"></i>You can find your tracking number in the confirmation email.
+                                </small>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tracking Results (Hidden by default) -->
+                <div id="trackingResults" class="tracking-results-card card border-0 shadow-lg d-none">
+                    <div class="card-body p-5">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="mb-0">
+                                <i class="fas fa-box me-2"></i>Tracking Information
+                            </h4>
+                            <span class="badge bg-success fs-6" id="statusBadge">In Transit</span>
+                        </div>
+
+                        <div class="tracking-info mb-4">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <strong><i class="fas fa-hashtag me-2"></i>Tracking Number:</strong>
+                                    <p class="mb-0" id="displayTrackingNumber">-</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong><i class="fas fa-calendar me-2"></i>Estimated Delivery:</strong>
+                                    <p class="mb-0" id="estimatedDelivery">-</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong><i class="fas fa-map-marker-alt me-2"></i>From:</strong>
+                                    <p class="mb-0" id="fromAddress">-</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong><i class="fas fa-map-marker-alt me-2"></i>To:</strong>
+                                    <p class="mb-0" id="toAddress">-</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Multi-Stop Progress (if multi-stop delivery) -->
+                        <div id="multiStopProgress" class="d-none mb-4">
+                            <h5 class="mb-3"><i class="fas fa-route me-2"></i>Delivery Stops Progress</h5>
+                            <div id="stopsProgressList">
+                                <!-- Stops will be inserted here -->
+                            </div>
+                        </div>
+
+                        <!-- Payment Section (shown when delivered) -->
+                        <div id="paymentSection" class="d-none mb-4">
+                            <h5 class="mb-3"><i class="fas fa-credit-card me-2"></i>Payment Information</h5>
+                            <div id="paymentInfo">
+                                <!-- Payment info will be inserted here -->
+                            </div>
+                        </div>
+
+                        <!-- Tracking Timeline -->
+                        <div class="tracking-timeline">
+                            <h5 class="mb-4"><i class="fas fa-route me-2"></i>Delivery Timeline</h5>
+                            <div class="timeline" id="timeline">
+                                <!-- Timeline items will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Not Found Message (Hidden by default) -->
+                <div id="notFoundMessage" class="alert alert-warning d-none" role="alert">
+                    <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Tracking Number Not Found</h5>
+                    <p class="mb-0">The tracking number you entered could not be found. Please check and try again.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="row justify-content-center mt-5">
+            <div class="col-lg-10">
+                <div class="help-section card border-0 bg-light">
+                    <div class="card-body p-4">
+                        <h5 class="mb-3"><i class="fas fa-question-circle me-2"></i>Need Help?</h5>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-envelope text-primary me-3 mt-1"></i>
+                                    <div>
+                                        <strong>Email Support</strong>
+                                        <p class="mb-0 small text-muted">support@boxy.com</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-phone text-primary me-3 mt-1"></i>
+                                    <div>
+                                        <strong>Call Us</strong>
+                                        <p class="mb-0 small text-muted">+1 (555) 123-4567</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-clock text-primary me-3 mt-1"></i>
+                                    <div>
+                                        <strong>24/7 Support</strong>
+                                        <p class="mb-0 small text-muted">Available round the clock</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer bg-dark text-white py-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <h5 class="mb-3">Boxy</h5>
+                <p class="text-white-50">
+                    Fast, reliable, and affordable parcel delivery service. Your packages delivered with care.
+                </p>
+                <div class="social-links mt-3">
+                    <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h5 class="mb-3">Quick Links</h5>
+                <ul class="list-unstyled">
+                    <li><a href="{{ url_for('index') }}" class="text-white-50 text-decoration-none">Home</a></li>
+                    <li><a href="{{ url_for('send_parcel') }}" class="text-white-50 text-decoration-none">Send Parcel</a></li>
+                    <li><a href="{{ url_for('track_parcel') }}" class="text-white-50 text-decoration-none">Track Parcel</a></li>
+                    <li><a href="{{ url_for('admin') }}" class="text-white-50 text-decoration-none">Admin Login</a></li>
+                    <li><a href="{{ url_for('partner') }}" class="text-white-50 text-decoration-none">Partner Login</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h5 class="mb-3">Services</h5>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-white-50 text-decoration-none">Same Day Delivery</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">Express Shipping</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">Standard Delivery</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">Live Tracking</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h5 class="mb-3">Contact Us</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-phone me-2"></i>
+                        <a href="tel:+15551234567" class="text-white-50 text-decoration-none">+1 (555) 123-4567</a>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-envelope me-2"></i>
+                        <a href="mailto:support@boxy.com" class="text-white-50 text-decoration-none">support@boxy.com</a>
+                    </li>
+                    <li>
+                        <i class="fas fa-map-marker-alt me-2"></i>
+                        <span class="text-white-50">123 Delivery Street, Logistics City, LC 12345</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <hr class="my-4 bg-white-50">
+        <div class="text-center">
+            <p class="text-white-50 mb-0">&copy; 2025 Boxy. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Payment Modal Overlay with Animation -->
+<div id="paymentModal" class="modal-overlay d-none">
+    <div class="auth-container">
+        <div class="auth-box" id="paymentAuthBox">
+            <!-- Payment Panel (Left) -->
+            <div class="sign-in-panel active" id="paymentPanel">
+                <div class="form-wrapper">
+                    <!-- Payment Form (shown by default) -->
+                    <div id="paymentFormContent">
+                        <h2 class="auth-title animation">Complete Payment</h2>
+                        <p class="auth-subtitle animation" id="paymentTrackingId">Tracking ID: -</p>
+                        
+                        <!-- Delivery Details -->
+                        <div class="payment-details mb-4">
+                            <div class="detail-item mb-3">
+                                <strong>Sender:</strong>
+                                <span id="paymentSenderName">-</span>
+                            </div>
+                            <div class="detail-item mb-3">
+                                <strong>Receiver:</strong>
+                                <span id="paymentReceiverName">-</span>
+                            </div>
+                            <div class="detail-item mb-3">
+                                <strong>Total Amount:</strong>
+                                <span class="text-orange fw-bold fs-5" id="paymentAmount">₹0.00</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Payment Options -->
+                        <div class="payment-options-modal">
+                            <div class="payment-option-item mb-3" id="onlinePaymentOption">
+                                <button type="button" class="btn-auth w-100" id="payOnlineBtnModal">
+                                    <span><i class="fas fa-credit-card me-2"></i>Pay Online</span>
+                                </button>
+                            </div>
+                            
+                            <div class="payment-option-item">
+                                <button type="button" class="btn-auth btn-auth-outline w-100" id="codBtnModal">
+                                    <span><i class="fas fa-money-bill-wave me-2"></i>Cash on Delivery</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="paymentError" class="error-message animation d-none"></div>
+                    </div>
+                    
+                    <!-- Success Message (hidden by default) -->
+                    <div id="paymentSuccessContent" class="d-none">
+                        <div class="form-wrapper">
+                            <div class="success-content text-center">
+                                <div class="success-icon mb-4">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <h2 class="auth-title animation mb-3">Payment Successful ✅</h2>
+                                <p class="auth-subtitle animation mb-4">
+                                    Your payment of <strong id="successAmount">₹0.00</strong> has been processed successfully.
+                                </p>
+                                <div class="payment-details mb-4">
+                                    <div class="detail-item mb-3">
+                                        <strong>Tracking ID:</strong>
+                                        <span class="text-primary fw-bold" id="successTrackingId">-</span>
+                                    </div>
+                                    <div class="detail-item mb-3">
+                                        <strong>Payment Method:</strong>
+                                        <span id="successPaymentMethod">-</span>
+                                    </div>
+                                </div>
+                                <div class="payment-options-modal">
+                                    <div class="payment-option-item mb-3">
+                                        <button type="button" class="btn-auth w-100" id="trackParcelBtn">
+                                            <span><i class="fas fa-search me-2"></i>Track Your Parcel</span>
+                                        </button>
+                                    </div>
+                                    <div class="payment-option-item">
+                                        <button type="button" class="btn-auth btn-auth-outline w-100" id="backToHomeBtn">
+                                            <span><i class="fas fa-home me-2"></i>Back to Home</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Spline Animation Panel (Right) -->
+            <div class="sign-up-panel active" id="paymentSplinePanel">
+                <iframe src='https://my.spline.design/retrofuturisticcircuitloop-swXmPDxQbH5Q5VRPxTyUTb80/' frameborder='0' width='100%' height='100%' class="spline-iframe"></iframe>
+                <div class="overlay-panel" id="paymentOverlayPanel">
+                    <h2 class="overlay-title animation">Secure Payment</h2>
+                    <p class="overlay-text animation">Complete your payment securely and track your delivery</p>
+                </div>
+                <div class="overlay-panel d-none" id="successOverlayPanel">
+                    <h2 class="overlay-title animation">Payment Complete!</h2>
+                    <p class="overlay-text animation">Thank you for your payment. Your delivery is confirmed.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Payment Modal - Same styles as admin modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.5s ease-in;
+    backdrop-filter: blur(3px);
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.auth-container {
+    background-color: #fff;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow: hidden;
+    position: relative;
+    animation: slideUp 0.5s ease-out;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-box {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    min-height: 550px;
+}
+
+.sign-in-panel {
+    width: 50%;
+    padding: 60px 50px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.6s ease-in-out;
+    z-index: 2;
+}
+
+.sign-in-panel.active {
+    transform: translateX(0);
+}
+
+.sign-up-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 50px;
+    transition: transform 0.6s ease-in-out, opacity 0.6s ease-in-out;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.spline-iframe {
+    position: absolute;
+    top: -5%;
+    left: -5%;
+    width: 110%;
+    height: 110%;
+    border: none;
+    z-index: 0;
+    pointer-events: auto;
+    transform: scale(1.1);
+    transform-origin: center center;
+    overflow: hidden;
+}
+
+.sign-up-panel.active {
+    transform: translateX(0) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+}
+
+.overlay-panel {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: white;
+}
+
+.overlay-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.overlay-text {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.form-wrapper {
+    width: 100%;
+    max-width: 100%;
+}
+
+.auth-title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.auth-subtitle {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.payment-details {
+    background: #f5f5f5;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.text-orange {
+    color: #FF6B35;
+}
+
+.payment-options-modal {
+    margin-top: 20px;
+}
+
+.payment-option-item {
+    margin-bottom: 15px;
+}
+
+.btn-auth {
+    width: 100%;
+    height: 50px;
+    background: #000;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.btn-auth:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+    background: #333;
+}
+
+.btn-auth-outline {
+    background: transparent;
+    border: 2px solid #000;
+    color: #000;
+}
+
+.btn-auth-outline:hover {
+    background: #000;
+    color: white;
+}
+
+.error-message {
+    background: #fee;
+    color: #c33;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+
+.animation {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.success-icon {
+    font-size: 5rem;
+    color: #28a745;
+    margin-bottom: 20px;
+}
+
+.success-icon i {
+    animation: scaleIn 0.5s ease-out;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+.success-content {
+    width: 100%;
+}
+
+.text-primary {
+    color: #007bff !important;
+}
+
+@media (max-width: 768px) {
+    .auth-container {
+        width: 95%;
+        min-height: auto;
+    }
+    
+    .sign-in-panel,
+    .sign-up-panel {
+        width: 100%;
+        padding: 40px 30px;
+    }
+    
+    .overlay-title {
+        font-size: 2rem;
+    }
+    
+    .success-icon {
+        font-size: 4rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Razorpay Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+// Function to handle tracking
+async function trackParcel(trackingNumber) {
+    const trackingNum = trackingNumber.trim().toUpperCase();
+    
+    // Hide previous messages
+    document.getElementById('trackingResults').classList.add('d-none');
+    document.getElementById('notFoundMessage').classList.add('d-none');
+    document.getElementById('multiStopProgress').classList.add('d-none');
+    
+    try {
+        const response = await fetch(`/api/deliveries/track/${trackingNum}`);
+        const data = await response.json();
+        
+        if (data.success && data.delivery) {
+            const delivery = data.delivery;
+            
+            // Show payment modal if delivery is completed and payment is pending
+            if (delivery.status === 'delivered' && delivery.payment_status === 'pending') {
+                // Small delay to show the tracking info first, then show modal
+                setTimeout(() => {
+                    showPaymentModal(trackingNum, delivery.total_amount || 0, delivery.sender_name, delivery.receiver_name);
+                }, 2000);
+            }
+            
+            // Show tracking results
+            document.getElementById('displayTrackingNumber').textContent = trackingNum;
+            document.getElementById('fromAddress').textContent = delivery.sender_address;
+            
+            // Handle multi-stop or single delivery
+            if (delivery.total_stops > 1 && delivery.stops) {
+                // Multi-stop delivery
+                document.getElementById('toAddress').textContent = `${delivery.total_stops} stops`;
+                document.getElementById('multiStopProgress').classList.remove('d-none');
+                
+                // Show stops progress
+                const stopsList = document.getElementById('stopsProgressList');
+                stopsList.innerHTML = '';
+                
+                // Add pickup location
+                const pickupItem = document.createElement('div');
+                pickupItem.className = 'stop-progress-item delivered';
+                pickupItem.innerHTML = `
+                    <div class="stop-progress-number"><i class="fas fa-check"></i></div>
+                    <div class="stop-progress-content">
+                        <strong>Pickup Location</strong>
+                        <p class="mb-0 text-muted small">${delivery.sender_address}</p>
+                    </div>
+                    <div class="stop-progress-status">
+                        <span class="badge bg-success">Picked</span>
+                    </div>
+                `;
+                stopsList.appendChild(pickupItem);
+                
+                // Add all stops
+                delivery.stops.forEach((stop, index) => {
+                    const stopItem = document.createElement('div');
+                    stopItem.className = `stop-progress-item ${stop.status === 'delivered' ? 'delivered' : 'pending'}`;
+                    stopItem.innerHTML = `
+                        <div class="stop-progress-number">${stop.stop_number}</div>
+                        <div class="stop-progress-content">
+                            <strong>Stop ${stop.stop_number}: ${stop.receiver_name}</strong>
+                            <p class="mb-0 text-muted small">${stop.drop_address}</p>
+                            <p class="mb-0 text-muted small">Phone: ${stop.receiver_phone}</p>
+                        </div>
+                        <div class="stop-progress-status">
+                            <span class="badge ${stop.status === 'delivered' ? 'bg-success' : 'bg-warning'}">
+                                ${stop.status === 'delivered' ? 'Delivered' : 'Pending'}
+                            </span>
+                        </div>
+                    `;
+                    stopsList.appendChild(stopItem);
+                });
+            } else {
+                // Single delivery
+                document.getElementById('toAddress').textContent = delivery.receiver_address || delivery.receiver_name;
+            }
+            
+            // Status badge
+            const statusMap = {
+                'available': { text: 'Available', class: 'bg-info' },
+                'accepted': { text: 'Accepted', class: 'bg-primary' },
+                'picked': { text: 'Picked Up', class: 'bg-primary' },
+                'on_the_way': { text: 'On the Way', class: 'bg-warning' },
+                'delivered': { text: 'Delivered', class: 'bg-success' }
+            };
+            const status = statusMap[delivery.status] || { text: delivery.status, class: 'bg-secondary' };
+            document.getElementById('statusBadge').textContent = status.text;
+            document.getElementById('statusBadge').className = 'badge fs-6 ' + status.class;
+            
+            // Estimated delivery (simple calculation)
+            const createdDate = new Date(delivery.created_at);
+            const estimatedDate = new Date(createdDate);
+            estimatedDate.setDate(estimatedDate.getDate() + 3);
+            document.getElementById('estimatedDelivery').textContent = estimatedDate.toLocaleDateString();
+            
+            // Build timeline
+            const timeline = document.getElementById('timeline');
+            timeline.innerHTML = '';
+            
+            const timelineEvents = [
+                { status: 'Parcel Booked', date: new Date(delivery.created_at), icon: 'fa-check-circle', class: 'text-success' }
+            ];
+            
+            if (delivery.accepted_at) {
+                timelineEvents.push({ status: 'Accepted by Partner', date: new Date(delivery.accepted_at), icon: 'fa-user-check', class: 'text-primary' });
+            }
+            if (delivery.status === 'picked' || delivery.status === 'on_the_way' || delivery.status === 'delivered') {
+                timelineEvents.push({ status: 'Picked Up', date: new Date(delivery.updated_at || delivery.accepted_at), icon: 'fa-box', class: 'text-primary' });
+            }
+            if (delivery.status === 'on_the_way' || delivery.status === 'delivered') {
+                timelineEvents.push({ status: 'On the Way', date: new Date(delivery.updated_at), icon: 'fa-truck', class: 'text-warning' });
+            }
+            if (delivery.status === 'delivered' || delivery.status === 'completed') {
+                timelineEvents.push({ status: 'Delivered', date: new Date(delivery.delivered_at), icon: 'fa-check-circle', class: 'text-success' });
+            }
+            
+            // Show payment section if delivered
+            const paymentSection = document.getElementById('paymentSection');
+            if ((delivery.status === 'delivered' || delivery.status === 'completed') && delivery.payment_status) {
+                paymentSection.classList.remove('d-none');
+                const paymentStatus = delivery.payment_status;
+                const paymentMethod = delivery.payment_method || 'Not selected';
+                const totalAmount = delivery.total_amount || 0;
+                
+                let paymentHtml = '';
+                if (paymentStatus === 'paid') {
+                    paymentHtml = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Payment Completed</strong><br>
+                            Payment Method: ${paymentMethod.toUpperCase()}<br>
+                            Amount: ₹${parseFloat(totalAmount).toFixed(2)}
+                        </div>
+                    `;
+                } else if (paymentStatus === 'pending') {
+                    // Show payment modal instead of redirecting
+                    paymentHtml = `
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Payment Pending</strong><br>
+                            Amount: ₹${parseFloat(totalAmount).toFixed(2)}<br>
+                            <p class="mb-2">Your delivery is complete! Please complete the payment.</p>
+                            <div class="mt-3">
+                                <button class="btn btn-primary" onclick="showPaymentModal('${trackingNum}', ${totalAmount}, '${delivery.sender_name || ''}', '${delivery.receiver_name || ''}')">
+                                    <i class="fas fa-credit-card me-2"></i>Complete Payment Now
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    // Auto-show modal after 1 second
+                    setTimeout(() => {
+                        showPaymentModal(trackingNum, totalAmount, delivery.sender_name || '', delivery.receiver_name || '');
+                    }, 1000);
+                } else if (paymentStatus === 'pending_cash') {
+                    paymentHtml = `
+                        <div class="alert alert-info">
+                            <i class="fas fa-money-bill-wave me-2"></i>
+                            <strong>Cash on Delivery Selected</strong><br>
+                            Amount: ₹${parseFloat(totalAmount).toFixed(2)}<br>
+                            Payment will be collected by the delivery partner.
+                        </div>
+                    `;
+                }
+                document.getElementById('paymentInfo').innerHTML = paymentHtml;
+            } else {
+                paymentSection.classList.add('d-none');
+            }
+            
+            timelineEvents.forEach((item, index) => {
+                const timelineItem = document.createElement('div');
+                timelineItem.className = 'timeline-item' + (index === timelineEvents.length - 1 ? ' active' : '');
+                timelineItem.innerHTML = `
+                    <div class="timeline-marker">
+                        <i class="fas ${item.icon} ${item.class}"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h6 class="mb-1">${item.status}</h6>
+                        <p class="mb-0 text-muted small">${item.date.toLocaleString()}</p>
+                    </div>
+                `;
+                timeline.appendChild(timelineItem);
+            });
+            
+            document.getElementById('trackingResults').classList.remove('d-none');
+            document.getElementById('trackingResults').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else {
+            // Show not found message
+            const notFoundMsg = document.getElementById('notFoundMessage');
+            notFoundMsg.querySelector('p').textContent = data.message || 'The tracking number you entered could not be found. Please check and try again.';
+            notFoundMsg.classList.remove('d-none');
+            notFoundMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    } catch (error) {
+        console.error('Tracking error:', error);
+        const notFoundMsg = document.getElementById('notFoundMessage');
+        notFoundMsg.querySelector('p').textContent = 'Error connecting to server. Please check your connection and try again.';
+        notFoundMsg.classList.remove('d-none');
+    }
+}
+
+// Check if tracking number is in URL parameter
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const trackingParam = urlParams.get('tracking');
+    if (trackingParam) {
+        document.getElementById('trackingNumber').value = trackingParam;
+        // Auto-track
+        trackParcel(trackingParam);
+    }
+});
+
+document.getElementById('trackParcelForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const trackingNumber = document.getElementById('trackingNumber').value;
+    trackParcel(trackingNumber);
+});
+
+// Function to show payment modal
+function showPaymentModal(trackingId, amount, senderName, receiverName) {
+    // Reset modal to payment form (hide success if shown)
+    document.getElementById('paymentFormContent').classList.remove('d-none');
+    document.getElementById('paymentSuccessContent').classList.add('d-none');
+    document.getElementById('paymentOverlayPanel').classList.remove('d-none');
+    document.getElementById('successOverlayPanel').classList.add('d-none');
+    
+    // Populate modal with data
+    document.getElementById('paymentTrackingId').textContent = `Tracking ID: ${trackingId}`;
+    document.getElementById('paymentSenderName').textContent = senderName || '-';
+    document.getElementById('paymentReceiverName').textContent = receiverName || '-';
+    document.getElementById('paymentAmount').textContent = `₹${parseFloat(amount).toFixed(2)}`;
+    
+    // Clear any errors
+    document.getElementById('paymentError').classList.add('d-none');
+    
+    // Show modal
+    const modal = document.getElementById('paymentModal');
+    modal.classList.remove('d-none');
+    modal.style.display = 'flex';
+    
+    // Store tracking ID and amount for payment processing
+    modal.dataset.trackingId = trackingId;
+    modal.dataset.amount = amount;
+}
+
+// Close modal function
+function closePaymentModal() {
+    const modal = document.getElementById('paymentModal');
+    modal.classList.add('d-none');
+    modal.style.display = 'none';
+}
+
+// Close modal on overlay click
+document.getElementById('paymentModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closePaymentModal();
+    }
+});
+
+// Online Payment Handler
+document.getElementById('payOnlineBtnModal').addEventListener('click', async function() {
+    const btn = this;
+    const originalText = btn.innerHTML;
+    const errorDiv = document.getElementById('paymentError');
+    const modal = document.getElementById('paymentModal');
+    const trackingId = modal.dataset.trackingId;
+    const amount = parseFloat(modal.dataset.amount);
+    
+    errorDiv.classList.add('d-none');
+    btn.disabled = true;
+    btn.innerHTML = '<span><i class="fas fa-spinner fa-spin me-2"></i>Processing...</span>';
+    
+    try {
+        const orderResponse = await fetch('/api/payment/create-order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                tracking_id: trackingId,
+                amount: amount
+            })
+        });
+        
+        const orderData = await orderResponse.json();
+        
+        if (!orderData.success) {
+            throw new Error(orderData.message || 'Failed to create payment order');
+        }
+        
+        const options = {
+            key: orderData.key_id,
+            amount: orderData.amount,
+            currency: orderData.currency,
+            order_id: orderData.order_id,
+            name: 'Boxy Parcel Delivery',
+            description: 'Payment for Delivery ' + trackingId,
+            handler: function(response) {
+                handlePaymentSuccess(response, trackingId);
+            },
+            prefill: {
+                name: document.getElementById('paymentSenderName').textContent,
+                email: 'customer@example.com',
+                contact: '9999999999'
+            },
+            theme: {
+                color: '#FF6B35'
+            },
+            modal: {
+                ondismiss: function() {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            }
+        };
+        
+        const razorpay = new Razorpay(options);
+        razorpay.open();
+        
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        
+    } catch (error) {
+        console.error('Payment error:', error);
+        errorDiv.textContent = 'Error: ' + error.message;
+        errorDiv.classList.remove('d-none');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+});
+
+function handlePaymentSuccess(response, trackingId) {
+    const modal = document.getElementById('paymentModal');
+    const amount = parseFloat(modal.dataset.amount);
+    
+    fetch('/api/payment/razorpay-success', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            tracking_id: trackingId,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message in modal
+            showPaymentSuccess(trackingId, amount, 'Online');
+        } else {
+            const errorDiv = document.getElementById('paymentError');
+            errorDiv.textContent = 'Payment failed: ' + data.message;
+            errorDiv.classList.remove('d-none');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        const errorDiv = document.getElementById('paymentError');
+        errorDiv.textContent = 'Payment processing error. Please try again.';
+        errorDiv.classList.remove('d-none');
+    });
+}
+
+// Function to show payment success in modal
+function showPaymentSuccess(trackingId, amount, paymentMethod) {
+    // Hide payment form, show success content
+    document.getElementById('paymentFormContent').classList.add('d-none');
+    document.getElementById('paymentSuccessContent').classList.remove('d-none');
+    
+    // Update success content
+    document.getElementById('successAmount').textContent = `₹${parseFloat(amount).toFixed(2)}`;
+    document.getElementById('successTrackingId').textContent = trackingId;
+    document.getElementById('successPaymentMethod').textContent = paymentMethod;
+    
+    // Update overlay panel
+    document.getElementById('paymentOverlayPanel').classList.add('d-none');
+    document.getElementById('successOverlayPanel').classList.remove('d-none');
+    
+    // Store tracking ID for buttons
+    const modal = document.getElementById('paymentModal');
+    modal.dataset.trackingId = trackingId;
+}
+
+// Track Parcel Button Handler
+document.getElementById('trackParcelBtn').addEventListener('click', function() {
+    const modal = document.getElementById('paymentModal');
+    const trackingId = modal.dataset.trackingId;
+    closePaymentModal();
+    // Track the parcel
+    document.getElementById('trackingNumber').value = trackingId;
+    trackParcel(trackingId);
+});
+
+// Back to Home Button Handler
+document.getElementById('backToHomeBtn').addEventListener('click', function() {
+    closePaymentModal();
+    window.location.href = '/';
+});
+
+// Cash on Delivery Handler
+document.getElementById('codBtnModal').addEventListener('click', function() {
+    const modal = document.getElementById('paymentModal');
+    const trackingId = modal.dataset.trackingId;
+    const amount = parseFloat(modal.dataset.amount);
+    
+    if (confirm('Select Cash on Delivery? Payment will be collected when you receive the parcel.')) {
+        fetch('/api/payment/select-cod/' + trackingId, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message in modal
+                showPaymentSuccess(trackingId, amount, 'Cash on Delivery');
+            } else {
+                const errorDiv = document.getElementById('paymentError');
+                errorDiv.textContent = 'Error: ' + data.message;
+                errorDiv.classList.remove('d-none');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            const errorDiv = document.getElementById('paymentError');
+            errorDiv.textContent = 'Error processing request. Please try again.';
+            errorDiv.classList.remove('d-none');
+        });
+    }
+});
+</script>
+{% endblock %}
+
