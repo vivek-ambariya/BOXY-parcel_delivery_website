@@ -316,6 +316,7 @@ def accept_delivery():
             cursor.execute("""
                 SELECT stop_number, drop_address, receiver_name, receiver_phone, status, delivered_at
                 FROM delivery_stops
+                           
                 WHERE booking_id = %s
                 ORDER BY stop_number
             """, (delivery_id,))

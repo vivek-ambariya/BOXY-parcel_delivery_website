@@ -192,9 +192,9 @@ def init_database():
                         if "already exists" not in str(e).lower():
                             print(f"Note adding payment_method: {e}")
                     
-                    print("✓ Added payment columns to deliveries table")
+                    print(" Added payment columns to deliveries table")
                 else:
-                    print("✓ Payment columns already exist in deliveries table")
+                    print(" Payment columns already exist in deliveries table")
             except Error as e:
                 if "does not exist" not in str(e).lower():
                     print(f"Note: Could not check/add payment columns: {e}")
@@ -278,13 +278,13 @@ def init_database():
                 if not cursor.fetchone():
                     cursor.execute("ALTER TABLE password_reset_tokens ADD COLUMN otp VARCHAR(4)")
                     conn.commit()
-                    print("✓ Added 'otp' column to password_reset_tokens table")
+                    print(" Added 'otp' column to password_reset_tokens table")
             except Error as e:
                 if "does not exist" not in str(e).lower():
                     print(f"Note: Could not check/add otp column: {e}")
             
             conn.commit()
-            print("✓ Database tables initialized successfully!")
+            print(" Database tables initialized successfully!")
             
     except Error as e:
         print(f"Error initializing database: {e}")
