@@ -317,14 +317,48 @@ body {
     align-items: center;
     justify-content: center;
     background-color: var(--brown-box);
-    background-image: url("/static/images/count.jpg");
+    background-image: url("/static/images/Count.jpg");
     background-size: cover;
     background-position: center;
     box-shadow:
         0 12px 30px rgba(0.7, 0.7,0.7, 0.7),
         0 4px 10px rgba(0.7, 0.7, 0.7, 0.7);
     z-index: 2;
+}
+/* Tablet Responsive */
+@media (max-width: 1024px) {
+    .hero-box-image {
+        padding: 2rem;
+        min-height: 350px;
+    }
+}
 
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .hero-box-image {
+        padding: 1.5rem;
+        min-height: 300px;
+        border-radius: 15px;
+        box-shadow: 0 8px 20px rgba(0.7, 0.7, 0.7, 0.6);
+    }
+}
+
+/* Small Mobile Responsive */
+@media (max-width: 480px) {
+    .hero-box-image {
+        padding: 1rem;
+        min-height: 250px;
+        border-radius: 12px;
+        margin: 0 10px; /* Add some side margin */
+    }
+}
+
+/* Extra Small Devices */
+@media (max-width: 360px) {
+    .hero-box-image {
+        min-height: 200px;
+        padding: 0.75rem;
+    }
 }
 
 .delivery-badge {
@@ -648,44 +682,127 @@ body {
     padding: 1rem;
 }
 
-.university-photo-placeholder {
-    background: var(--bg-light);
-    border: 2px dashed var(--border-color);
+.university-photo {
+    position: relative;
     border-radius: 16px;
-    padding: 4rem 2rem;
-    text-align: center;
+    overflow: hidden;
     min-height: 350px;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     transition: var(--transition);
 }
 
-.university-photo-placeholder:hover {
-    border-color: var(--primary-orange);
-    background: var(--primary-orange-lighter);
+.university-photo:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
 }
 
-.university-photo-placeholder i {
-    font-size: 4rem;
-    color: var(--primary-orange);
-    margin-bottom: 1rem;
-    opacity: 0.8;
+.university-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
 }
 
-.university-photo-placeholder p {
+.university-photo:hover .university-image {
+    transform: scale(1.05);
+}
+
+.university-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+    padding: 2rem 1.5rem 1.5rem;
+    text-align: center;
+}
+
+.university-overlay p {
     font-size: 1.8rem;
-    color: var(--text-dark);
+    color: white;
     font-weight: 700;
-    margin: 0 0 0.5rem 0;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-.university-photo-placeholder .photo-label {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    font-weight: 400;
-    font-style: italic;
+/* Responsive Design */
+@media (max-width: 992px) {
+    .university-photo {
+        min-height: 300px;
+    }
+    
+    .university-overlay p {
+        font-size: 1.6rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .university-photo {
+        min-height: 250px;
+    }
+    
+    .university-overlay {
+        padding: 1.5rem 1rem 1rem;
+    }
+    
+    .university-overlay p {
+        font-size: 1.4rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .university-photo {
+        min-height: 200px;
+        margin: 0 0.5rem;
+    }
+    
+    .university-overlay {
+        padding: 1rem 0.75rem 0.75rem;
+    }
+    
+    .university-overlay p {
+        font-size: 1.2rem;
+    }
+}
+
+/* Optional: Add a subtle border */
+.university-photo {
+    border: 3px solid var(--primary-orange-lighter);
+}
+
+/* Optional: Add a badge/corner ribbon */
+.university-photo::before {
+    content: 'Our Campus';
+    position: absolute;
+    top: 15px;
+    right: -30px;
+    background: var(--primary-orange);
+    color: white;
+    padding: 5px 30px;
+    transform: rotate(45deg);
+    font-size: 0.8rem;
+    font-weight: 600;
+    z-index: 1;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Optional: Fade in animation */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.university-photo {
+    animation: fadeInUp 0.8s ease-out;
 }
 
 /* Champions Section */
@@ -796,7 +913,19 @@ body {
     object-fit: cover;
     border-radius: 16px;
 }
+.founder-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%; /* for circular images */
+}
 
+.founder-image-placeholder {
+    width: 150px;
+    height: 150px;
+    overflow: hidden;
+    border-radius: 50%;
+}
 .founder-image-placeholder i {
     font-size: 2.5rem;
     color: var(--primary-orange);

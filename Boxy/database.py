@@ -151,9 +151,9 @@ def init_database():
                         if "Duplicate column name" not in str(e):
                             print(f"Note adding payment_method: {e}")
                     
-                    print("✓ Added payment columns to deliveries table")
+                    print(" Added payment columns to deliveries table")
                 else:
-                    print("✓ Payment columns already exist in deliveries table")
+                    print(" Payment columns already exist in deliveries table")
             except Error as e:
                 if "doesn't exist" not in str(e).lower():
                     print(f"Note: Could not check/add payment columns: {e}")
@@ -179,9 +179,9 @@ def init_database():
                             DEFAULT 'available'
                         """)
                         conn.commit()
-                        print("✓ Updated status ENUM to include 'completed'")
+                        print(" Updated status ENUM to include 'completed'")
                     else:
-                        print("✓ Status ENUM already includes 'completed'")
+                        print(" Status ENUM already includes 'completed'")
             except Error as e:
                 if "doesn't exist" not in str(e).lower():
                     print(f"Note: Could not check/update status ENUM: {e}")
@@ -264,7 +264,7 @@ def init_database():
                             # Drop old table and rename new one
                             cursor.execute("DROP TABLE customers")
                             cursor.execute("RENAME TABLE customers_temp TO customers")
-                            print(f"✓ Successfully migrated {row_count} customer records to VARCHAR IDs")
+                            print(f" Successfully migrated {row_count} customer records to VARCHAR IDs")
                         else:
                             # No data, just alter the column
                             try:
@@ -275,11 +275,11 @@ def init_database():
                             
                             cursor.execute("ALTER TABLE customers MODIFY COLUMN id VARCHAR(20) NOT NULL")
                             cursor.execute("ALTER TABLE customers ADD PRIMARY KEY (id)")
-                            print("✓ Successfully migrated customers.id to VARCHAR(20)")
+                            print(" Successfully migrated customers.id to VARCHAR(20)")
                         
                         conn.commit()
                     else:
-                        print("✓ customers.id column type is correct (VARCHAR)")
+                        print(" customers.id column type is correct (VARCHAR)")
             except Error as e:
                 if "doesn't exist" not in str(e).lower():
                     print(f"Note: Could not check/fix customers.id column type: {e}")
@@ -322,13 +322,13 @@ def init_database():
                 if not cursor.fetchone():
                     cursor.execute("ALTER TABLE password_reset_tokens ADD COLUMN otp VARCHAR(4) NULL AFTER token")
                     conn.commit()
-                    print("✓ Added 'otp' column to password_reset_tokens table")
+                    print(" Added 'otp' column to password_reset_tokens table")
             except Error as e:
                 if "doesn't exist" not in str(e).lower():
                     print(f"Note: Could not check/add otp column: {e}")
             
             conn.commit()
-            print("✓ Database tables initialized successfully!")
+            print(" Database tables initialized successfully!")
             
     except Error as e:
         print(f"Error initializing database: {e}")
