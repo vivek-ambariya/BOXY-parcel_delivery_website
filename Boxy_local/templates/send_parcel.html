@@ -1940,6 +1940,27 @@ window.addEventListener('load', function() {
             }
         }
     }, 200);
+    
+    // Initialize Google Maps autocomplete when API is loaded
+    {% if GOOGLE_MAPS_API_KEY %}
+    if (typeof initAddressAutocomplete === 'function') {
+        // Wait for Google Maps to load
+        if (googleMapsLoaded) {
+            initAddressAutocomplete();
+        } else {
+            // Check periodically if Google Maps is loaded
+            const checkGoogleMaps = setInterval(() => {
+                if (googleMapsLoaded && typeof initAddressAutocomplete === 'function') {
+                    initAddressAutocomplete();
+                    clearInterval(checkGoogleMaps);
+                }
+            }, 500);
+            
+            // Stop checking after 10 seconds
+            setTimeout(() => clearInterval(checkGoogleMaps), 10000);
+        }
+    }
+    {% endif %}
 });
 </script>
 {% endblock %}

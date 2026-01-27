@@ -27,6 +27,11 @@ quickparcel/
 - **Responsive**: Mobile-first design with Bootstrap 5
 - **Smooth Animations**: Card hover effects and scroll animations
 - **Interactive Navbar**: Active link highlighting and smooth scrolling
+- **Google Maps Integration**: 
+  - Address autocomplete for faster input
+  - Visual map display for tracking deliveries
+  - Route visualization for multi-stop deliveries
+  - Partner navigation interface
 - **Sections Included**:
   - Hero section with stats
   - Why Choose Boxy (features)
@@ -71,12 +76,44 @@ quickparcel/
    pip install -r requirements.txt
    ```
 
-5. **Run the application**:
+5. **Set up Google Maps API** (Optional but Recommended):
+   
+   To enable Google Maps features (address autocomplete, map visualization, route display, and pricing calculations):
+   
+   a. **Get a Google Maps API Key**:
+      - Go to [Google Cloud Console](https://console.cloud.google.com/)
+      - Create a new project or select an existing one
+      - Enable these APIs (all use the same API key):
+        - **Maps JavaScript API** - For map display and visualization
+        - **Places API** - For address autocomplete
+        - **Geocoding API** - For converting addresses to coordinates
+        - **Directions API** - For route visualization
+        - **Distance Matrix API** - For calculating distances for pricing
+      - Create credentials (API Key)
+      - Restrict the API key to your domain (recommended for production)
+   
+   b. **Add API Key to Environment**:
+      - Create a `.env` file in the project root directory
+      - Add your API key (one key works for all Google Maps features):
+        ```
+        GOOGLE_MAPS_API_KEY=your_api_key_here
+        ```
+      - Or set it as an environment variable:
+        ```bash
+        export GOOGLE_MAPS_API_KEY=your_api_key_here
+        ```
+   
+   **Note**: 
+   - Without the API key, the application will work but Google Maps features will be disabled
+   - The same API key is used for both frontend (maps, autocomplete) and backend (distance calculations for pricing)
+   - All 5 APIs listed above must be enabled for full functionality
+
+6. **Run the application**:
    ```bash
    python app.py
    ```
 
-6. **Open your browser** and navigate to:
+7. **Open your browser** and navigate to:
    ```
    http://localhost:8000
    ```
@@ -87,6 +124,7 @@ quickparcel/
 - **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
 - **Framework**: Bootstrap 5.3.2 (via CDN)
 - **Icons**: Font Awesome 6.5.1 (via CDN)
+- **Maps**: Google Maps JavaScript API (with Places, Geocoding, Directions, Distance Matrix)
 
 ## Development
 

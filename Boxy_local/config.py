@@ -39,3 +39,8 @@ SMTP_PASSWORD = os.getenv('SMTP_PASSWORD', '')
 SMTP_SERVER = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
 SMTP_PORT = int(os.getenv('SMTP_PORT', '587'))
 SMTP_USE_TLS = os.getenv('SMTP_USE_TLS', 'True').lower() == 'true'
+
+# Google Maps API Configuration
+# Get your API key from: https://console.cloud.google.com/google/maps-apis
+# Enable these APIs: Maps JavaScript API, Places API, Geocoding API, Directions API, Distance Matrix API
+GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', '')
