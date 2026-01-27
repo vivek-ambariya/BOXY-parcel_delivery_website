@@ -1,3 +1,6 @@
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
+
 try:
     import mysql.connector
     from mysql.connector import Error
@@ -215,7 +218,7 @@ def init_database():
                 if result:
                     data_type = result[0] if isinstance(result, tuple) else result.get('DATA_TYPE', '')
                     if data_type in ['int', 'bigint', 'integer']:
-                        print("⚠️ Found customers.id as integer type, migrating to VARCHAR...")
+                        print(" Found customers.id as integer type, migrating to VARCHAR...")
                         
                         # Check if table has any data
                         cursor.execute("SELECT COUNT(*) as count FROM customers")
@@ -223,7 +226,7 @@ def init_database():
                         row_count = count_result[0] if isinstance(count_result, tuple) else count_result.get('count', 0)
                         
                         if row_count > 0:
-                            print(f"⚠️ Table has {row_count} rows. Converting integer IDs to VARCHAR format...")
+                            print(f" Table has {row_count} rows. Converting integer IDs to VARCHAR format...")
                             # Get all rows and update IDs
                             cursor.execute("SELECT * FROM customers")
                             rows = cursor.fetchall()
