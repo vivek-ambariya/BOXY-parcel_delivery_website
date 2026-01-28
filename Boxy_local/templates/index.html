@@ -1,93 +1,87 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Navigation Overlay on Spline Background -->
-<nav class="spline-nav-overlay">
-    <div class="spline-nav-container">
-        <a href="{{ url_for('index') }}" class="spline-nav-brand">
-            <div class="spline-brand-icon">
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+            <div class="brand-icon me-2">
                 <i class="fas fa-box"></i>
             </div>
-            <span>Boxy</span>
+            <span class="fw-bold">Boxy</span>
         </a>
-        <div class="spline-nav-links">
-            <a href="{{ url_for('index') }}" class="spline-nav-link active">Home</a>
-            <a href="{{ url_for('about') }}" class="spline-nav-link">About Us</a>
-            <a href="{{ url_for('send_parcel') }}" class="spline-nav-link">Send Parcel</a>
-            <a href="{{ url_for('track_parcel') }}" class="spline-nav-link">Track Parcel</a>
-            <a href="{{ url_for('admin') }}" class="spline-nav-link">Admin</a>
-            <a href="{{ url_for('partner') }}" class="spline-nav-btn">Become a Partner</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link active" href="{{ url_for('index') }}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('about') }}">About Us</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('send_parcel') }}">Send Parcel</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('track_parcel') }}">Track Parcel</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('admin') }}">Admin</a>
+                </li>
+                <li class="nav-item ms-3">
+                    <a class="btn btn-primary btn-partner" href="{{ url_for('partner') }}">Become a Partner</a>
+                </li>
+            </ul>
         </div>
     </div>
 </nav>
 
-<!-- Hero Section - Bold Modern Design with Spline Background -->
-<section id="home" class="hero-section-modern">
-    <div class="hero-background">
-        <!-- Spline 3D Scene as Full Screen Background -->
-        <div class="spline-background-container" id="spline-container">
-            <iframe 
-                id="spline-embed" 
-                src="https://my.spline.design/rotatinginteractiveherosection-D0KWkUoHGRa8mcqVDfaWxgOg/" 
-                title="Spline 3D Scene Background"
-                frameborder="0"
-                allow="fullscreen"
-                loading="lazy">
-            </iframe>
-            <!-- Fallback gradient overlay (shown while Spline loads) -->
-            <div class="hero-gradient"></div>
-            <div class="hero-noise"></div>
-            <!-- Fallback placeholder (hidden when Spline loads) -->
-            <div class="spline-placeholder">
-                <i class="fas fa-cube"></i>
-                <p>3D Scene Loading...</p>
+<!-- Hero Section -->
+<section id="home" class="hero-section py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-5 mb-lg-0">
+                <h1 class="hero-heading mb-3">
+                    <span class="text-dark">Fast Delivery,</span><br>
+                    <span class="text-orange">Low Prices</span>
+                </h1>
+                <p class="hero-description mb-4">
+                    In Boxy we ensure our customers get deliveries quickly at the most affordable prices.
+                </p>
+                <div class="hero-buttons mb-5">
+                    <a href="{{ url_for('send_parcel') }}" class="btn btn-book-ride btn-lg">
+                        Send Parcel Now <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+                <div class="hero-stats row g-4">
+                    <div class="col-4">
+                        <div class="stat-number">50K+</div>
+                        <div class="stat-label">Deliveries</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-number">4.9/5</div>
+                        <div class="stat-label">Rating</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Support</div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-    <div class="hero-content">
-        <div class="container">
-            <div class="row align-items-center">
-                <!-- Full Width Text Content Overlay -->
-                <div class="col-lg-6">
-                    <div class="hero-text-wrapper-left">
-                        <h1 class="hero-headline-primary">
-                            <span class="hero-word-1">FAST</span>
-                            <span class="hero-word-2">DELIVERY</span>
-                        </h1>
-                        <p class="hero-subtitle-secondary">
-                            <span class="hero-subtitle-word">TRUSTED</span>
-                            <span class="hero-subtitle-word">RELIABLE</span>
-                            <span class="hero-subtitle-word">AFFORDABLE</span>
-                        </p>
-                        <p class="hero-description mb-4">
-                            In Boxy we ensure our customers get deliveries quickly at the most affordable prices.
-                        </p>
-                        <div class="hero-cta-wrapper mb-5">
-                            <a href="{{ url_for('send_parcel') }}" class="btn-hero-cta">
-                                Send Parcel Now <i class="fas fa-arrow-right ms-2"></i>
-                            </a>
-                        </div>
-                        <div class="hero-stats row g-4">
-                            <div class="col-4">
-                                <div class="stat-number">50K+</div>
-                                <div class="stat-label">Deliveries</div>
-                            </div>
-                            <div class="col-4">
-                                <div class="stat-number">4.9/5</div>
-                                <div class="stat-label">Rating</div>
-                            </div>
-                            <div class="col-4">
-                                <div class="stat-number">24/7</div>
-                                <div class="stat-label">Support</div>
-                            </div>
+            <div class="col-lg-6">
+                <div class="hero-image-wrapper">
+                    <div class="hero-box-image">
+                        <div class="delivery-badge">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <div class="delivery-text">Delivered Today</div>
+                            <div class="delivery-number">2,847</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="hero-scroll-indicator">
-        <i class="fas fa-chevron-down"></i>
     </div>
 </section>
 
@@ -277,6 +271,7 @@
                 <h5 class="mb-3">Quick Links</h5>
                 <ul class="list-unstyled">
                     <li><a href="{{ url_for('index') }}" class="text-white-50 text-decoration-none">Home</a></li>
+                    <li><a href="{{ url_for('about') }}" class="text-white-50 text-decoration-none">About Us</a></li>
                     <li><a href="{{ url_for('send_parcel') }}" class="text-white-50 text-decoration-none">Send Parcel</a></li>
                     <li><a href="{{ url_for('track_parcel') }}" class="text-white-50 text-decoration-none">Track Parcel</a></li>
                     <li><a href="{{ url_for('admin') }}" class="text-white-50 text-decoration-none">Admin Login</a></li>
@@ -297,15 +292,15 @@
                 <ul class="list-unstyled">
                     <li class="mb-2">
                         <i class="fas fa-phone me-2"></i>
-                        <a href="tel:+15551234567" class="text-white-50 text-decoration-none">+1 (555) 123-4567</a>
+                        <a href="tel:+919876543210" class="text-white-50 text-decoration-none">+91 9876543210</a>
                     </li>
                     <li class="mb-2">
                         <i class="fas fa-envelope me-2"></i>
-                        <a href="mailto:support@boxy.com" class="text-white-50 text-decoration-none">support@boxy.com</a>
+                        <a href="mailto:support@boxy.com" class="text-white-50 text-decoration-none">boxyparceldelivery@gmail.com</a>
                     </li>
                     <li>
                         <i class="fas fa-map-marker-alt me-2"></i>
-                        <span class="text-white-50">123 Delivery Street, Logistics City, LC 12345</span>
+                        <span class="text-white-50">SIGNATURE-2, C-909, Sarkhej - Sanand Rd, Makarba, Sarkhej-Okaf, Ahmedabad, Gujarat 382210</span>
                     </li>
                 </ul>
             </div>
@@ -317,4 +312,3 @@
     </div>
 </footer>
 {% endblock %}
-
