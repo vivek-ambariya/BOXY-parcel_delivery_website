@@ -1044,6 +1044,22 @@ html {
     margin-top: 2rem;
 }
 
+/* Hero section (light background): stats in black so they're visible */
+.hero-section .hero-stats .stat-number,
+.hero-section .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #000;
+    text-shadow: none;
+}
+
+.hero-section .hero-stats .stat-label,
+.hero-section .stat-label {
+    font-size: 0.9rem;
+    color: #000;
+    margin-top: 0.25rem;
+}
+
 .stat-number {
     font-size: 2rem;
     font-weight: 700;
@@ -1815,6 +1831,39 @@ html {
     transition: var(--transition);
     border: 1px solid rgba(255, 255, 255, 0.25);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Trust section: solid white cards with black text so they're visible */
+.trust-stats-section .stat-card {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.trust-stats-section .stat-card:hover {
+    background: #fff;
+    border-color: rgba(0, 0, 0, 0.12);
+}
+
+.trust-stats-section .stat-card-number,
+.trust-stats-section .stat-card .stat-card-number {
+    color: #000 !important;
+}
+
+.trust-stats-section .stat-card-label,
+.trust-stats-section .stat-card .stat-card-label {
+    color: #000 !important;
+}
+
+.trust-stats-section .trust-section-title,
+.trust-stats-section .section-title {
+    color: #000 !important;
+}
+
+.trust-stats-section .trust-section-desc,
+.trust-stats-section .section-description {
+    color: #000 !important;
+    opacity: 1;
 }
 
 .stat-card:hover {
