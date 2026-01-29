@@ -358,6 +358,10 @@
                                                     <span>Extra Stops (<span id="extraStopsCount">0</span> × ₹15):</span>
                                                     <span id="extraStopsCost">₹0</span>
                                                 </div>
+                                                <div class="d-flex justify-content-between mb-2" id="carFeeRow" style="display: none !important;">
+                                                    <span>Car delivery:</span>
+                                                    <span id="carFeeCost">₹80</span>
+                                                </div>
                                                 <hr>
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <strong class="h5 mb-0">Total Estimated Price:</strong>
@@ -1769,7 +1773,8 @@ async function updateEstimatedCost() {
             body: JSON.stringify({
                 pickup_address: pickupAddress,
                 stops: stops,
-                weight: weight
+                weight: weight,
+                preferred_vehicle: document.getElementById('preferredVehicle').value
             })
         });
         
@@ -1794,6 +1799,14 @@ async function updateEstimatedCost() {
                 document.getElementById('extraStopsRow').style.display = 'none';
             }
             
+            // Show/hide car fee row
+            if (price.car_fee > 0) {
+                document.getElementById('carFeeCost').textContent = `₹${price.car_fee}`;
+                document.getElementById('carFeeRow').style.display = 'flex';
+            } else {
+                document.getElementById('carFeeRow').style.display = 'none';
+            }
+            
             // Update total
             document.getElementById('estimatedCost').textContent = `₹${price.total}`;
         } else {
@@ -1809,13 +1822,15 @@ async function updateEstimatedCost() {
 
 // Fallback price calculation (when API is not available)
 function calculateFallbackPrice(weight, numStops) {
+    const preferredVehicle = document.getElementById('preferredVehicle').value;
     const baseFare = 30;
     const estimatedDistance = 5 * numStops; // Estimate 5km per stop
     const distanceCost = estimatedDistance * 8;
     const weightCost = weight * 5;
     const extraStops = Math.max(0, numStops - 1);
     const extraStopCost = extraStops * 15;
-    const total = baseFare + distanceCost + weightCost + extraStopCost;
+    const carFee = preferredVehicle === 'car' ? 80 : 0;
+    const total = baseFare + distanceCost + weightCost + extraStopCost + carFee;
     
     document.getElementById('baseFare').textContent = '₹30';
     document.getElementById('distanceKm').textContent = estimatedDistance.toFixed(1);
@@ -1829,6 +1844,13 @@ function calculateFallbackPrice(weight, numStops) {
         document.getElementById('extraStopsRow').style.display = 'flex';
     } else {
         document.getElementById('extraStopsRow').style.display = 'none';
+    }
+    
+    if (carFee > 0) {
+        document.getElementById('carFeeCost').textContent = '₹80';
+        document.getElementById('carFeeRow').style.display = 'flex';
+    } else {
+        document.getElementById('carFeeRow').style.display = 'none';
     }
     
     document.getElementById('estimatedCost').textContent = `₹${total.toFixed(0)}`;
@@ -1967,9 +1989,10 @@ document.getElementById('sendParcelForm').addEventListener('submit', async funct
 });
 
 // Add event listeners for live price updates
-// Update cost when weight or stops change (pickup address comes from customer info)
+// Update cost when weight, preferred vehicle, or stops change (pickup address comes from customer info)
 document.getElementById('parcelWeight').addEventListener('input', debounce(updateEstimatedCost, 500));
 document.getElementById('parcelWeight').addEventListener('input', debounce(updateEstimatedCost, 300));
+document.getElementById('preferredVehicle').addEventListener('change', updateEstimatedCost);
 
 // Debounce function to limit API calls
 function debounce(func, wait) {

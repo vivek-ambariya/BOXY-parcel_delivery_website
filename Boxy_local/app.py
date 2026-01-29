@@ -631,11 +631,12 @@ def create_delivery():
             count = cursor.fetchone()[0]
             delivery_id = f"QP{count + 1:09d}"
             
-            # Calculate total amount
+            # Calculate total amount (include car fee if preferred vehicle is car)
             pickup_address = sender_address
             weight = float(data.get('parcelWeight', 0))
             total_distance = calculate_total_distance(pickup_address, stops)
-            price_breakdown = calculate_price(total_distance, weight, total_stops)
+            preferred_vehicle = (data.get('preferredVehicle') or '').strip() or None
+            price_breakdown = calculate_price(total_distance, weight, total_stops, preferred_vehicle)
             total_amount = price_breakdown['total']
             
             # Check if total_amount column exists
@@ -828,6 +829,7 @@ BASE_FARE = 30
 PRICE_PER_KM = 8
 PRICE_PER_KG = 5
 EXTRA_STOP_CHARGE = 15
+CAR_EXTRA_CHARGE = 80
 
 # Google Distance Matrix API Key (set in environment variable or config)
 GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY', '')
@@ -903,21 +905,23 @@ def calculate_total_distance(pickup_address, stops):
     
     return round(total_distance, 2)
 
-def calculate_price(distance, weight, num_stops):
+def calculate_price(distance, weight, num_stops, preferred_vehicle=None):
     """
     Calculate delivery price based on:
     - Base Fare: ₹30
     - Price per km: ₹8
     - Price per kg: ₹5
     - Extra stop charge: ₹15 per stop (after first stop)
+    - Car delivery: +₹80 when preferred_vehicle is 'car'
     """
     base_fare = BASE_FARE
     distance_cost = distance * PRICE_PER_KM
     weight_cost = weight * PRICE_PER_KG
     extra_stops = max(0, num_stops - 1)  # First stop is free
     extra_stop_cost = extra_stops * EXTRA_STOP_CHARGE
+    car_fee = CAR_EXTRA_CHARGE if (preferred_vehicle or '').lower() == 'car' else 0
     
-    total = base_fare + distance_cost + weight_cost + extra_stop_cost
+    total = base_fare + distance_cost + weight_cost + extra_stop_cost + car_fee
     
     return {
         'base_fare': base_fare,
@@ -928,6 +932,7 @@ def calculate_price(distance, weight, num_stops):
         'num_stops': num_stops,
         'extra_stops': extra_stops,
         'extra_stop_cost': round(extra_stop_cost, 2),
+        'car_fee': car_fee,
         'total': round(total, 2)
     }
 
@@ -948,8 +953,9 @@ def calculate_price_endpoint():
         # Calculate total distance
         total_distance = calculate_total_distance(pickup_address, stops)
         
-        # Calculate price
-        price_breakdown = calculate_price(total_distance, weight, len(stops))
+        # Calculate price (include car fee if preferred vehicle is car)
+        preferred_vehicle = (data.get('preferred_vehicle') or '').strip() or None
+        price_breakdown = calculate_price(total_distance, weight, len(stops), preferred_vehicle)
         
         return jsonify({
             'success': True,
@@ -1423,7 +1429,7 @@ def payment_page(tracking_id):
             cursor.execute("""
                 SELECT id, sender_name, sender_address, receiver_name, receiver_address,
                        total_amount, payment_status, payment_method, status, weight, 
-                       parcel_type, total_stops
+                       parcel_type, total_stops, preferred_vehicle
                 FROM deliveries WHERE id = %s
             """, (tracking_id,))
             delivery = cursor.fetchone()
@@ -1455,10 +1461,11 @@ def payment_page(tracking_id):
                 weight = float(delivery.get('weight', 0) or 0)
                 total_stops = delivery.get('total_stops', 1) or len(stops) or 1
                 
-                # Calculate total amount
+                # Calculate total amount (include car fee if preferred_vehicle is car)
                 pickup_address = delivery.get('sender_address', '')
                 total_distance = calculate_total_distance(pickup_address, stops)
-                price_breakdown = calculate_price(total_distance, weight, total_stops)
+                pref_vehicle = delivery.get('preferred_vehicle')
+                price_breakdown = calculate_price(total_distance, weight, total_stops, pref_vehicle)
                 calculated_amount = price_breakdown['total']
                 
                 # Update the delivery with calculated amount
