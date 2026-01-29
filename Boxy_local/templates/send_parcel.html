@@ -394,6 +394,30 @@
                                     </select>
                                 </div>
 
+                                <!-- Other specification (shown when type = Other) -->
+                                <div class="col-12 d-none" id="parcelOtherSpecWrap">
+                                    <label for="parcelOtherSpec" class="form-label">Specify what you are sending <span class="text-danger">*</span></label>
+                                    <textarea class="form-control form-control-lg" id="parcelOtherSpec" name="parcelOtherSpec" rows="2" placeholder="e.g. Clothing, Books, Kitchen items..."></textarea>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label for="parcelHeight" class="form-label">Height (cm) <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control form-control-lg" id="parcelHeight" name="parcelHeight" placeholder="cm" step="0.1" min="1" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="parcelWidth" class="form-label">Width (cm) <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control form-control-lg" id="parcelWidth" name="parcelWidth" placeholder="cm" step="0.1" min="1" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="preferredVehicle" class="form-label">Preferred delivery vehicle</label>
+                                    <select class="form-select form-select-lg" id="preferredVehicle" name="preferredVehicle">
+                                        <option value="bike">Bike</option>
+                                        <option value="scooter">Scooter</option>
+                                        <option value="car">Car</option>
+                                    </select>
+                                    <small class="text-muted d-block mt-1" id="vehicleSizeHint">Bike/Scooter: max 60×45 cm</small>
+                                </div>
+
                                 <!-- Submit Button -->
                                 <div class="col-12 mt-4">
                                     <div class="d-grid">
@@ -1833,6 +1857,24 @@ function collectStopsData() {
     return stops;
 }
 
+// Parcel type "Other" — show/hide specification box
+document.getElementById('parcelType').addEventListener('change', function() {
+    const wrap = document.getElementById('parcelOtherSpecWrap');
+    const specInput = document.getElementById('parcelOtherSpec');
+    if (this.value === 'other') {
+        wrap.classList.remove('d-none');
+        specInput.setAttribute('required', 'required');
+    } else {
+        wrap.classList.add('d-none');
+        specInput.removeAttribute('required');
+        specInput.value = '';
+    }
+});
+
+// Bike/Scooter max dimensions (cm)
+const BIKE_SCOOTER_MAX_HEIGHT = 60;
+const BIKE_SCOOTER_MAX_WIDTH = 45;
+
 // Form submission
 document.getElementById('sendParcelForm').addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -1850,10 +1892,34 @@ document.getElementById('sendParcelForm').addEventListener('submit', async funct
         return;
     }
     
+    const parcelType = document.getElementById('parcelType').value;
+    if (parcelType === 'other') {
+        const otherSpec = (document.getElementById('parcelOtherSpec').value || '').trim();
+        if (!otherSpec) {
+            alert('Please specify what you are sending when parcel type is "Other".');
+            document.getElementById('parcelOtherSpec').focus();
+            return;
+        }
+    }
+    
+    const preferredVehicle = document.getElementById('preferredVehicle').value;
+    const height = parseFloat(document.getElementById('parcelHeight').value) || 0;
+    const width = parseFloat(document.getElementById('parcelWidth').value) || 0;
+    
+    if (preferredVehicle === 'bike' || preferredVehicle === 'scooter') {
+        if (height > BIKE_SCOOTER_MAX_HEIGHT || width > BIKE_SCOOTER_MAX_WIDTH) {
+            alert(`For Bike/Scooter delivery, parcel size must not exceed ${BIKE_SCOOTER_MAX_HEIGHT} cm height and ${BIKE_SCOOTER_MAX_WIDTH} cm width. Your parcel (${height}×${width} cm) is too large. Please choose Car or reduce dimensions.`);
+            return;
+        }
+    }
+    
     const formData = {
-        // Sender info comes from logged-in customer (handled by backend)
-        parcelType: document.getElementById('parcelType').value,
+        parcelType: parcelType,
         parcelWeight: document.getElementById('parcelWeight').value,
+        parcelOtherSpec: parcelType === 'other' ? (document.getElementById('parcelOtherSpec').value || '').trim() : '',
+        parcelHeight: height,
+        parcelWidth: width,
+        preferredVehicle: preferredVehicle,
         stops: stops,
         totalStops: stops.length
     };
@@ -1880,6 +1946,7 @@ document.getElementById('sendParcelForm').addEventListener('submit', async funct
             // Reset form after 10 seconds
             setTimeout(function() {
                 document.getElementById('sendParcelForm').reset();
+                document.getElementById('parcelOtherSpecWrap').classList.add('d-none');
                 document.getElementById('successMessage').classList.add('d-none');
                 // Reset stops to 1
                 while (stopCount > 1) {

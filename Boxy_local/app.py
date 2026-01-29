@@ -604,6 +604,25 @@ def create_delivery():
                 if not stop.get('receiver_phone', '').strip():
                     return jsonify({'success': False, 'message': f'Receiver phone is required for stop {i+1}'}), 400
             
+            # Validate parcel type "other" has specification
+            parcel_type = data.get('parcelType', '')
+            if parcel_type == 'other' and not (data.get('parcelOtherSpec') or '').strip():
+                return jsonify({'success': False, 'message': 'Please specify what you are sending when parcel type is Other'}), 400
+            
+            # Bike/Scooter size limits (cm)
+            preferred_vehicle = (data.get('preferredVehicle') or '').lower()
+            if preferred_vehicle in ('bike', 'scooter'):
+                try:
+                    height = float(data.get('parcelHeight') or 0)
+                    width = float(data.get('parcelWidth') or 0)
+                except (TypeError, ValueError):
+                    height = width = 0
+                if height > 60 or width > 45:
+                    return jsonify({
+                        'success': False,
+                        'message': 'For Bike/Scooter delivery, parcel size must not exceed 60 cm height and 45 cm width. Please reduce dimensions or choose Car.'
+                    }), 400
+            
             cursor.close()
             cursor = conn.cursor()
             
@@ -714,6 +733,35 @@ def create_delivery():
                         cursor.execute("UPDATE deliveries SET sender_email = %s WHERE id = %s", (sender_email, delivery_id))
                 except:
                     pass  # Column doesn't exist yet, will be added by migration
+            
+            # Update optional parcel detail columns if they exist
+            parcel_other_spec = data.get('parcelOtherSpec') or None
+            parcel_height = data.get('parcelHeight')
+            parcel_width = data.get('parcelWidth')
+            preferred_vehicle = data.get('preferredVehicle') or None
+            if parcel_height is not None and parcel_height != '':
+                try:
+                    parcel_height = float(parcel_height)
+                except (TypeError, ValueError):
+                    parcel_height = None
+            else:
+                parcel_height = None
+            if parcel_width is not None and parcel_width != '':
+                try:
+                    parcel_width = float(parcel_width)
+                except (TypeError, ValueError):
+                    parcel_width = None
+            else:
+                parcel_width = None
+            try:
+                cursor.execute("SHOW COLUMNS FROM deliveries LIKE 'parcel_type_specification'")
+                if cursor.fetchone():
+                    cursor.execute(
+                        "UPDATE deliveries SET parcel_type_specification = %s, parcel_height = %s, parcel_width = %s, preferred_vehicle = %s WHERE id = %s",
+                        (parcel_other_spec, parcel_height, parcel_width, preferred_vehicle, delivery_id)
+                    )
+            except Exception:
+                pass
             
             # Insert all stops
             for stop in stops:

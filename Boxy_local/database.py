@@ -158,6 +158,23 @@ def init_database():
                 if "doesn't exist" not in str(e).lower():
                     print(f"Note: Could not check/add payment columns: {e}")
             
+            # Add parcel details columns (specification, dimensions, preferred vehicle) if they don't exist
+            for col_name, col_def in [
+                ('parcel_type_specification', 'TEXT NULL'),
+                ('parcel_height', 'DECIMAL(5,2) NULL'),
+                ('parcel_width', 'DECIMAL(5,2) NULL'),
+                ('preferred_vehicle', 'VARCHAR(20) NULL'),
+            ]:
+                try:
+                    cursor.execute(f"SHOW COLUMNS FROM deliveries LIKE '{col_name}'")
+                    if not cursor.fetchone():
+                        cursor.execute(f"ALTER TABLE deliveries ADD COLUMN {col_name} {col_def} AFTER weight")
+                        conn.commit()
+                        print(f"✓ Added '{col_name}' to deliveries table")
+                except Error as e:
+                    if "Duplicate column name" not in str(e):
+                        print(f"Note adding {col_name}: {e}")
+            
             # Check and update status ENUM to include 'completed' if it doesn't
             try:
                 # Use information_schema to check current ENUM values
