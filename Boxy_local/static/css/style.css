@@ -336,6 +336,14 @@ html {
     color: var(--text-dark) !important;
 }
 
+/* Brand name "Boxy" - stylish, professional typography */
+.brand-name {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: inherit;
+}
+
 .brand-icon {
     width: 40px;
     height: 40px;
