@@ -126,6 +126,15 @@
         text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     }
 
+    .landing-logo-icon img.landing-logo-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 6px;
+        filter: brightness(0) invert(1);
+        -webkit-filter: brightness(0) invert(1);
+    }
+
     .landing-logo-text {
         font-size: 1.5rem;
         font-weight: 700;
@@ -376,7 +385,7 @@
     <!-- Logo - Top Left -->
     <a href="{{ url_for('landing') }}" class="landing-logo">
         <div class="landing-logo-icon">
-            <i class="fas fa-box"></i>
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Boxy" class="landing-logo-img">
         </div>
         <span class="landing-logo-text">Boxy</span>
     </a>

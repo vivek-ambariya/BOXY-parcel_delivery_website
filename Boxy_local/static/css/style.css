@@ -349,6 +349,20 @@ html {
     box-shadow: var(--shadow-orange);
 }
 
+/* Logo image (replaces icon) - matching background so logo is visible */
+.brand-icon-logo {
+    padding: 6px;
+    background: var(--bg-white);
+    border: 2px solid var(--primary-orange);
+    box-shadow: var(--shadow-orange);
+}
+.brand-logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
 .nav-link {
     font-weight: 500;
     color: var(--text-dark) !important;
