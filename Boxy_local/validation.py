@@ -236,7 +236,7 @@ def validate_vehicle_type(vehicle_type):
     if not vehicle_type or not isinstance(vehicle_type, str):
         return False, "Vehicle type is required"
     
-    valid_types = ['bike', 'scooter', 'cycle', 'car']
+    valid_types = ['bike', 'scooter', 'car']
     vehicle_type = vehicle_type.lower().strip()
     
     if vehicle_type not in valid_types:
