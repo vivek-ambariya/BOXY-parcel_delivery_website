@@ -183,6 +183,11 @@ def get_partner_deliveries():
         with get_db_connection() as conn:
             cursor = conn.cursor(dictionary=True)
             
+            # Get partner's vehicle type (to filter available deliveries by preferred_vehicle)
+            cursor.execute("SELECT vehicle_type FROM partners WHERE id = %s", (partner_id,))
+            partner_row = cursor.fetchone()
+            partner_vehicle_type = (partner_row.get('vehicle_type') or '').strip().lower() if partner_row else ''
+            
             # Get partner's deliveries
             cursor.execute("""
                 SELECT id, sender_name, sender_address, receiver_name, receiver_address,
@@ -217,15 +222,31 @@ def get_partner_deliveries():
                     if isinstance(value, datetime):
                         delivery[key] = value.isoformat()
             
-            # Get available deliveries
-            cursor.execute("""
-                SELECT id, sender_name, sender_address, receiver_name, receiver_address,
-                       receiver_phone, parcel_type, weight, status, partner_id, total_stops,
-                       created_at, accepted_at, updated_at, delivered_at
-                FROM deliveries 
-                WHERE status = 'available'
-                ORDER BY created_at DESC
-            """)
+            # Get available deliveries: only show deliveries that match partner's vehicle type
+            # Car deliveries → only car partners; bike → only bike partners; scooter → only scooter partners.
+            # Deliveries with no preferred_vehicle are shown to all partners.
+            cursor.execute("SHOW COLUMNS FROM deliveries LIKE 'preferred_vehicle'")
+            has_preferred_vehicle = cursor.fetchone() is not None
+            
+            if has_preferred_vehicle:
+                cursor.execute("""
+                    SELECT id, sender_name, sender_address, receiver_name, receiver_address,
+                           receiver_phone, parcel_type, weight, status, partner_id, total_stops,
+                           created_at, accepted_at, updated_at, delivered_at, preferred_vehicle
+                    FROM deliveries 
+                    WHERE status = 'available'
+                      AND (COALESCE(preferred_vehicle, '') = '' OR LOWER(TRIM(preferred_vehicle)) = %s)
+                    ORDER BY created_at DESC
+                """, (partner_vehicle_type,))
+            else:
+                cursor.execute("""
+                    SELECT id, sender_name, sender_address, receiver_name, receiver_address,
+                           receiver_phone, parcel_type, weight, status, partner_id, total_stops,
+                           created_at, accepted_at, updated_at, delivered_at
+                    FROM deliveries 
+                    WHERE status = 'available'
+                    ORDER BY created_at DESC
+                """)
             available_deliveries = cursor.fetchall()
             
             # Get stops for available deliveries
@@ -274,7 +295,7 @@ def accept_delivery():
             
             # Check if delivery exists and is available
             cursor.execute("""
-                SELECT id, status FROM deliveries WHERE id = %s
+                SELECT id, status, preferred_vehicle FROM deliveries WHERE id = %s
             """, (delivery_id,))
             delivery = cursor.fetchone()
             
@@ -283,6 +304,18 @@ def accept_delivery():
             
             if delivery['status'] != 'available':
                 return jsonify({'success': False, 'message': 'Delivery is no longer available'}), 400
+            
+            # If delivery has preferred_vehicle, only allow partner whose vehicle_type matches
+            pref_vehicle = (delivery.get('preferred_vehicle') or '').strip().lower()
+            if pref_vehicle:
+                cursor.execute("SELECT vehicle_type FROM partners WHERE id = %s", (partner_id,))
+                partner_row = cursor.fetchone()
+                partner_vehicle = (partner_row.get('vehicle_type') or '').strip().lower() if partner_row else ''
+                if partner_vehicle != pref_vehicle:
+                    return jsonify({
+                        'success': False,
+                        'message': f'This delivery is for {pref_vehicle} only. Your vehicle type does not match.'
+                    }), 400
             
             # Assign delivery to partner
             cursor.execute("""
