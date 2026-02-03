@@ -7,7 +7,7 @@ import hmac
 import csv
 import io
 from datetime import datetime, timedelta
-from database import get_db_connection, init_database, get_dict_cursor
+from database import get_db_connection, init_database
 from config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET
 from email_service import send_confirmation_email, send_tracking_update, send_payment_receipt, send_password_reset_otp_email, send_registration_otp_email
 

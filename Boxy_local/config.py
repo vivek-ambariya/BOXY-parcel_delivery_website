@@ -1,6 +1,9 @@
 import os
 from dotenv import load_dotenv
 from pathlib import Path
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
+
 
 # Get the project root directory (parent of Boxy_local folder)
 project_root = Path(__file__).parent.parent
@@ -22,8 +25,8 @@ else:
 # Razorpay Configuration
 # Replace these with your actual Razorpay Test API keys from https://dashboard.razorpay.com/app/keys
 
-RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID', 'rzp_test_RwuSQ0jyjXIA9Y')  # Your Razorpay Test Key ID
-RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET', 'zhpYi4nu8bddc6eXuvLIWmgQ')    # Your Razorpay Test Key Secret
+RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID', 'rzp_test_RxIJSv9GAwVvv7')  # Your Razorpay Test Key ID
+RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET', 'bp4ldU7xwM3WLdJL4m7VfYLx')    # Your Razorpay Test Key Secret
 
 # Note: Never commit real keys to version control
 # For production, use environment variables in Render dashboard
