@@ -34,7 +34,7 @@ RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET', 'zhpYi4nu8bddc6eXuvLIWmgQ
 # SMTP_PASSWORD - Gmail App Password (not regular password)
 # To generate App Password: https://myaccount.google.com/apppasswords
 
-SMTP_EMAIL = os.getenv('SMTP_EMAIL', 'boxyparceldelivery@gmail.com')
+SMTP_EMAIL = os.getenv('SMTP_EMAIL', '')
 SMTP_PASSWORD = os.getenv('SMTP_PASSWORD', '')
 SMTP_SERVER = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
 SMTP_PORT = int(os.getenv('SMTP_PORT', '587'))
