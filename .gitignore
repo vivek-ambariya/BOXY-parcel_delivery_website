@@ -11,8 +11,6 @@ venv/
 .env
 # Razorpay config now uses environment variables, safe to commit
 # Boxy/config.py
-# Redundant directory (project uses Boxy_local only)
-Boxy/
 # Collaborator-added dirs (reverted), do not re-add
 BOXY-parcel_delivery_website/
 BOXY_BACKUP/
