@@ -1,3 +1,6 @@
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
+
 try:
     import mysql.connector
     from mysql.connector import Error
@@ -170,7 +173,7 @@ def init_database():
                     if not cursor.fetchone():
                         cursor.execute(f"ALTER TABLE deliveries ADD COLUMN {col_name} {col_def} AFTER weight")
                         conn.commit()
-                        print(f"✓ Added '{col_name}' to deliveries table")
+                        print(f" Added '{col_name}' to deliveries table")
                 except Error as e:
                     if "Duplicate column name" not in str(e):
                         print(f"Note adding {col_name}: {e}")
