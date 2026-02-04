@@ -10,6 +10,9 @@ from datetime import datetime, timedelta
 from database import get_db_connection, init_database
 from config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET
 from email_service import send_confirmation_email, send_tracking_update, send_payment_receipt, send_password_reset_otp_email, send_registration_otp_email
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
+
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
