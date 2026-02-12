@@ -1,0 +1,321 @@
+================================================================================
+                    BOXY - PARCEL DELIVERY WEBSITE
+                    Code Guide - From Basics
+================================================================================
+                    Written for easy understanding
+================================================================================
+
+
+================================================================================
+1. WHAT IS BOXY?
+================================================================================
+
+Boxy is a parcel delivery platform where:
+  - CUSTOMERS book parcel deliveries (send parcels)
+  - PARTNERS (delivery drivers) accept and deliver parcels
+  - ADMIN manages everything
+
+Think of it like a simplified version of Swiggy Genie or Dunzo - you book a 
+delivery, a partner picks it up, and you can track it.
+
+
+================================================================================
+2. TECH STACK (Technologies Used)
+================================================================================
+
+  Backend:     Python + Flask (web framework)
+  Database:    MySQL (stores partners, deliveries, customers)
+  Frontend:    HTML, CSS, JavaScript, Bootstrap 5
+  Payment:     Razorpay (online payments)
+  Email:       SMTP (Gmail) for confirmation emails
+
+
+================================================================================
+3. PROJECT STRUCTURE (Folders & Files)
+================================================================================
+
+  Boxy_local/
+  |
+  |-- app.py              Main application - ALL routes and logic (1900+ lines)
+  |-- config.py           Configuration - Razorpay keys, email settings
+  |-- database.py         Database connection and table creation
+  |-- database_schema.sql MySQL schema (tables structure)
+  |-- email_service.py    Sends emails (confirmation, tracking updates)
+  |-- validation.py       Validates user input (email, phone, etc.)
+  |
+  |-- templates/          HTML pages (Jinja2 templates)
+  |   |-- base.html       Common layout (navbar, footer, scripts)
+  |   |-- landing.html    First page users see
+  |   |-- index.html      Home page after landing
+  |   |-- send_parcel.html
+  |   |-- track_parcel.html
+  |   |-- about.html
+  |   |-- partner.html    Partner login/dashboard
+  |   |-- admin.html      Admin dashboard
+  |
+  |-- static/
+  |   |-- css/style.css   Styling
+  |   |-- js/main.js      Main JavaScript
+  |   |-- js/partner.js   Partner dashboard JavaScript
+  |   |-- images/         Logos, photos
+
+
+================================================================================
+4. HOW A REQUEST FLOWS (The Big Picture)
+================================================================================
+
+  1. User opens browser → goes to http://localhost:8000/
+  2. Flask (app.py) receives the request
+  3. Flask matches the URL to a route (e.g., '/' → landing function)
+  4. The route function runs and returns:
+     - Either HTML (render_template) 
+     - Or JSON (jsonify) for API calls
+  5. Browser receives the response and displays it
+
+
+================================================================================
+5. APP.PY - MAIN FILE EXPLAINED
+================================================================================
+
+  app.py is the heart of the application. It has:
+  - Page routes (return HTML)
+  - API routes (return JSON for AJAX/fetch calls)
+
+  ----------------------------
+  5.1 PAGE ROUTES (User sees HTML)
+  ----------------------------
+
+  /              → landing()        → landing.html (first page)
+  /home          → index()          → index.html
+  /about         → about()          → about.html
+  /send-parcel   → send_parcel()    → send_parcel.html
+  /track-parcel  → track_parcel()   → track_parcel.html
+  /admin         → admin()          → admin.html
+  /partner       → partner()        → partner.html
+
+  ----------------------------
+  5.2 API ROUTES (JavaScript calls these)
+  ----------------------------
+
+  PARTNER APIs:
+  -------------
+  POST /api/partner/register       → Register new delivery partner
+  POST /api/partner/login          → Partner login
+  POST /api/partner/logout         → Partner logout
+  GET  /api/partner/status         → Get partner online/offline status
+  POST /api/partner/status         → Update partner status (online/offline)
+  GET  /api/partner/deliveries     → Get my deliveries + available deliveries
+  POST /api/partner/accept-delivery → Accept a delivery
+  POST /api/partner/update-status  → Update delivery (picked, on_the_way, delivered)
+  POST /api/partner/deliver-stop   → Mark a stop as delivered (multi-stop)
+
+  CUSTOMER / TRACKING:
+  -------------------
+  GET  /api/deliveries/track/<id>  → Get delivery details by tracking ID
+  POST /api/deliveries/create      → Create new delivery (send parcel)
+  POST /api/calculate-price        → Calculate delivery price
+
+  CUSTOMER AUTH:
+  --------------
+  POST /api/customer/send-registration-otp    → Send OTP for registration
+  POST /api/customer/verify-registration-otp  → Verify OTP and register
+  POST /api/customer/login                    → Customer login
+  POST /api/customer/logout                   → Customer logout
+  POST /api/customer/forgot-password          → Send OTP for password reset
+  POST /api/customer/verify-otp               → Verify OTP
+  POST /api/customer/reset-password           → Reset password
+
+  ADMIN:
+  ------
+  POST /api/admin/login           → Admin login
+  POST /api/admin/logout          → Admin logout
+  GET  /api/admin/stats           → Dashboard statistics
+  GET  /api/admin/deliveries      → All deliveries
+  GET  /api/admin/partners        → All partners
+  GET  /api/admin/export/csv      → Export data as CSV
+
+  PAYMENT:
+  --------
+  POST /api/payment/create-order        → Create Razorpay order
+  POST /api/payment/razorpay-success    → Handle Razorpay success callback
+  POST /api/payment/select-cod/<id>     → Select Cash on Delivery
+
+
+================================================================================
+6. DATABASE SCHEMA (Tables)
+================================================================================
+
+  PARTNERS
+  --------
+  Stores delivery partners (drivers).
+  Fields: id, first_name, last_name, phone, email, vehicle_type, 
+          vehicle_number, aadhar, password, status (online/offline), approved
+
+  DELIVERIES
+  ----------
+  Stores parcel delivery bookings.
+  Fields: id (QP000000001), sender_name, sender_address, receiver_name,
+          receiver_address, receiver_phone, parcel_type, weight,
+          status (available→accepted→picked→on_the_way→delivered),
+          partner_id, total_amount, payment_status, payment_method, etc.
+
+  DELIVERY_STOPS
+  --------------
+  For multi-stop deliveries (one pickup, multiple drop points).
+  Fields: booking_id, stop_number, drop_address, receiver_name,
+          receiver_phone, status (pending/delivered)
+
+  CUSTOMERS
+  ---------
+  Stores registered customers (sender info for logged-in users).
+  Fields: id, first_name, last_name, phone, email, address, password
+
+
+================================================================================
+7. DELIVERY STATUS FLOW
+================================================================================
+
+  available   → Parcel is booked, waiting for partner to accept
+  accepted    → Partner has accepted the delivery
+  picked      → Partner has picked up the parcel
+  on_the_way  → Partner is traveling to delivery address
+  delivered   → Parcel delivered to customer
+  completed   → Same as delivered (sometimes used)
+
+
+================================================================================
+8. HELPER FILES EXPLAINED
+================================================================================
+
+  config.py
+  ---------
+  Loads environment variables from .env file.
+  - RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET (payment)
+  - SMTP_EMAIL, SMTP_PASSWORD (for sending emails)
+
+  database.py
+  -----------
+  - get_db_connection() : Context manager - opens MySQL connection, yields it,
+                          closes when done. Use: with get_db_connection() as conn:
+  - init_database()     : Creates tables if they don't exist (on app startup)
+
+  email_service.py
+  ----------------
+  - send_confirmation_email()   : After booking
+  - send_tracking_update()      : When status changes
+  - send_payment_receipt()      : After payment
+  - send_password_reset_otp_email()
+  - send_registration_otp_email()
+
+  validation.py
+  -------------
+  Pure validation functions. Each returns (is_valid: bool, error_message: str).
+  Examples: validate_email(), validate_phone(), validate_name(), 
+            validate_address(), validate_password(), validate_aadhar(), etc.
+
+
+================================================================================
+9. SEND PARCEL FLOW (Step by Step)
+================================================================================
+
+  1. Customer goes to /send-parcel
+  2. Customer must be logged in (session stores customer_id)
+  3. Fills form: receiver details, parcel type, weight, stops (multi-stop)
+  4. JavaScript calculates price via /api/calculate-price
+  5. On submit → POST /api/deliveries/create
+  6. Backend generates tracking ID (QP000000001)
+  7. Inserts into deliveries and delivery_stops tables
+  8. Sends confirmation email
+  9. Returns tracking ID to frontend
+  10. User can track at /track-parcel?tracking=QP000000001
+
+
+================================================================================
+10. PARTNER FLOW (Step by Step)
+================================================================================
+
+  1. Partner goes to /partner
+  2. Logs in via POST /api/partner/login
+  3. Sets status to "online" via POST /api/partner/status
+  4. Gets available deliveries via GET /api/partner/deliveries
+  5. Accepts one via POST /api/partner/accept-delivery
+  6. Updates status: picked → on_the_way → delivered
+     (For multi-stop: marks each stop delivered via /api/partner/deliver-stop)
+  7. When delivered, customer gets payment modal (pay online or COD)
+
+
+================================================================================
+11. PAYMENT FLOW
+================================================================================
+
+  When delivery status = 'delivered' and payment_status = 'pending':
+
+  1. Customer sees payment modal on track page
+  2. Option A - Pay Online:
+     - Frontend calls /api/payment/create-order
+     - Razorpay popup opens
+     - On success, frontend calls /api/payment/razorpay-success
+     - Backend verifies signature, updates payment_status to 'paid'
+  3. Option B - Cash on Delivery:
+     - Customer clicks COD
+     - Frontend calls /api/payment/select-cod/<tracking_id>
+     - Backend sets payment_status to 'pending_cash', payment_method to 'cash'
+
+
+================================================================================
+12. SESSION & AUTHENTICATION
+================================================================================
+
+  Flask uses sessions (stored in cookies, server-side).
+
+  - session['partner_id']   → Partner is logged in
+  - session['customer_id']  → Customer is logged in
+  - session['admin_id']     → Admin is logged in
+
+  Session is checked in API routes. If not logged in, returns 401 Unauthorized.
+
+
+================================================================================
+13. TEMPLATES (Jinja2)
+================================================================================
+
+  base.html defines:
+  - {% block title %} ... {% endblock %}
+  - {% block content %} ... {% endblock %}
+  - {% block extra_css %} ... {% endblock %}
+  - {% block extra_js %} ... {% endblock %}
+
+  Other templates extend base.html and fill these blocks.
+  Example: {% extends "base.html" %} {% block content %} ... {% endblock %}
+
+
+================================================================================
+14. QUICK REFERENCE - KEY FUNCTIONS IN APP.PY
+================================================================================
+
+  calculate_distance(origin, destination)  → Uses Google Distance Matrix API
+  calculate_total_distance(pickup, stops)  → Sum of distances for multi-stop
+  calculate_price(distance, weight, stops, vehicle) → Returns price breakdown
+  generate_csv(deliveries)                 → CSV export for admin
+
+
+================================================================================
+15. RUNNING THE APPLICATION
+================================================================================
+
+  1. Ensure MySQL is running (XAMPP or similar)
+  2. Create database: CREATE DATABASE Boxy;
+  3. Update database.py with your MySQL username/password
+  4. pip install -r requirements.txt
+  5. python app.py
+  6. Open http://localhost:8000
+
+  For production: Set environment variables for Razorpay keys, SMTP credentials.
+
+
+================================================================================
+                              END OF GUIDE
+================================================================================
+For more details, read the source code with this guide as reference.
+Start with app.py routes, then follow the flow into database.py and templates.
+================================================================================
